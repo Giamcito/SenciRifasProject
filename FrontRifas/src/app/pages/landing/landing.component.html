@@ -1,0 +1,101 @@
+<div class="landing-container">
+  <!-- Sección Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Bienvenido a SenciRifas</h2>
+      <p>La plataforma más segura para participar en rifas online</p>
+      <button class="btn btn-primary">Empieza ya</button>
+    </div>
+  </section>
+
+  <!-- Sección de Características -->
+  <section class="features">
+    <div class="section-container">
+      <h2>¿Por qué elegirnos?</h2>
+      <div class="features-grid">
+        <div class="feature-card" *ngFor="let feature of features">
+          <div class="feature-icon">{{ feature.icon }}</div>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección CTA (Call to Action) -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>¿Listo para empezar?</h2>
+      <p>Únete a miles de usuarios ganadores en SenciRifas</p>
+      <button class="btn btn-secondary">Registrarse ahora</button>
+    </div>
+  </section>
+
+  <!-- Sección de Testimonios -->
+  <section class="testimonials">
+    <div class="section-container">
+      <h2>Lo que dicen nuestros usuarios</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+          <div class="stars">
+            <span *ngFor="let i of [1,2,3,4,5]">⭐</span>
+          </div>
+          <p class="message">{{ testimonial.message }}</p>
+          <p class="author">- {{ testimonial.name }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Estadísticas -->
+  <section class="stats">
+    <div class="section-container">
+      <div class="stat">
+        <h3>10,000+</h3>
+        <p>Usuarios activos</p>
+      </div>
+      <div class="stat">
+        <h3>5M+</h3>
+        <p>En premios distribuidos</p>
+      </div>
+      <div class="stat">
+        <h3>500+</h3>
+        <p>Rifas completadas</p>
+      </div>
+      <div class="stat">
+        <h3>24/7</h3>
+        <p>Soporte disponible</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="section-container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>SenciRifas</h4>
+          <p>Tu plataforma de rifas segura y confiable</p>
+        </div>
+        <div class="footer-section">
+          <h4>Enlaces</h4>
+          <ul>
+            <li><a href="#">Inicio</a></li>
+            <li><a href="#">Características</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Términos de servicio</a></li>
+            <li><a href="#">Privacidad</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 SenciRifas. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+</div>
