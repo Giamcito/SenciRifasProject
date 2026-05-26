@@ -1,0 +1,66 @@
+<div class="features-page">
+  <!-- Hero Section -->
+  <section class="page-hero">
+    <div class="hero-content">
+      <h1>Nuestras Características</h1>
+      <p>Descubre por qué SenciRifas es la mejor plataforma para participar en rifas online</p>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-section">
+    <div class="section-container">
+      <div class="features-grid">
+        <div class="feature-card" *ngFor="let feature of features">
+          <div class="feature-icon">{{ feature.icon }}</div>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us Section -->
+  <section class="why-choose-us">
+    <div class="section-container">
+      <div class="why-content">
+        <div class="why-text">
+          <h2>¿Por qué elegirnos?</h2>
+          <ul>
+            <li>✓ Plataforma 100% legal y regulada</li>
+            <li>✓ Más de 10,000 usuarios activos confiando en nosotros</li>
+            <li>✓ Millones en premios distribuidos anualmente</li>
+            <li>✓ Tasa de satisfacción del 98% entre nuestros usuarios</li>
+            <li>✓ Rifas verificadas y sorteos públicos</li>
+            <li>✓ Retiros rápidos en 24-48 horas</li>
+          </ul>
+        </div>
+        <div class="why-image">
+          <div class="stats-box">
+            <div class="stat-item">
+              <h3>10K+</h3>
+              <p>Usuarios activos</p>
+            </div>
+            <div class="stat-item">
+              <h3>5M+</h3>
+              <p>En premios</p>
+            </div>
+            <div class="stat-item">
+              <h3>500+</h3>
+              <p>Rifas completadas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="section-container">
+      <h2>¿Listo para comenzar?</h2>
+      <p>Únete ahora y participa en nuestras increíbles rifas</p>
+      <button class="btn btn-primary">Crear cuenta gratis</button>
+    </div>
+  </section>
+</div>
