@@ -49,7 +49,7 @@
 .method-card {
   background: white;
   padding: 2rem;
-  border-radius: 10px;
+  border-radius: 15px;
   text-align: center;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
@@ -126,7 +126,7 @@
 .form-group textarea {
   padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 15px;
   font-family: Arial, sans-serif;
   font-size: 1rem;
   transition: border-color 0.3s ease;
@@ -149,7 +149,7 @@
 .info-box {
   background: #e8f8f5;
   padding: 1.5rem;
-  border-radius: 10px;
+  border-radius: 15px;
   border-left: 4px solid #27ae60;
 }
 
@@ -188,7 +188,7 @@
 .map-placeholder {
   background: linear-gradient(135deg, #ddd 0%, #ccc 100%);
   padding: 6rem 2rem;
-  border-radius: 10px;
+  border-radius: 15px;
   text-align: center;
   color: white;
 }
@@ -221,7 +221,7 @@
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 15px;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
