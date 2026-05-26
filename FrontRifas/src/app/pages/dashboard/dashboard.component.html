@@ -1,15 +1,6 @@
 <div class="dashboard-container">
   <div class="dashboard-header">
     <h1>Bienvenido al Dashboard</h1>
-    <p *ngIf="user">{{ user.nombre }}</p>
-  </div>
-
-  <div class="session-timer-container">
-    <div class="session-timer">
-      <p class="timer-label">⏱️ Tiempo restante de sesión:</p>
-      <p class="timer-display">{{ timeRemaining }}</p>
-      <p class="timer-info">Tu sesión expirará automáticamente</p>
-    </div>
   </div>
 
   <div class="dashboard-content">
@@ -21,32 +12,28 @@
 
     <div class="dashboard-sections">
       <div class="section-card">
-        <h3>📊 Mis Rifas</h3>
-        <p>Ver todas tus rifas activas y completadas</p>
-        <button class="btn btn-primary">Ver Rifas</button>
+        <h3>📊 Crear Rifas</h3>
+        <p>Crea un nueva rifa en cuestión de minutos</p>
+        <button class="btn btn-primary">Crear Rifa</button>
       </div>
 
       <div class="section-card">
-        <h3>🎟️ Mis Boletos</h3>
-        <p>Administra tus boletos y participaciones</p>
-        <button class="btn btn-primary">Ver Boletos</button>
+        <h3>🔎 Consultas</h3>
+        <p>Realiza consultas sobre tus rifas, pagos y abonos</p>
+        <button class="btn btn-primary">Realizar Consulta</button>
       </div>
 
       <div class="section-card">
-        <h3>💰 Billetera</h3>
-        <p>Controla tu saldo y transacciones</p>
-        <button class="btn btn-primary">Ver Billetera</button>
+        <h3>💰 Venta de Boletos</h3>
+        <p>Administra la venta y distribución de boletos para tus rifas</p>
+        <button class="btn btn-primary">Gestionar Venta</button>
       </div>
 
       <div class="section-card">
-        <h3>⚙️ Configuración</h3>
-        <p>Actualiza tu perfil y preferencias</p>
-        <button class="btn btn-primary">Ir a Configuración</button>
+        <h3>⚙️ Edicion de datos</h3>
+        <p>Actualiza datos de ventas, abonos y pagos</p>
+        <button class="btn btn-primary">Actualizar Datos</button>
       </div>
     </div>
-  </div>
-
-  <div class="dashboard-footer">
-    <button class="btn btn-secondary" (click)="logout()">Cerrar Sesión</button>
   </div>
 </div>

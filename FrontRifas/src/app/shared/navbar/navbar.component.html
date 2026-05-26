@@ -9,9 +9,22 @@
       <a routerLink="/contact" routerLinkActive="active">Contacto</a>
     </nav>
 
-    <div class="auth-buttons">
+    <!-- Contador de sesión si hay sesión iniciada -->
+    <div class="session-timer-navbar" *ngIf="currentUser$ | async">
+      <span class="timer-icon">⏱️</span>
+      <span class="timer-text">{{ timeRemaining }}</span>
+    </div>
+
+    <!-- Si NO hay sesión iniciada -->
+    <div class="auth-buttons" *ngIf="!(currentUser$ | async)">
       <a routerLink="/login" class="btn btn-login">Iniciar sesión</a>
       <a routerLink="/register" class="btn btn-register">Registrarse</a>
+    </div>
+
+    <!-- Si SÍ hay sesión iniciada -->
+    <div class="auth-buttons" *ngIf="currentUser$ | async as user">
+      <a routerLink="/dashboard" class="btn btn-dashboard">Dashboard</a>
+      <button class="btn btn-logout" (click)="logout()">Cerrar sesión</button>
     </div>
   </div>
 </header>
