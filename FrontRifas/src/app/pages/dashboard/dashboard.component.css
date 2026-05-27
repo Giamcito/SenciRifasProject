@@ -1,12 +1,226 @@
-.dashboard-container {
-  min-height: 100vh;
-  padding: 2rem;
+.dashboard-wrapper {
+  display: flex;
+  min-height: calc(100vh - 100px);
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  margin-top: -2rem;
+  padding-top: 2rem;
+  position: relative;
+}
+
+/* Hamburger Button */
+.hamburger-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background: white;
+  border: 2px solid #27ae60;
+  border-radius: 8px;
+  padding: 0.75rem;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+  background-color: #f0f8f5;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background-color: #27ae60;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 100px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  width: 280px;
+  background: white;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem 0;
+  overflow-y: auto;
+  border-right: 3px solid #27ae60;
+  transition: all 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #ecf0f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  color: #27ae60;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.close-sidebar-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.close-sidebar-btn:hover {
+  color: #27ae60;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 1rem;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background-color: #f0f8f5;
+  color: #27ae60;
+  transform: translateX(5px);
+}
+
+.menu-item.active {
+  background-color: #27ae60;
+  color: white;
+  border-left: 4px solid #1e8449;
+  padding-left: calc(1.5rem - 4px);
+}
+
+.menu-icon {
+  font-size: 1.3rem;
+}
+
+.menu-text {
+  flex: 1;
+}
+
+.sidebar-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e0e0e0 50%, transparent);
+  margin: 1.5rem 1rem;
+  border: none;
+}
+
+/* Menu Sections (Desplegables) */
+.menu-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 1rem;
+  border-radius: 8px;
+  text-align: left;
+  font-weight: bold;
+}
+
+.menu-header:hover {
+  background-color: #f0f8f5;
+  color: #27ae60;
+}
+
+.toggle-arrow {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.toggle-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.submenu.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.submenu .menu-item {
+  margin: 0;
+  padding: 0.75rem 1.5rem 0.75rem 3.5rem;
+  border-radius: 0;
+}
+
+.submenu .menu-item:hover {
+  background-color: #f0f8f5;
+  color: #27ae60;
+  transform: none;
+}
+
+.submenu .menu-item.active {
+  background-color: #e8f8f0;
+  color: #27ae60;
+  border-left: 4px solid #27ae60;
+}
+
+/* Main Content */
+.dashboard-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
 }
 
 .dashboard-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   color: #333;
 }
 
@@ -16,14 +230,8 @@
   color: #27ae60;
 }
 
-.dashboard-header p {
-  font-size: 1.2rem;
-  color: #666;
-}
-
 .dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
 }
 
 .welcome-card {
@@ -51,43 +259,31 @@
   font-weight: bold;
 }
 
-.dashboard-sections {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.section-card {
+.section-content {
   background: white;
   border-radius: 15px;
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 5px solid #27ae60;
+  min-height: 300px;
 }
 
-.section-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-}
-
-.section-card h3 {
+.content-section h2 {
   color: #27ae60;
   margin-bottom: 1rem;
-  font-size: 1.3rem;
+  font-size: 1.8rem;
 }
 
-.section-card p {
+.content-section p {
   color: #666;
   margin-bottom: 1.5rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 15px;
+  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -101,42 +297,197 @@
 
 .btn-primary:hover {
   background-color: #229954;
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
-.btn-secondary {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #c0392b;
-}
-
-.dashboard-footer {
-  text-align: center;
-  margin-top: 3rem;
-}
-
+/* Responsive */
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 1rem;
+  .dashboard-wrapper {
+    flex-direction: column;
+    min-height: auto;
+    position: relative;
+  }
+
+  /* Mostrar hamburger button en móviles */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Sidebar en móviles */
+  .dashboard-sidebar {
+    position: fixed;
+    top: 100px;
+    left: -280px;
+    height: calc(100vh - 100px);
+    width: 280px;
+    border-right: 3px solid #27ae60;
+    border-bottom: none;
+    padding: 2rem 0;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+
+  .dashboard-sidebar.open {
+    left: 0;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Mostrar overlay cuando sidebar está abierto */
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-header {
+    padding: 0 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .close-sidebar-btn {
+    display: block;
+  }
+
+  .dashboard-main {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    margin-top: 3rem;
   }
 
   .dashboard-header h1 {
     font-size: 1.8rem;
   }
 
-  .dashboard-sections {
-    grid-template-columns: 1fr;
+  .menu-item {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
   }
 
-  .session-timer {
-    min-width: auto;
-    width: 100%;
+  .menu-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
   }
 
-  .timer-display {
-    font-size: 2rem;
+  .menu-text {
+    font-size: 0.9rem;
+  }
+
+  .menu-header {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .submenu .menu-item {
+    padding-left: 2rem;
+    font-size: 0.85rem;
+  }
+
+  .section-content {
+    padding: 1.5rem;
+  }
+
+  .welcome-card {
+    padding: 1.5rem;
+  }
+
+  .content-section h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hamburger-btn {
+    padding: 0.5rem;
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .hamburger-line {
+    width: 20px;
+    height: 2.5px;
+  }
+
+  .dashboard-sidebar {
+    width: 260px;
+  }
+
+  .sidebar-header {
+    padding: 0 1.5rem;
+  }
+
+  .sidebar-header h3 {
+    font-size: 1rem;
+  }
+
+  .menu-item {
+    padding: 0.6rem 0.8rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    margin: 0 0.5rem;
+  }
+
+  .menu-icon {
+    font-size: 1rem;
+  }
+
+  .menu-header {
+    padding: 0.6rem 0.8rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    margin: 0 0.5rem;
+  }
+
+  .submenu .menu-item {
+    padding-left: 2rem;
+    font-size: 0.8rem;
+  }
+
+  .dashboard-main {
+    margin-top: 2.5rem;
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .welcome-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .welcome-card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-card p {
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+  }
+
+  .section-content {
+    padding: 1rem;
+    min-height: 200px;
+  }
+
+  .content-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .content-section p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
 }

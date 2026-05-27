@@ -12,6 +12,10 @@ import { AuthService } from '../../services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   user: any;
+  activeSection: string = 'crear'; // Sección activa por defecto
+  expandedRifas: boolean = true; // Menú de Rifas expandido por defecto
+  expandedVendedores: boolean = false; // Menú de Vendedores contraído por defecto
+  sidebarOpen: boolean = false; // Sidebar cerrado en móviles por defecto
 
   constructor(
     private authService: AuthService,
@@ -25,6 +29,22 @@ export class DashboardComponent implements OnInit {
       }
       this.user = user;
     });
+  }
+
+  toggleRifas(): void {
+    this.expandedRifas = !this.expandedRifas;
+  }
+
+  toggleVendedores(): void {
+    this.expandedVendedores = !this.expandedVendedores;
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen = false;
   }
 
   logout(): void {
