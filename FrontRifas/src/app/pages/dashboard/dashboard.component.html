@@ -17,6 +17,15 @@
     </div>
     
     <nav class="sidebar-menu">
+      <!-- Botón Volver al Dashboard -->
+      <a routerLink="/dashboard" class="menu-item home-btn" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeSidebar()">
+        <span class="menu-icon">🏠</span>
+        <span class="menu-text">Dashboard</span>
+      </a>
+
+      <!-- Divisor -->
+      <div class="sidebar-divider"></div>
+
       <!-- Sección Gestión de Rifas -->
       <div class="menu-section">
         <button class="menu-header" (click)="toggleRifas()">
@@ -26,25 +35,25 @@
         </button>
         
         <div class="submenu" [class.expanded]="expandedRifas">
-          <button class="menu-item" [class.active]="activeSection === 'crear'" (click)="activeSection = 'crear'; closeSidebar()">
+          <a routerLink="crear-rifas" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
             <span class="menu-icon">📊</span>
             <span class="menu-text">Crear Rifas</span>
-          </button>
+          </a>
           
-          <button class="menu-item" [class.active]="activeSection === 'consultas'" (click)="activeSection = 'consultas'; closeSidebar()">
+          <a routerLink="administrar-rifas" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
             <span class="menu-icon">⚙️</span>
             <span class="menu-text">Administrar Rifas</span>
-          </button>
+          </a>
           
-          <button class="menu-item" [class.active]="activeSection === 'boletos'" (click)="activeSection = 'boletos'; closeSidebar()">
+          <a routerLink="venta-boletos" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
             <span class="menu-icon">💰</span>
             <span class="menu-text">Venta de Boletos</span>
-          </button>
+          </a>
           
-          <button class="menu-item" [class.active]="activeSection === 'datos'" (click)="activeSection = 'datos'; closeSidebar()">
+          <a routerLink="consultar-datos" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
             <span class="menu-icon">🔎</span>
             <span class="menu-text">Consultar Datos</span>
-          </button>
+          </a>
         </div>
       </div>
 
@@ -60,15 +69,15 @@
         </button>
         
         <div class="submenu" [class.expanded]="expandedVendedores">
-          <button class="menu-item" [class.active]="activeSection === 'crear-vendedor'" (click)="activeSection = 'crear-vendedor'; closeSidebar()">
-            <span class="menu-icon">➕</span>
+          <a routerLink="crear-vendedor" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
+            <span class="menu-icon">👤</span>
             <span class="menu-text">Crear Vendedor</span>
-          </button>
+          </a>
           
-          <button class="menu-item" [class.active]="activeSection === 'administrar-vendedor'" (click)="activeSection = 'administrar-vendedor'; closeSidebar()">
-            <span class="menu-icon">🗄️</span>
-            <span class="menu-text">Administrar Vendedores</span>
-          </button>
+          <a routerLink="administrar-vendedor" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
+            <span class="menu-icon">👥</span>
+            <span class="menu-text">Administrar Vendedor</span>
+          </a>
         </div>
       </div>
     </nav>
@@ -77,59 +86,13 @@
   <!-- Main Content -->
   <main class="dashboard-main">
     <div class="dashboard-header">
-      <h1>Bienvenido al Dashboard</h1>
+      <h1>¡Bienvenido {{ user?.nombre }}!</h1>
     </div>
 
     <div class="dashboard-content">
-      <div class="welcome-card">
-        <h2>¡Hola {{ user?.nombre }}!</h2>
-        <p>Email: {{ user?.email }}</p>
-        <p class="welcome-message">Gracias por elegir SenciRifas</p>
-      </div>
-
-      <!-- Secciones dinámicas según activeSection -->
+      <!-- Router Outlet para cargar componentes dinámicamente -->
       <div class="section-content">
-        <!-- Crear Rifas -->
-        <div class="content-section" *ngIf="activeSection === 'crear'">
-          <h2>📊 Crear Rifas</h2>
-          <p>Crea una nueva rifa en cuestión de minutos</p>
-          <button class="btn btn-primary">Crear Rifa</button>
-        </div>
-
-        <!-- Consultas -->
-        <div class="content-section" *ngIf="activeSection === 'consultas'">
-          <h2>🔎 Consultas</h2>
-          <p>Realiza consultas sobre tus rifas, pagos y abonos</p>
-          <button class="btn btn-primary">Realizar Consulta</button>
-        </div>
-
-        <!-- Venta de Boletos -->
-        <div class="content-section" *ngIf="activeSection === 'boletos'">
-          <h2>💰 Venta de Boletos</h2>
-          <p>Administra la venta y distribución de boletos para tus rifas</p>
-          <button class="btn btn-primary">Gestionar Venta</button>
-        </div>
-
-        <!-- Edición de datos -->
-        <div class="content-section" *ngIf="activeSection === 'datos'">
-          <h2>⚙️ Edición de datos</h2>
-          <p>Actualiza datos de ventas, abonos y pagos</p>
-          <button class="btn btn-primary">Actualizar Datos</button>
-        </div>
-
-        <!-- Crear Vendedor -->
-        <div class="content-section" *ngIf="activeSection === 'crear-vendedor'">
-          <h2>👤 Crear Vendedor</h2>
-          <p>Registra un nuevo vendedor en tu plataforma</p>
-          <button class="btn btn-primary">Crear Vendedor</button>
-        </div>
-
-        <!-- Administrar Vendedor -->
-        <div class="content-section" *ngIf="activeSection === 'administrar-vendedor'">
-          <h2>👥 Administrar Vendedor</h2>
-          <p>Gestiona los vendedores registrados en tu plataforma</p>
-          <button class="btn btn-primary">Administrar Vendedores</button>
-        </div>
+        <router-outlet></router-outlet>
       </div>
     </div>
   </main>

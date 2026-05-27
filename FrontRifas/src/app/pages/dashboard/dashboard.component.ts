@@ -1,18 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
   user: any;
-  activeSection: string = 'crear'; // Sección activa por defecto
   expandedRifas: boolean = true; // Menú de Rifas expandido por defecto
   expandedVendedores: boolean = false; // Menú de Vendedores contraído por defecto
   sidebarOpen: boolean = false; // Sidebar cerrado en móviles por defecto

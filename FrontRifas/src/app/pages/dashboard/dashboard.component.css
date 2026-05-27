@@ -109,6 +109,8 @@
   margin: 0 1rem;
   border-radius: 8px;
   text-align: left;
+  text-decoration: none;
+  font-family: inherit;
 }
 
 .menu-item:hover {
