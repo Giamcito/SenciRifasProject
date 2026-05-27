@@ -1,5 +1,131 @@
 <div class="content-section">
-  <h2>👥 Administrar Vendedor</h2>
+  <h2>👥 Administrar Vendedores</h2>
   <p>Gestiona los vendedores registrados en tu plataforma</p>
-  <button class="btn btn-primary">Administrar Vendedores</button>
+
+  <!-- Mensajes -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <p>Cargando vendedores...</p>
+  </div>
+
+  <!-- Tabla de vendedores -->
+  <div *ngIf="!loading" class="vendedores-container">
+    <div *ngIf="vendedores.length === 0" class="empty-state">
+      <p>No hay vendedores registrados aún</p>
+      <p class="hint">Crea tu primer vendedor desde la sección "Crear Vendedor"</p>
+    </div>
+
+    <div *ngIf="vendedores.length > 0" class="table-wrapper">
+      <table class="vendedores-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Parte del Dinero</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Fila normal o en edición -->
+          <tr *ngFor="let vendedor of vendedores" [class.editing]="editingId === vendedor.id">
+            <!-- Vista normal -->
+            <ng-container *ngIf="editingId !== vendedor.id">
+              <td class="nombre">{{ vendedor.nombre }}</td>
+              <td>{{ vendedor.numeroCelular || '-' }}</td>
+              <td class="direccion">{{ vendedor.direccion || '-' }}</td>
+              <td class="dinero">{{ vendedor.parteDelDinero | number: '1.2-2' }}</td>
+              <td class="acciones">
+                <button class="btn-edit" (click)="iniciarEdicion(vendedor)" title="Editar">
+                  ✏️
+                </button>
+                <button 
+                  class="btn-delete" 
+                  (click)="eliminarVendedor(vendedor.id!, vendedor.nombre)"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </td>
+            </ng-container>
+
+            <!-- Modo edición -->
+            <ng-container *ngIf="editingId === vendedor.id && editForm">
+              <td colspan="5" class="edit-row">
+                <div class="edit-form">
+                  <form [formGroup]="editForm" class="inline-form">
+                    <div class="form-inline">
+                      <div class="form-group-inline">
+                        <label>Nombre</label>
+                        <input 
+                          type="text" 
+                          formControlName="nombre" 
+                          class="form-control-inline"
+                          [class.error]="editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched"
+                        />
+                      </div>
+
+                      <div class="form-group-inline">
+                        <label>Teléfono</label>
+                        <input 
+                          type="tel" 
+                          formControlName="numeroCelular" 
+                          class="form-control-inline"
+                          [class.error]="editForm.get('numeroCelular')?.invalid && editForm.get('numeroCelular')?.touched"
+                        />
+                      </div>
+
+                      <div class="form-group-inline">
+                        <label>Dirección</label>
+                        <input 
+                          type="text" 
+                          formControlName="direccion" 
+                          class="form-control-inline"
+                        />
+                      </div>
+
+                      <div class="form-group-inline">
+                        <label>Parte del Dinero</label>
+                        <input 
+                          type="number" 
+                          formControlName="parteDelDinero" 
+                          class="form-control-inline"
+                          [class.error]="editForm.get('parteDelDinero')?.invalid && editForm.get('parteDelDinero')?.touched"
+                        />
+                      </div>
+
+                      <div class="form-actions">
+                        <button 
+                          type="button" 
+                          class="btn-save" 
+                          (click)="guardarCambios()"
+                          [disabled]="editForm.invalid"
+                        >
+                          ✓ Guardar
+                        </button>
+                        <button 
+                          type="button" 
+                          class="btn-cancel" 
+                          (click)="cancelarEdicion()"
+                        >
+                          ✕ Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
