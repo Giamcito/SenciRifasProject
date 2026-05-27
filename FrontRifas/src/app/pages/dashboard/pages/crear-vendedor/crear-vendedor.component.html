@@ -1,0 +1,114 @@
+<div class="content-section">
+  <!-- Header -->
+  <div class="section-header">
+    <h2>👤 Crear Vendedor</h2>
+    <p>Registra un nuevo vendedor en tu plataforma</p>
+  </div>
+
+  <!-- Mensajes de éxito y error -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+  </div>
+
+  <!-- Contenedor del formulario -->
+  <div class="form-container">
+    <form [formGroup]="form" (ngSubmit)="crearVendedor()" class="vendedor-form">
+      <!-- Sección: Información Personal -->
+      <fieldset class="form-section">
+        <legend class="section-title">Información Personal</legend>
+        
+        <div class="form-row">
+          <!-- Campo Nombre -->
+          <div class="form-group col-6">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input
+              type="text"
+              id="nombre"
+              formControlName="nombre"
+              placeholder="Ej: Juan Pérez"
+              class="form-control"
+              [class.error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
+            />
+            <span class="error-message" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+              {{ getErrorMessage('nombre') }}
+            </span>
+          </div>
+
+          <!-- Campo Teléfono -->
+          <div class="form-group col-6">
+            <label for="numeroCelular">Teléfono <span class="optional">(Opcional)</span></label>
+            <input
+              type="tel"
+              id="numeroCelular"
+              formControlName="numeroCelular"
+              placeholder="Ej: 3105551234"
+              class="form-control"
+              [class.error]="form.get('numeroCelular')?.invalid && form.get('numeroCelular')?.touched"
+            />
+            <span class="error-message" *ngIf="form.get('numeroCelular')?.invalid && form.get('numeroCelular')?.touched">
+              {{ getErrorMessage('numeroCelular') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Campo Dirección -->
+        <div class="form-group">
+          <label for="direccion">Dirección <span class="optional">(Opcional)</span></label>
+          <input
+            type="text"
+            id="direccion"
+            formControlName="direccion"
+            placeholder="Ej: Calle 123 #45, Apartamento 6B, Ciudad"
+            class="form-control"
+          />
+        </div>
+      </fieldset>
+
+      <!-- Sección: Información Financiera -->
+      <fieldset class="form-section">
+        <legend class="section-title">Información Financiera</legend>
+        
+        <div class="form-group">
+          <label for="parteDelDinero">Parte del Dinero <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <input
+              type="number"
+              id="parteDelDinero"
+              formControlName="parteDelDinero"
+              placeholder="Ej: 50000"
+              class="form-control"
+              [class.error]="form.get('parteDelDinero')?.invalid && form.get('parteDelDinero')?.touched"
+            />
+          </div>
+          <span class="help-text">Ingresa el monto que recibirá este vendedor</span>
+          <span class="error-message" *ngIf="form.get('parteDelDinero')?.invalid && form.get('parteDelDinero')?.touched">
+            {{ getErrorMessage('parteDelDinero') }}
+          </span>
+        </div>
+      </fieldset>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="loading || form.invalid"
+        >
+          <span *ngIf="!loading">✓ Crear Vendedor</span>
+          <span *ngIf="loading">Creando...</span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="limpiar()"
+          [disabled]="loading"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
