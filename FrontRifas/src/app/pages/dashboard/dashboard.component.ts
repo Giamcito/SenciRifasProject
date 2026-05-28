@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { SidebarService } from '../../services/sidebar.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,12 +16,15 @@ export class DashboardComponent implements OnInit {
   user: any;
   expandedRifas: boolean = true; // Menú de Rifas expandido por defecto
   expandedVendedores: boolean = false; // Menú de Vendedores contraído por defecto
-  sidebarOpen: boolean = false; // Sidebar cerrado en móviles por defecto
+  sidebarOpen$: Observable<boolean>; // Observable del estado del sidebar
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private sidebarService: SidebarService
+  ) {
+    this.sidebarOpen$ = this.sidebarService.sidebarOpen$;
+  }
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((user) => {
@@ -39,11 +44,11 @@ export class DashboardComponent implements OnInit {
   }
 
   toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
+    this.sidebarService.toggleSidebar();
   }
 
   closeSidebar(): void {
-    this.sidebarOpen = false;
+    this.sidebarService.closeSidebar();
   }
 
   logout(): void {

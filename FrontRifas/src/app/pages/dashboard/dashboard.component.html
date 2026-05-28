@@ -1,16 +1,9 @@
 <div class="dashboard-wrapper">
-  <!-- Botón Hamburguesa (solo en móviles) -->
-  <button class="hamburger-btn" (click)="toggleSidebar()">
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
-  </button>
-
   <!-- Overlay (para cerrar sidebar al hacer clic afuera en móviles) -->
-  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="closeSidebar()"></div>
+  <div class="sidebar-overlay" *ngIf="sidebarOpen$ | async" (click)="closeSidebar()"></div>
 
   <!-- Sidebar -->
-  <aside class="dashboard-sidebar" [class.open]="sidebarOpen">
+  <aside class="dashboard-sidebar" [class.open]="sidebarOpen$ | async">
     <div class="sidebar-header">
       <h3>Menú</h3>
       <button class="close-sidebar-btn" (click)="closeSidebar()">✕</button>

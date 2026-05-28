@@ -1,5 +1,12 @@
 <header class="navbar">
   <div class="navbar-content">
+    <!-- Hamburguesa del sidebar (solo en móviles) -->
+    <button class="navbar-hamburger-menu" (click)="toggleSidebar()" *ngIf="currentUser$ | async">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
     <h1 class="logo">SenciRifas</h1>
     
     <nav class="nav-links">
@@ -26,5 +33,22 @@
       <a routerLink="/dashboard" class="btn btn-dashboard">Dashboard</a>
       <button class="btn btn-logout" (click)="logout()">Cerrar sesión</button>
     </div>
+
+    <!-- Hamburguesa del menú de usuario (solo en móviles) -->
+    <button class="navbar-user-menu" (click)="toggleUserMenu()" *ngIf="currentUser$ | async">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+
+  <!-- Menú de usuario desplegable (solo en móviles) -->
+  <div class="navbar-user-dropdown" *ngIf="(currentUser$ | async) && userMenuOpen">
+    <a routerLink="/" class="dropdown-item" (click)="userMenuOpen = false">🏠 Inicio</a>
+    <a routerLink="/features" class="dropdown-item" (click)="userMenuOpen = false">✨ Características</a>
+    <a routerLink="/about" class="dropdown-item" (click)="userMenuOpen = false">ℹ️ Sobre nosotros</a>
+    <a routerLink="/contact" class="dropdown-item" (click)="userMenuOpen = false">📞 Contacto</a>
+    <a routerLink="/dashboard" class="dropdown-item" (click)="userMenuOpen = false">📊 Dashboard</a>
+    <button class="dropdown-item" (click)="logout()">🚪 Cerrar sesión</button>
   </div>
 </header>
