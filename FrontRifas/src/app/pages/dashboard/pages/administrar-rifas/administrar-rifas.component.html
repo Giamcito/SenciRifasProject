@@ -1,5 +1,90 @@
 <div class="content-section">
-  <h2>⚙️ Administrar Rifas</h2>
-  <p>Realiza consultas sobre tus rifas, pagos y abonos</p>
-  <button class="btn btn-primary">Realizar Consulta</button>
+  <h2>Administrar Rifas</h2>
+  <p>Visualiza y edita tus rifas creadas</p>
+
+  <!-- Alertas -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    Cargando rifas...
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && rifas.length === 0">
+    <p>No has creado ninguna rifa aún</p>
+    <p class="hint">Crea tu primera rifa para comenzar</p>
+  </div>
+
+  <!-- Tabla de Rifas -->
+  <div class="vendedores-container" *ngIf="!loading && rifas.length > 0">
+    <div class="table-wrapper">
+      <table class="vendedores-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Boletos</th>
+            <th>Cifras</th>
+            <th>Valor c/u</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Fila de datos -->
+          <tr *ngFor="let rifa of rifas" [class.editing]="editingId === rifa.id">
+            <!-- Nombre -->
+            <td *ngIf="editingId !== rifa.id" class="nombre">{{ rifa.nombre }}</td>
+            <td *ngIf="editingId === rifa.id" class="edit-row">
+              <input type="text" [(ngModel)]="editingData.nombre" class="form-control-inline" />
+            </td>
+
+            <!-- Cantidad de Boletos -->
+            <td *ngIf="editingId !== rifa.id">{{ rifa.cantidadBoletos }}</td>
+            <td *ngIf="editingId === rifa.id" class="edit-row">
+              <input type="text" [(ngModel)]="editingData.cantidadBoletos" class="form-control-inline" inputmode="numeric" />
+            </td>
+
+            <!-- Cifras -->
+            <td *ngIf="editingId !== rifa.id" class="cifras">{{ obtenerCantidadCifras(rifa.cantidadBoletos) }}</td>
+            <td *ngIf="editingId === rifa.id" class="cifras">{{ obtenerCantidadCifras(editingData.cantidadBoletos) }}</td>
+
+            <!-- Valor Boleto -->
+            <td *ngIf="editingId !== rifa.id" class="dinero">{{ formatoMoneda(rifa.valorBoleto) }}</td>
+            <td *ngIf="editingId === rifa.id" class="edit-row">
+              <input type="number" [(ngModel)]="editingData.valorBoleto" class="form-control-inline" step="0.01" />
+            </td>
+
+            <!-- Total -->
+            <td *ngIf="editingId !== rifa.id" class="dinero">
+              {{ formatoMoneda(rifa.cantidadBoletos * rifa.valorBoleto) }}
+            </td>
+            <td *ngIf="editingId === rifa.id" class="dinero">
+              {{ formatoMoneda(editingData.cantidadBoletos * editingData.valorBoleto) }}
+            </td>
+
+            <!-- Acciones -->
+            <td>
+              <div class="acciones" *ngIf="editingId !== rifa.id">
+                <button class="btn-edit" (click)="editarRifa(rifa)" title="Editar">✏️</button>
+                <button class="btn-delete" (click)="eliminarRifa(rifa.id)" title="Eliminar">🗑️</button>
+              </div>
+
+              <div class="form-actions" *ngIf="editingId === rifa.id">
+                <button class="btn-save" (click)="guardarEdicion()">💾</button>
+                <button class="btn-cancel" (click)="cancelarEdicion()">❌</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
