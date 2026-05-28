@@ -125,13 +125,17 @@
   justify-content: center;
 }
 
-.btn-edit, .btn-delete {
+.btn-view, .btn-edit, .btn-delete {
   background: none;
   border: none;
   font-size: 1.2rem;
   cursor: pointer;
   transition: transform 0.2s ease;
   padding: 0.25rem 0.5rem;
+}
+
+.btn-view:hover {
+  transform: scale(1.18);
 }
 
 .btn-edit:hover {

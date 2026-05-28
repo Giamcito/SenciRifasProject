@@ -72,6 +72,7 @@
             <!-- Acciones -->
             <td>
               <div class="acciones" *ngIf="editingId !== rifa.id">
+                <button class="btn-view" (click)="verRifa(rifa.id)" title="Ver">👁️</button>
                 <button class="btn-edit" (click)="editarRifa(rifa)" title="Editar">✏️</button>
                 <button class="btn-delete" (click)="eliminarRifa(rifa.id)" title="Eliminar">🗑️</button>
               </div>

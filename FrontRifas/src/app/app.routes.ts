@@ -11,6 +11,7 @@ import { CrearRifasComponent } from './pages/dashboard/pages/crear-rifas/crear-r
 import { CrearVendedorComponent } from './pages/dashboard/pages/crear-vendedor/crear-vendedor.component';
 import { RifasPreviewComponent } from './pages/dashboard/pages/rifas-preview/rifas-preview.component';
 import { VentaBoletosComponent } from './pages/dashboard/pages/venta-boletos/venta-boletos.component';
+import { VisualizarRifasComponent } from './pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component';
 import { FeaturesComponent } from './pages/features/features.component';
 import { LandingComponent } from './pages/landing/landing.component';
 
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: '', component: RifasPreviewComponent },
       { path: 'crear-rifas', component: CrearRifasComponent },
       { path: 'administrar-rifas', component: AdministrarRifasComponent },
+      { path: 'visualizar-rifas/:id', component: VisualizarRifasComponent },
       { path: 'venta-boletos', component: VentaBoletosComponent },
       { path: 'consultar-datos', component: ConsultarDatosComponent },
       { path: 'crear-vendedor', component: CrearVendedorComponent },

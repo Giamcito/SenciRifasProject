@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Rifa } from '../../../../models/rifa';
 import { RifaService } from '../../../../services/rifa.service';
 
@@ -19,7 +20,7 @@ export class AdministrarRifasComponent implements OnInit {
   editingId: number | null = null;
   editingData: any = {};
 
-  constructor(private rifaService: RifaService) {}
+  constructor(private rifaService: RifaService, private router: Router) {}
 
   ngOnInit(): void {
     this.cargarRifas();
@@ -90,6 +91,10 @@ export class AdministrarRifasComponent implements OnInit {
         this.error = 'Error al eliminar la rifa';
       }
     });
+  }
+
+  verRifa(rifaId: number): void {
+    this.router.navigate(['/dashboard/visualizar-rifas', rifaId]);
   }
 
   obtenerCantidadCifras(cantidad: number): number {
