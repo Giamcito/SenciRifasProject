@@ -1,0 +1,153 @@
+<div class="content-section">
+  <div class="header-volver">
+    <button class="btn-volver" (click)="volver()">← Volver</button>
+  </div>
+
+  <!-- Título -->
+  <h2>{{ rifa?.nombre }}</h2>
+  <p class="descripcion" *ngIf="rifa">Visualiza el estado de venta de todos los boletos</p>
+
+  <!-- Alertas -->
+  <div class="alert alert-success" *ngIf="success">
+    {{ success }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    Cargando datos...
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!loading && rifa && estadisticas">
+    <!-- Información de la Rifa -->
+    <div class="rifa-info">
+      <div class="info-card">
+        <div class="label">Cifras</div>
+        <div class="value">{{ rifa.cantidadBoletos.toString().length }} cifras</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Valor c/u</div>
+        <div class="value">{{ formatoMoneda(rifa.valorBoleto) }}</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Total Potencial</div>
+        <div class="value">{{ formatoMoneda(rifa.cantidadBoletos * rifa.valorBoleto) }}</div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="estadisticas-container">
+      <div class="estadistica-card disponibles">
+        <div class="numero">{{ estadisticas.disponibles }}</div>
+        <div class="label">Disponibles</div>
+        <div class="porcentaje">{{ ((estadisticas.disponibles / estadisticas.total) * 100).toFixed(1) }}%</div>
+      </div>
+
+      <div class="estadistica-card vendidos">
+        <div class="numero">{{ estadisticas.vendidos }}</div>
+        <div class="label">Vendidos</div>
+        <div class="porcentaje">{{ ((estadisticas.vendidos / estadisticas.total) * 100).toFixed(1) }}%</div>
+      </div>
+
+      <div class="estadistica-card abonados">
+        <div class="numero">{{ estadisticas.abonados }}</div>
+        <div class="label">Abonados</div>
+        <div class="porcentaje">{{ ((estadisticas.abonados / estadisticas.total) * 100).toFixed(1) }}%</div>
+      </div>
+
+      <div class="estadistica-card total">
+        <div class="numero">{{ estadisticas.total }}</div>
+        <div class="label">Total de Boletos</div>
+      </div>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress-bar">
+      <div class="progress-fill disponibles" [style.width]="((estadisticas.disponibles / estadisticas.total) * 100) + '%'" title="Disponibles"></div>
+      <div class="progress-fill vendidos" [style.width]="((estadisticas.vendidos / estadisticas.total) * 100) + '%'" title="Vendidos"></div>
+      <div class="progress-fill abonados" [style.width]="((estadisticas.abonados / estadisticas.total) * 100) + '%'" title="Abonados"></div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="filtros-container">
+      <div class="filtro-grupo">
+        <label>Filtrar por Estado:</label>
+        <select [(ngModel)]="filtroEstado" class="select-filtro">
+          <option value="TODOS">Todos</option>
+          <option value="DISPONIBLE">Disponibles</option>
+          <option value="VENDIDO">Vendidos</option>
+          <option value="ABONADO">Abonados</option>
+        </select>
+      </div>
+
+      <div class="filtro-grupo">
+        <label>Buscar Boleto:</label>
+        <input type="text" [(ngModel)]="busquedaNumero" class="input-busqueda" placeholder="Ej: 001, 523..." />
+      </div>
+
+      <div class="contador">
+        Mostrando {{ obtenerBoletosFiltrados().length }} de {{ boletos.length }} boletos
+      </div>
+    </div>
+
+    <!-- Tabla/Grid de Boletos -->
+    <div class="boletos-grid-container">
+      <div *ngIf="obtenerBoletosFiltrados().length === 0" class="empty-state">
+        <p>No hay boletos con los filtros seleccionados</p>
+      </div>
+
+      <div class="boletos-grid">
+        <div *ngFor="let boleto of obtenerBoletosFiltrados()" 
+             class="boleto-card" 
+             [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
+             [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
+             [class.abonado]="boleto.estadoVenta === 'ABONADO'">
+          
+          <div class="boleto-numero">{{ boleto.numero }}</div>
+          
+          <div class="boleto-estado">
+            <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(boleto.estadoVenta)">
+              {{ boleto.estadoVenta }}
+            </span>
+          </div>
+
+          <div class="boleto-info">
+            <small *ngIf="boleto.compradorEmail">
+              <strong>Comprador:</strong> {{ boleto.compradorEmail }}
+            </small>
+            <small *ngIf="boleto.fechaVenta">
+              <strong>Fecha:</strong> {{ boleto.fechaVenta | date: 'dd/MM/yyyy HH:mm' }}
+            </small>
+          </div>
+
+          <div class="boleto-acciones">
+            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE'" 
+                    class="btn-accion btn-vender"
+                    (click)="marcarVendido(boleto)"
+                    title="Marcar como vendido">
+              💰 Vender
+            </button>
+
+            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE'" 
+                    class="btn-accion btn-abonar"
+                    (click)="cambiarEstado(boleto, 'ABONADO')"
+                    title="Abonar">
+              💳 Abonar
+            </button>
+
+            <button *ngIf="boleto.estadoVenta === 'ABONADO'" 
+                    class="btn-accion btn-cancelar"
+                    (click)="cambiarEstado(boleto, 'DISPONIBLE')"
+                    title="Cancelar reserva">
+              ❌ Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

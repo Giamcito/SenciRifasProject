@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { SidebarService } from '../../services/sidebar.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,9 +15,14 @@ import { AuthService } from '../../services/auth.service';
 export class NavbarComponent implements OnInit, OnDestroy {
   currentUser$: Observable<any>;
   timeRemaining: string = '';
+  userMenuOpen: boolean = false;
   private intervalId: any;
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private sidebarService: SidebarService
+  ) {
     this.currentUser$ = this.authService.currentUser$;
   }
 
@@ -61,6 +67,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+    this.userMenuOpen = false;
     this.router.navigate(['/']);
+  }
+
+  toggleSidebar(): void {
+    this.sidebarService.toggleSidebar();
+  }
+
+  toggleUserMenu(): void {
+    this.userMenuOpen = !this.userMenuOpen;
   }
 }

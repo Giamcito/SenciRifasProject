@@ -1,0 +1,606 @@
+.content-section {
+  padding: 2rem 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.header-volver {
+  margin-bottom: 1.5rem;
+}
+
+.btn-volver {
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-volver:hover {
+  background-color: #7f8c8d;
+  transform: translateX(-3px);
+}
+
+/* Título y descripción */
+.content-section h2 {
+  color: #27ae60;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.descripcion {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* Alertas */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+}
+
+/* Información de la Rifa */
+.rifa-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.info-card .label {
+  color: #999;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.info-card .value {
+  color: #27ae60;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Estadísticas */
+.estadisticas-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.estadistica-card {
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.estadistica-card:hover {
+  transform: translateY(-5px);
+}
+
+.estadistica-card.disponibles {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.estadistica-card.vendidos {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.estadistica-card.abonados {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.estadistica-card.total {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.estadistica-card .numero {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.estadistica-card .label {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.estadistica-card .porcentaje {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+}
+
+/* Barra de progreso */
+.progress-bar {
+  display: flex;
+  height: 30px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 600;
+}
+
+.progress-fill.disponibles {
+  background-color: #27ae60;
+}
+
+.progress-fill.vendidos {
+  background-color: #e74c3c;
+}
+
+.progress-fill.abonados {
+  background-color: #f39c12;
+}
+
+/* Filtros */
+.filtros-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filtro-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.filtro-grupo label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.select-filtro,
+.input-busqueda {
+  padding: 0.6rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.select-filtro:focus,
+.input-busqueda:focus {
+  outline: none;
+  border-color: #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+.contador {
+  color: #999;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+/* Grid de Boletos */
+.boletos-grid-container {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boletos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.boleto-card {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.boleto-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.boleto-card.disponible {
+  border-color: #27ae60;
+  background: #f0f8f5;
+}
+
+.boleto-card.vendido {
+  border-color: #e74c3c;
+  background: #ffe6e6;
+  opacity: 0.8;
+}
+
+.boleto-card.abonado {
+  border-color: #f39c12;
+  background: #fff9e6;
+}
+.boleto-card.abonado {
+  border-color: #f39c12;
+  background: #fff9e6;
+}
+
+.boleto-card.cancelado {
+  border-color: #95a5a6;
+  background: #f4f4f4;
+  opacity: 0.9;
+}
+
+.boleto-numero {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+.progress-fill.cancelado {
+  background-color: #95a5a6;
+}
+}
+
+.boleto-estado {
+  margin-bottom: 0.75rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.boleto-info {
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.boleto-info small {
+  display: block;
+  margin: 0.3rem 0;
+}
+
+.boleto-acciones {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.75rem;
+  flex-direction: column;
+}
+
+.btn-accion {
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-vender {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-vender:hover {
+  background-color: #229954;
+}
+
+.btn-abonar {
+  background-color: #f39c12;
+  color: white;
+}
+
+.btn-abonar:hover {
+  background-color: #e67e22;
+}
+
+.btn-cancelar {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-cancelar:hover {
+  background-color: #7f8c8d;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsivo - Tablet (máximo 1024px) */
+@media (max-width: 1024px) {
+  .content-section h2 {
+    font-size: 1.6rem;
+  }
+
+  .rifa-info {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .estadisticas-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .boletos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.875rem;
+  }
+
+  .filtros-container {
+    gap: 1rem;
+  }
+}
+
+/* Responsivo - Mobile (máximo 768px) */
+@media (max-width: 768px) {
+  .content-section {
+    padding: 1rem 0.75rem;
+  }
+
+  .content-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .rifa-info {
+    grid-template-columns: 1fr;
+  }
+
+  .estadisticas-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .estadistica-card {
+    padding: 1rem;
+  }
+
+  .estadistica-card .numero {
+    font-size: 1.6rem;
+  }
+
+  .progress-bar {
+    height: 25px;
+    margin-bottom: 1.5rem;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .filtro-grupo {
+    width: 100%;
+  }
+
+  .select-filtro,
+  .input-busqueda {
+    width: 100%;
+  }
+
+  .boletos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .boleto-numero {
+    font-size: 1.4rem;
+  }
+
+  .boleto-card {
+    padding: 0.75rem;
+  }
+
+  .btn-accion {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+/* Responsivo - Mobile pequeño (máximo 480px) */
+@media (max-width: 480px) {
+  .content-section {
+    padding: 0.75rem;
+  }
+
+  .btn-volver {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .content-section h2 {
+    font-size: 1.2rem;
+  }
+
+  .descripcion {
+    font-size: 0.9rem;
+  }
+
+  .alert {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .rifa-info {
+    gap: 0.5rem;
+  }
+
+  .info-card {
+    padding: 1rem;
+  }
+
+  .info-card .value {
+    font-size: 1.2rem;
+  }
+
+  .estadisticas-container {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .estadistica-card {
+    padding: 0.8rem;
+  }
+
+  .estadistica-card .numero {
+    font-size: 1.4rem;
+  }
+
+  .progress-bar {
+    height: 20px;
+  }
+
+  .filtros-container {
+    gap: 0.5rem;
+  }
+
+  .filtro-grupo label {
+    font-size: 0.8rem;
+  }
+
+  .select-filtro,
+  .input-busqueda {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  .contador {
+    font-size: 0.75rem;
+  }
+
+  .boletos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .boleto-card {
+    padding: 0.6rem;
+  }
+
+  .boleto-numero {
+    font-size: 1.1rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .boleto-info small {
+    font-size: 0.7rem;
+  }
+
+  .btn-accion {
+    font-size: 0.65rem;
+    padding: 0.3rem 0.4rem;
+  }
+}
+
+/* Extra pequeño (máximo 360px) */
+@media (max-width: 360px) {
+  .content-section h2 {
+    font-size: 1.1rem;
+  }
+
+  .estadisticas-container {
+    grid-template-columns: 1fr;
+  }
+
+  .boletos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .boleto-numero {
+    font-size: 0.95rem;
+  }
+
+  .boleto-acciones {
+    gap: 0.2rem;
+  }
+}

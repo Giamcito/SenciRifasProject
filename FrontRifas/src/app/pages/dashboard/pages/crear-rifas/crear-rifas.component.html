@@ -1,5 +1,104 @@
 <div class="content-section">
-  <h2>📊 Crear Rifas</h2>
-  <p>Crea una nueva rifa en cuestión de minutos</p>
-  <button class="btn btn-primary">Crear Rifa</button>
+  <h2>Crear Nueva Rifa</h2>
+  <p>Completa los datos para crear una nueva rifa</p>
+
+  <!-- Alertas -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Formulario -->
+  <div class="form-container">
+    <form [formGroup]="form" (ngSubmit)="crearRifa()">
+      <!-- Información de la Rifa -->
+      <fieldset class="form-section">
+        <legend>INFORMACIÓN DE LA RIFA</legend>
+        
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre">Nombre de la Rifa *</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            class="form-control"
+            [class.error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
+            placeholder="Ej: Rifa del Colegio"
+          />
+          <small class="error-text" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+            {{ getErrorMessage('nombre') }}
+          </small>
+        </div>
+
+        <!-- Cantidad de Boletos -->
+        <div class="form-group">
+          <label for="cantidadBoletos">Cantidad de Boletos *</label>
+          <input
+            type="text"
+            id="cantidadBoletos"
+            formControlName="cantidadBoletos"
+            class="form-control"
+            [class.error]="form.get('cantidadBoletos')?.invalid && form.get('cantidadBoletos')?.touched"
+            placeholder="Ej: 10000"
+            inputmode="numeric"
+          />
+          <small class="error-text" *ngIf="form.get('cantidadBoletos')?.invalid && form.get('cantidadBoletos')?.touched">
+            {{ getErrorMessage('cantidadBoletos') }}
+          </small>
+        </div>
+
+        <!-- Cifras (Calculado) -->
+        <div class="form-group info-field">
+          <label>Cifras de cada Boleto</label>
+          <div class="info-value" *ngIf="form.get('cantidadBoletos')?.value">
+            {{ form.get('cantidadBoletos')?.value.toString().length }} cifras
+            <span class="example-hint">(Ej: {{ '0'.repeat(form.get('cantidadBoletos')?.value.toString().length - 1) }}0 a {{ '9'.repeat(form.get('cantidadBoletos')?.value.toString().length) }})</span>
+          </div>
+          <div class="info-value" *ngIf="!form.get('cantidadBoletos')?.value">
+            Ingresa cantidad de boletos
+          </div>
+        </div>
+
+        <!-- Valor del Boleto -->
+        <div class="form-group">
+          <label for="valorBoleto">Valor de cada Boleto *</label>
+          <input
+            type="number"
+            id="valorBoleto"
+            formControlName="valorBoleto"
+            class="form-control"
+            [class.error]="form.get('valorBoleto')?.invalid && form.get('valorBoleto')?.touched"
+            placeholder="Ej: 5000"
+            step="0.01"
+          />
+          <small class="error-text" *ngIf="form.get('valorBoleto')?.invalid && form.get('valorBoleto')?.touched">
+            {{ getErrorMessage('valorBoleto') }}
+          </small>
+        </div>
+      </fieldset>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="form.invalid || loading"
+        >
+          {{ loading ? 'Creando...' : 'Crear Rifa' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="limpiar()"
+          [disabled]="loading"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
