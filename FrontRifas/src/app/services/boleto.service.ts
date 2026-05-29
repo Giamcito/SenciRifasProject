@@ -34,6 +34,22 @@ export class BoletoService {
   }
 
   /**
+   * Obtener boletos sin token (endpoint público temporal)
+   */
+  obtenerBoletosPublico(rifaId: number): Observable<Boleto[]> {
+    return this.http.get<Boleto[]>(`${this.apiUrl}/public/${rifaId}/boletos`);
+  }
+
+  /**
+   * Obtener un boleto por número con autenticación
+   */
+  obtenerBoletoPorNumero(rifaId: number, numero: string): Observable<Boleto> {
+    return this.http.get<Boleto>(`${this.apiUrl}/${rifaId}/boletos/numero/${encodeURIComponent(numero)}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
    * Obtener estadísticas de una rifa
    */
   obtenerEstadisticas(rifaId: number): Observable<Estadisticas> {
@@ -57,9 +73,42 @@ export class BoletoService {
   /**
    * Actualizar estado de un boleto
    */
-  actualizarBoleto(boletoId: number, datos: { estadoVenta: string; compradorEmail?: string }): Observable<Boleto> {
+  actualizarBoleto(rifaId: number, boletoId: number, datos: { estadoVenta: string; vendedorId?: number; vendedorNombre?: string; compradorNombre?: string; compradorTelefono?: string }): Observable<Boleto> {
     return this.http.put<Boleto>(
-      `${this.apiUrl}/boletos/${boletoId}`,
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}`,
+      datos,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Abonar parcial a un boleto
+   */
+  abonarBoleto(rifaId: number, boletoId: number, datos: { vendedorId?: number; vendedorNombre?: string; monto: number; compradorNombre?: string; compradorTelefono?: string }): Observable<Boleto> {
+    return this.http.post<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/abono`,
+      datos,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Pagar completo un boleto
+   */
+  pagarBoleto(rifaId: number, boletoId: number, datos: { vendedorId?: number; vendedorNombre?: string; compradorNombre?: string; compradorTelefono?: string }): Observable<Boleto> {
+    return this.http.post<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/pago`,
+      datos,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Asignar propietario/vendedor sin cambiar el estado de venta
+   */
+  asignarPropietario(rifaId: number, boletoId: number, datos: { vendedorId?: number; vendedorNombre?: string }): Observable<Boleto> {
+    return this.http.put<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/propietario`,
       datos,
       { headers: this.getHeaders() }
     );

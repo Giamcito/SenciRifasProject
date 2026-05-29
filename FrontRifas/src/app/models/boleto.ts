@@ -5,10 +5,14 @@ export interface Boleto {
   rifaId?: number;
   numero: string;
   estadoVenta: EstadoVenta;
-  compradorEmail?: string | null;
+  vendedorId?: number | null;
+  vendedorNombre?: string | null;
+  compradorNombre?: string | null;
+  compradorTelefono?: string | null;
   fechaVenta?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  montoAbonado?: number;
 }
 
 export interface Estadisticas {
