@@ -1,5 +1,172 @@
-<div class="content-section">
-  <h2>💰 Venta de Boletos</h2>
-  <p>Administra la venta y distribución de boletos para tus rifas</p>
-  <button class="btn btn-primary">Gestionar Venta</button>
+<div class="venta-boletos">
+  <div class="venta-hero">
+    <div>
+      <p class="eyebrow">Gestión de tickets</p>
+      <h2>Venta / Abono de Boletos</h2>
+      <p class="hero-copy">Busca un boleto y completa la venta o el abono desde una vista más limpia y consistente con el resto del panel.</p>
+    </div>
+    <div class="hero-chip" *ngIf="rifaId && rifa">
+      <span>{{ rifa.nombre }}</span>
+      <strong>{{ rifa.cantidadBoletos }} boletos</strong>
+    </div>
+  </div>
+
+  <div class="alert alert-success" *ngIf="success">
+    {{ success }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div class="venta-grid">
+    <section class="panel-card search-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-kicker">1. Selección</p>
+          <h3>Buscar boleta</h3>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="rifaSelect">Rifa</label>
+        <select id="rifaSelect" name="rifa" [(ngModel)]="rifaId" (change)="seleccionarRifa()">
+          <option [ngValue]="undefined">-- Seleccionar Rifa --</option>
+          <option *ngFor="let r of rifas" [ngValue]="r.id">{{ r.nombre }} ({{ r.cantidadBoletos }} boletos)</option>
+        </select>
+      </div>
+
+      <div class="search-row">
+        <div class="field-group grow">
+          <label for="numeroInput">Número</label>
+          <input id="numeroInput" name="numero" autocomplete="off" [(ngModel)]="numeroBuscar" placeholder="Ingrese número" />
+        </div>
+        <button type="button" class="btn-search" (click)="buscar()">Buscar</button>
+      </div>
+
+      <div *ngIf="notFound" class="inline-warning">
+        Boleto no encontrado para la rifa seleccionada.
+      </div>
+
+      <div *ngIf="rifaId" class="search-hint">
+        <strong>Búsqueda optimizada:</strong> se consulta solo el número ingresado, sin cargar todos los boletos.
+      </div>
+
+      <div class="quick-stats" *ngIf="rifa">
+        <div class="stat-chip">
+          <span>Valor c/u</span>
+          <strong>{{ formatoMoneda(rifa.valorBoleto) }}</strong>
+        </div>
+        <div class="stat-chip">
+          <span>Total boletos</span>
+          <strong>{{ rifa.cantidadBoletos }}</strong>
+        </div>
+        <div class="stat-chip">
+          <span>Cifras</span>
+          <strong>{{ cifras }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-card detail-panel" *ngIf="selectedBoleto; else emptyState">
+      <div class="panel-head detail-head">
+        <div>
+          <p class="panel-kicker">2. Registro</p>
+          <h3>Boleto {{ selectedBoleto.numero }}</h3>
+        </div>
+        <span class="status-pill" [style.backgroundColor]="selectedBoleto.estadoVenta === 'VENDIDO' ? '#e74c3c' : (selectedBoleto.estadoVenta === 'ABONADO' ? '#f39c12' : '#27ae60')">
+          {{ selectedBoleto.estadoVenta }}
+        </span>
+      </div>
+
+      <div class="detail-summary">
+        <div class="summary-item">
+          <span>Estado</span>
+          <strong>{{ selectedBoleto.estadoVenta }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Monto abonado</span>
+          <strong>{{ selectedBoleto.montoAbonado || 0 }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Valor boleto</span>
+          <strong>{{ formatoMoneda(valorBoleto) }}</strong>
+        </div>
+        <div class="summary-item accent">
+          <span>Restante</span>
+          <strong>{{ (valorBoleto - (selectedBoleto.montoAbonado || 0)) | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="detail-meta">
+        <div *ngIf="selectedBoleto.vendedorNombre">
+          <span>Vendedor</span>
+          <strong>{{ selectedBoleto.vendedorNombre }}</strong>
+        </div>
+        <div *ngIf="selectedBoleto.compradorNombre">
+          <span>Comprador</span>
+          <strong>{{ selectedBoleto.compradorNombre }}</strong>
+        </div>
+        <div *ngIf="selectedBoleto.compradorTelefono">
+          <span>Teléfono</span>
+          <strong>{{ selectedBoleto.compradorTelefono }}</strong>
+        </div>
+      </div>
+
+      <div class="venta-forms">
+        <div class="section-label">Datos de venta</div>
+
+        <div class="field-group">
+          <label for="vendedorSelect">Vendedor</label>
+          <select id="vendedorSelect" name="vendedor" [(ngModel)]="vendedorSeleccionadoId">
+            <option [ngValue]="undefined">-- Seleccionar --</option>
+            <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="owner-actions">
+          <button type="button" class="btn-secondary action-btn" (click)="asignarPropietario()">Asignar propietario</button>
+        </div>
+
+        <div class="field-group">
+          <label for="compradorNombre">Nombre del comprador</label>
+          <input id="compradorNombre" name="compradorNombre" autocomplete="off" [(ngModel)]="compradorNombre" placeholder="Nombre completo" />
+        </div>
+
+        <div class="field-group">
+          <label for="compradorTelefono">Teléfono del comprador</label>
+          <input id="compradorTelefono" name="compradorTelefono" autocomplete="tel" [(ngModel)]="compradorTelefono" placeholder="3001234567" />
+        </div>
+
+        <div class="payment-block" *ngIf="montoMaximoAbono() > 0">
+          <div class="field-group grow">
+            <label for="montoAbono">Abonar monto</label>
+            <input id="montoAbono" name="montoAbono" type="number" autocomplete="off" [(ngModel)]="montoAbono" [max]="montoMaximoAbono()" />
+          </div>
+          <div class="payment-meta">
+            <div class="limit-note" *ngIf="montoMaximoAbono() > 0">
+              Máximo a abonar: {{ montoMaximoAbono() | number:'1.2-2' }}
+            </div>
+            <button type="button" class="btn-secondary action-btn" (click)="abonar()">Abonar</button>
+          </div>
+        </div>
+
+        <div class="limit-note warning" *ngIf="montoMaximoAbono() === 0">
+          Este boleto ya está pagado por completo.
+        </div>
+
+        <div class="pago">
+          <button class="btn-primary action-btn full-width" (click)="pagar()">Pagar completo</button>
+        </div>
+      </div>
+    </section>
+
+    <ng-template #emptyState>
+      <section class="panel-card empty-panel">
+        <p class="panel-kicker">2. Registro</p>
+        <h3>Selecciona una boleta</h3>
+        <p>Ingresa el número y presiona Buscar para cargar el boleto y continuar con la venta o el abono.</p>
+      </section>
+    </ng-template>
+  </div>
 </div>

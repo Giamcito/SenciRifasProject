@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Rifa } from '../../../../models/rifa';
+import { BoletoService } from '../../../../services/boleto.service';
 import { RifaService } from '../../../../services/rifa.service';
 
 @Component({
@@ -20,7 +21,22 @@ export class AdministrarRifasComponent implements OnInit {
   editingId: number | null = null;
   editingData: any = {};
 
-  constructor(private rifaService: RifaService, private router: Router) {}
+  constructor(private rifaService: RifaService, private boletoService: BoletoService, private router: Router) {}
+
+  generarBoletos(rifaId: number) {
+    if (!confirm('Generar todos los boletos para esta rifa? Esto puede tardar.')) return;
+    this.boletoService.generarBoletos(rifaId).subscribe({
+      next: () => {
+        this.successMessage = 'Boletos generados correctamente';
+        setTimeout(() => (this.successMessage = ''), 3000);
+      },
+      error: (err) => {
+        this.error = err?.status === 409
+          ? 'Esta rifa ya tiene boletos generados y no se pueden volver a generar.'
+          : 'Error generando boletos';
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.cargarRifas();

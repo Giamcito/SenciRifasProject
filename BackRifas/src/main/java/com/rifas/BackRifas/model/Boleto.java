@@ -1,5 +1,6 @@
 package com.rifas.BackRifas.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,14 +34,29 @@ public class Boleto {
     private String numero;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "estado_venta", nullable = false, length = 20)
     private EstadoVenta estadoVenta;
+
+    @Column(name = "comprador_nombre", length = 255)
+    private String compradorNombre;
+
+    @Column(name = "comprador_telefono", length = 30)
+    private String compradorTelefono;
+
+    @Column(name = "vendedor_id")
+    private Long vendedorId;
+
+    @Column(name = "vendedor_nombre", length = 255)
+    private String vendedorNombre;
 
     @Column(length = 255)
     private String compradorEmail;
 
     @Column(name = "fecha_venta")
     private LocalDateTime fechaVenta;
+
+    @Column(name = "monto_abonado", nullable = false)
+    private BigDecimal montoAbonado = BigDecimal.ZERO;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -56,6 +72,14 @@ public class Boleto {
         this.rifa = rifa;
         this.numero = numero;
         this.estadoVenta = EstadoVenta.DISPONIBLE;
+    }
+
+    public BigDecimal getMontoAbonado() {
+        return montoAbonado;
+    }
+
+    public void setMontoAbonado(BigDecimal montoAbonado) {
+        this.montoAbonado = montoAbonado;
     }
 
     @PrePersist
@@ -112,6 +136,38 @@ public class Boleto {
 
     public void setCompradorEmail(String compradorEmail) {
         this.compradorEmail = compradorEmail;
+    }
+
+    public String getCompradorNombre() {
+        return compradorNombre;
+    }
+
+    public void setCompradorNombre(String compradorNombre) {
+        this.compradorNombre = compradorNombre;
+    }
+
+    public String getCompradorTelefono() {
+        return compradorTelefono;
+    }
+
+    public void setCompradorTelefono(String compradorTelefono) {
+        this.compradorTelefono = compradorTelefono;
+    }
+
+    public Long getVendedorId() {
+        return vendedorId;
+    }
+
+    public void setVendedorId(Long vendedorId) {
+        this.vendedorId = vendedorId;
+    }
+
+    public String getVendedorNombre() {
+        return vendedorNombre;
+    }
+
+    public void setVendedorNombre(String vendedorNombre) {
+        this.vendedorNombre = vendedorNombre;
     }
 
     public LocalDateTime getFechaVenta() {

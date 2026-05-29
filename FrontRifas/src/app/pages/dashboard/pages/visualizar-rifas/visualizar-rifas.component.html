@@ -116,8 +116,14 @@
           </div>
 
           <div class="boleto-info">
-            <small *ngIf="boleto.compradorEmail">
-              <strong>Comprador:</strong> {{ boleto.compradorEmail }}
+            <small *ngIf="boleto.vendedorNombre">
+              <strong>Vendedor:</strong> {{ boleto.vendedorNombre }}
+            </small>
+            <small *ngIf="boleto.compradorNombre">
+              <strong>Comprador:</strong> {{ boleto.compradorNombre }}
+            </small>
+            <small *ngIf="boleto.compradorTelefono">
+              <strong>Teléfono:</strong> {{ boleto.compradorTelefono }}
             </small>
             <small *ngIf="boleto.fechaVenta">
               <strong>Fecha:</strong> {{ boleto.fechaVenta | date: 'dd/MM/yyyy HH:mm' }}
@@ -125,6 +131,12 @@
           </div>
 
           <div class="boleto-acciones">
+            <button class="btn-accion btn-vender"
+                    (click)="asignarPropietario(boleto)"
+                    title="Asignar propietario">
+              🏷️ Propietario
+            </button>
+
             <button *ngIf="boleto.estadoVenta === 'DISPONIBLE'" 
                     class="btn-accion btn-vender"
                     (click)="marcarVendido(boleto)"
@@ -140,14 +152,60 @@
             </button>
 
             <button *ngIf="boleto.estadoVenta === 'ABONADO'" 
-                    class="btn-accion btn-cancelar"
-                    (click)="cambiarEstado(boleto, 'DISPONIBLE')"
-                    title="Cancelar reserva">
-              ❌ Cancelar
+                    class="btn-accion btn-abonar"
+                    (click)="seguirAbonando(boleto)"
+                    title="Seguir abonando">
+              💳 Seguir abonando
             </button>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showBoletoModal" (click)="cerrarModal()"></div>
+
+  <div class="modal-panel" *ngIf="showBoletoModal">
+    <div class="modal-header">
+      <div>
+        <h3>
+          {{ modalModo === 'VENDER' ? 'Vender boleto' : (modalModo === 'ABONAR' ? 'Abonar boleto' : 'Asignar propietario') }}
+        </h3>
+        <p>Boleto {{ boletoModal?.numero }}</p>
+      </div>
+      <button type="button" class="modal-close" (click)="cerrarModal()">×</button>
+    </div>
+
+    <div class="modal-error" *ngIf="modalError">
+      {{ modalError }}
+    </div>
+
+    <div class="modal-body">
+      <label for="modalVendedor">Vendedor:</label>
+      <select id="modalVendedor" [(ngModel)]="modalVendedorId">
+        <option [ngValue]="undefined">-- Seleccionar --</option>
+        <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
+      </select>
+
+      <ng-container *ngIf="modalModo !== 'PROPIETARIO'">
+        <label for="modalCompradorNombre">Nombre del comprador:</label>
+        <input id="modalCompradorNombre" type="text" [(ngModel)]="modalCompradorNombre" placeholder="Nombre completo" />
+
+        <label for="modalCompradorTelefono">Teléfono del comprador:</label>
+        <input id="modalCompradorTelefono" type="tel" [(ngModel)]="modalCompradorTelefono" placeholder="3001234567" />
+      </ng-container>
+
+      <div *ngIf="modalModo === 'ABONAR'" class="modal-abono">
+        <label for="modalMonto">Monto a abonar:</label>
+        <input id="modalMonto" type="number" [(ngModel)]="modalMonto" [max]="montoMaximoAbono()" min="1" />
+        <small *ngIf="montoMaximoAbono() > 0">Máximo a abonar: {{ montoMaximoAbono() | number:'1.2-2' }}</small>
+        <small *ngIf="montoMaximoAbono() === 0">Este boleto ya está pagado por completo.</small>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn-primary" (click)="confirmarModal()">Confirmar</button>
     </div>
   </div>
 </div>

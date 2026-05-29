@@ -6,6 +6,7 @@ import { Boleto, Estadisticas, EstadoVenta } from '../../../../models/boleto';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
 import { RifaService } from '../../../../services/rifa.service';
+import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
   selector: 'app-visualizar-rifas',
@@ -15,7 +16,7 @@ import { RifaService } from '../../../../services/rifa.service';
   styleUrls: ['./visualizar-rifas.component.css']
 })
 export class VisualizarRifasComponent implements OnInit {
-  rifaId: number | null = null;
+  rifaId: number = 0;
   rifa: Rifa | null = null;
   boletos: Boleto[] = [];
   estadisticas: Estadisticas | null = null;
@@ -25,17 +26,27 @@ export class VisualizarRifasComponent implements OnInit {
   
   filtroEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero: string = '';
+  vendedores: Vendedor[] = [];
+  showBoletoModal: boolean = false;
+  modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' = 'VENDER';
+  boletoModal?: Boleto;
+  modalVendedorId?: number;
+  modalCompradorNombre: string = '';
+  modalCompradorTelefono: string = '';
+  modalMonto: number | undefined;
+  modalError: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private boletoService: BoletoService,
-    private rifaService: RifaService
+    private rifaService: RifaService,
+    private vendedorService: VendedorService
   ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe((params: any) => {
-      this.rifaId = params['id'];
+      this.rifaId = Number(params['id']);
       if (this.rifaId) {
         this.cargarDatos();
       }
@@ -55,6 +66,7 @@ export class VisualizarRifasComponent implements OnInit {
         // Cargar boletos y estadísticas
         this.cargarBoletos();
         this.cargarEstadisticas();
+        this.cargarVendedores();
       },
       error: (err: any) => {
         this.loading = false;
@@ -91,6 +103,17 @@ export class VisualizarRifasComponent implements OnInit {
     });
   }
 
+  cargarVendedores(): void {
+    this.vendedorService.obtenerVendedores().subscribe({
+      next: (vendedores) => {
+        this.vendedores = vendedores;
+      },
+      error: () => {
+        this.vendedores = [];
+      }
+    });
+  }
+
   obtenerBoletosFiltrados(): Boleto[] {
     let filtrados = this.boletos;
 
@@ -108,37 +131,139 @@ export class VisualizarRifasComponent implements OnInit {
   }
 
   cambiarEstado(boleto: Boleto, nuevoEstado: EstadoVenta): void {
-    this.boletoService.actualizarBoleto(boleto.id, { estadoVenta: nuevoEstado }).subscribe({
-      next: () => {
-        this.success = `Boleto ${boleto.numero} actualizado a ${nuevoEstado}`;
+    const rifaId = this.rifaId;
+    if (!rifaId) return;
+    this.abrirModal(boleto, nuevoEstado === 'ABONADO' ? 'ABONAR' : 'VENDER');
+  }
+
+  asignarPropietario(boleto: Boleto): void {
+    this.abrirModal(boleto, 'PROPIETARIO');
+  }
+
+  marcarVendido(boleto: Boleto): void {
+    this.abrirModal(boleto, 'VENDER');
+  }
+
+  seguirAbonando(boleto: Boleto): void {
+    this.abrirModal(boleto, 'ABONAR');
+  }
+
+  abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO'): void {
+    this.boletoModal = boleto;
+    this.modalModo = modo;
+    this.modalVendedorId = boleto.vendedorId ?? undefined;
+    this.modalCompradorNombre = boleto.compradorNombre || '';
+    this.modalCompradorTelefono = boleto.compradorTelefono || '';
+    this.modalMonto = modo === 'ABONAR' ? undefined : undefined;
+    this.modalError = '';
+    this.showBoletoModal = true;
+  }
+
+  cerrarModal(): void {
+    this.showBoletoModal = false;
+    this.boletoModal = undefined;
+    this.modalError = '';
+  }
+
+  confirmarModal(): void {
+    if (!this.boletoModal) {
+      return;
+    }
+
+    const rifaId = this.rifaId;
+    if (!rifaId) {
+      return;
+    }
+
+    if (!this.modalVendedorId) {
+      this.modalError = 'Selecciona un vendedor.';
+      return;
+    }
+
+    if (this.modalModo !== 'PROPIETARIO' && (!this.modalCompradorNombre.trim() || !this.modalCompradorTelefono.trim())) {
+      this.modalError = 'Ingresa el nombre y teléfono del comprador.';
+      return;
+    }
+
+    if (this.modalModo === 'PROPIETARIO') {
+      this.boletoService.asignarPropietario(rifaId, this.boletoModal.id, {
+        vendedorId: this.modalVendedorId
+      }).subscribe({
+        next: (boletoActualizado) => {
+          this.success = `Propietario asignado al boleto ${boletoActualizado.numero}`;
+          setTimeout(() => (this.success = ''), 3000);
+          this.cerrarModal();
+          this.cargarBoletos();
+          this.cargarEstadisticas();
+        },
+        error: () => {
+          this.modalError = 'Error al asignar propietario';
+        }
+      });
+
+      return;
+    }
+
+    if (this.modalModo === 'ABONAR') {
+      const monto = Number(this.modalMonto);
+      const maximo = this.montoMaximoAbono();
+
+      if (!Number.isFinite(monto) || monto <= 0) {
+        this.modalError = 'Ingresa un monto válido.';
+        return;
+      }
+
+      if (monto > maximo) {
+        this.modalError = `El monto máximo a abonar es ${maximo.toFixed(2)}.`;
+        return;
+      }
+
+      this.boletoService.abonarBoleto(rifaId, this.boletoModal.id, {
+        vendedorId: this.modalVendedorId,
+        monto,
+        compradorNombre: this.modalCompradorNombre.trim(),
+        compradorTelefono: this.modalCompradorTelefono.trim()
+      }).subscribe({
+        next: (boletoActualizado) => {
+          this.success = `Boleto ${boletoActualizado.numero} abonado correctamente`;
+          setTimeout(() => (this.success = ''), 3000);
+          this.cerrarModal();
+          this.cargarBoletos();
+          this.cargarEstadisticas();
+        },
+        error: () => {
+          this.modalError = 'Error al registrar el abono';
+        }
+      });
+
+      return;
+    }
+
+    this.boletoService.pagarBoleto(rifaId, this.boletoModal.id, {
+      vendedorId: this.modalVendedorId,
+      compradorNombre: this.modalCompradorNombre.trim(),
+      compradorTelefono: this.modalCompradorTelefono.trim()
+    }).subscribe({
+      next: (boletoActualizado) => {
+        this.success = `Boleto ${boletoActualizado.numero} marcado como vendido`;
         setTimeout(() => (this.success = ''), 3000);
+        this.cerrarModal();
         this.cargarBoletos();
         this.cargarEstadisticas();
       },
-      error: (err: any) => {
-        this.error = 'Error al actualizar boleto';
+      error: () => {
+        this.modalError = 'Error al actualizar boleto';
       }
     });
   }
 
-  marcarVendido(boleto: Boleto): void {
-    const email = prompt('Ingresa el email del comprador:', '');
-    if (email) {
-      this.boletoService.actualizarBoleto(boleto.id, { 
-        estadoVenta: 'VENDIDO', 
-        compradorEmail: email 
-      }).subscribe({
-        next: () => {
-          this.success = `Boleto ${boleto.numero} marcado como vendido`;
-          setTimeout(() => (this.success = ''), 3000);
-          this.cargarBoletos();
-          this.cargarEstadisticas();
-        },
-        error: (err: any) => {
-          this.error = 'Error al actualizar boleto';
-        }
-      });
+  montoMaximoAbono(): number {
+    if (!this.boletoModal || !this.rifa?.valorBoleto) {
+      return 0;
     }
+
+    const abonado = Number(this.boletoModal.montoAbonado || 0);
+    return Math.max(this.rifa.valorBoleto - abonado, 0);
   }
 
   obtenerColorPorEstado(estado: EstadoVenta): string {

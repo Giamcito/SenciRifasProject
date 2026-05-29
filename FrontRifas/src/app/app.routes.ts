@@ -31,6 +31,7 @@ export const routes: Routes = [
       { path: 'administrar-rifas', component: AdministrarRifasComponent },
       { path: 'visualizar-rifas/:id', component: VisualizarRifasComponent },
       { path: 'venta-boletos', component: VentaBoletosComponent },
+      { path: 'venta-boletos/:id', component: VentaBoletosComponent },
       { path: 'consultar-datos', component: ConsultarDatosComponent },
       { path: 'crear-vendedor', component: CrearVendedorComponent },
       { path: 'administrar-vendedor', component: AdministrarVendedorComponent }
