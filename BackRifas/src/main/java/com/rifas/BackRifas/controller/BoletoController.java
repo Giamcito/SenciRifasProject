@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
 import com.rifas.BackRifas.dto.CreateBoletoRequest;
+import com.rifas.BackRifas.dto.PagoRequest;
 import com.rifas.BackRifas.repository.UsuarioRepository;
 import com.rifas.BackRifas.service.BoletoService;
 import com.rifas.BackRifas.service.BoletoService.EstadisticasDTO;
@@ -56,6 +58,46 @@ public class BoletoController {
     }
 
     /**
+     * Obtener un boleto específico por número con autenticación
+     */
+    @GetMapping("/{rifaId}/boletos/numero/{numero}")
+    public ResponseEntity<?> obtenerBoletoPorNumero(@PathVariable Long rifaId, @PathVariable String numero, HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO boleto = boletoService.obtenerBoletoPorNumero(rifaId, usuarioId, numero);
+            return ResponseEntity.ok(boleto);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
+     * Endpoint público temporal para depuración: obtener boletos sin auth
+     */
+    @GetMapping("/public/{rifaId}/boletos")
+    public ResponseEntity<List<BoletoDTO>> obtenerBoletosPublico(@PathVariable Long rifaId) {
+        try {
+            List<BoletoDTO> boletos = boletoService.obtenerBoletosPublico(rifaId);
+            return ResponseEntity.ok(boletos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Endpoint público temporal para depuración: obtener un boleto por número
+     */
+    @GetMapping("/public/{rifaId}/boletos/{numero}")
+    public ResponseEntity<BoletoDTO> obtenerBoletoPublicoPorNumero(@PathVariable Long rifaId, @PathVariable String numero) {
+        try {
+            BoletoDTO boleto = boletoService.obtenerBoletoPorNumeroPublico(rifaId, numero);
+            return ResponseEntity.ok(boleto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
      * Obtener estadísticas de una rifa
      */
     @GetMapping("/{rifaId}/estadisticas")
@@ -87,6 +129,9 @@ public class BoletoController {
             if (msg.contains("token") || msg.contains("inválid") || msg.contains("no encontrado")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+            if (msg.contains("ya fueron generados")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -94,20 +139,71 @@ public class BoletoController {
     /**
      * Actualizar estado de un boleto
      */
-    @PutMapping("/boletos/{boletoId}")
-    public ResponseEntity<BoletoDTO> actualizarBoleto(@PathVariable Long boletoId, 
+    @PutMapping("/{rifaId}/boletos/{boletoId}")
+    public ResponseEntity<BoletoDTO> actualizarBoleto(@PathVariable Long rifaId, @PathVariable Long boletoId, 
                                                       @Valid @RequestBody CreateBoletoRequest request,
                                                       HttpServletRequest httpRequest) {
         try {
             Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
-            BoletoDTO boletoDTO = boletoService.actualizarEstadoBoleto(boletoId, request, usuarioId);
+            BoletoDTO boletoDTO = boletoService.actualizarEstadoBoleto(rifaId, boletoId, request, usuarioId);
             return ResponseEntity.ok(boletoDTO);
         } catch (RuntimeException e) {
             String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
             if (msg.contains("token") || msg.contains("inválid") || msg.contains("no encontrado")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+            if (msg.contains("no pertenece")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Aplicar abono parcial a un boleto
+     */
+    @PostMapping("/{rifaId}/boletos/{boletoId}/abono")
+    public ResponseEntity<?> abonarBoleto(@PathVariable Long rifaId, @PathVariable Long boletoId,
+                                                  @RequestBody PagoRequest request,
+                                                  HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO updated = boletoService.aplicarAbono(rifaId, boletoId, request, usuarioId);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
+     * Pagar boleto completo
+     */
+    @PostMapping("/{rifaId}/boletos/{boletoId}/pago")
+    public ResponseEntity<?> pagarBoleto(@PathVariable Long rifaId, @PathVariable Long boletoId,
+                                                 @RequestBody PagoRequest request,
+                                                 HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO updated = boletoService.pagarCompleto(rifaId, boletoId, request, usuarioId);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
+     * Asignar propietario a un boleto sin modificar su estado
+     */
+    @PutMapping("/{rifaId}/boletos/{boletoId}/propietario")
+    public ResponseEntity<?> asignarPropietario(@PathVariable Long rifaId, @PathVariable Long boletoId,
+                                                @RequestBody AsignarPropietarioRequest request,
+                                                HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO updated = boletoService.asignarPropietario(rifaId, boletoId, request, usuarioId);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
         }
     }
 
@@ -131,5 +227,28 @@ public class BoletoController {
         return usuarioRepository.findByEmail(email)
                 .map(usuario -> usuario.getId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    private ResponseEntity<?> manejarError(RuntimeException e) {
+        String mensaje = e.getMessage() == null ? "Error inesperado" : e.getMessage();
+        String texto = mensaje.toLowerCase();
+
+        if (texto.contains("token") || texto.contains("inválid")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mensaje);
+        }
+        if (texto.contains("no encontrado")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(mensaje);
+        }
+        if (texto.contains("ya está vendido")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(mensaje);
+        }
+        if (texto.contains("no puede superar")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
+        }
+        if (texto.contains("monto inválido") || texto.contains("no pertenece")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
     }
 }

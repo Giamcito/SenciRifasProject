@@ -4,18 +4,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.rifas.BackRifas.dto.CreateRifaRequest;
 import com.rifas.BackRifas.dto.RifaDTO;
 import com.rifas.BackRifas.model.Rifa;
+import com.rifas.BackRifas.repository.BoletoRepository;
 import com.rifas.BackRifas.repository.RifaRepository;
 
 @Service
 public class RifaService {
     private final RifaRepository rifaRepository;
+    private final BoletoRepository boletoRepository;
 
-    public RifaService(RifaRepository rifaRepository) {
+    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository) {
         this.rifaRepository = rifaRepository;
+        this.boletoRepository = boletoRepository;
     }
 
     /**
@@ -62,9 +66,12 @@ public class RifaService {
     /**
      * Eliminar una rifa
      */
+    @Transactional
     public void eliminarRifa(Long id, Long usuarioId) {
         Rifa rifa = rifaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .orElseThrow(() -> new RuntimeException("Rifa no encontrada o no tienes permisos para eliminarla"));
+
+        boletoRepository.deleteByRifaId(rifa.getId());
         rifaRepository.delete(rifa);
     }
 

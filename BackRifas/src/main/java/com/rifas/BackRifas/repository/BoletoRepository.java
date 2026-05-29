@@ -30,8 +30,18 @@ public interface BoletoRepository extends JpaRepository<Boleto, Long> {
     long countByRifaIdAndEstadoVenta(Long rifaId, EstadoVenta estadoVenta);
 
     /**
+     * Contar todos los boletos de una rifa
+     */
+    long countByRifaId(Long rifaId);
+
+    /**
      * Obtener todos los boletos vendidos de una rifa
      */
     @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId AND b.estadoVenta = 'VENDIDO' ORDER BY b.numero ASC")
     List<Boleto> findVendidosByRifaId(@Param("rifaId") Long rifaId);
+
+    /**
+     * Eliminar todos los boletos de una rifa
+     */
+    void deleteByRifaId(Long rifaId);
 }
