@@ -1,40 +1,70 @@
 import { Routes } from '@angular/router';
-import { AboutComponent } from './pages/about/about.component';
-import { LoginComponent } from './pages/auth/login/login.component';
-import { RegisterComponent } from './pages/auth/register/register.component';
-import { ContactComponent } from './pages/contact/contact.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { AdministrarRifasComponent } from './pages/dashboard/pages/administrar-rifas/administrar-rifas.component';
-import { AdministrarVendedorComponent } from './pages/dashboard/pages/administrar-vendedor/administrar-vendedor.component';
-import { ConsultarDatosComponent } from './pages/dashboard/pages/consultar-datos/consultar-datos.component';
-import { CrearRifasComponent } from './pages/dashboard/pages/crear-rifas/crear-rifas.component';
-import { CrearVendedorComponent } from './pages/dashboard/pages/crear-vendedor/crear-vendedor.component';
-import { RifasPreviewComponent } from './pages/dashboard/pages/rifas-preview/rifas-preview.component';
-import { VentaBoletosComponent } from './pages/dashboard/pages/venta-boletos/venta-boletos.component';
-import { VisualizarRifasComponent } from './pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component';
-import { FeaturesComponent } from './pages/features/features.component';
-import { LandingComponent } from './pages/landing/landing.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingComponent },
-  { path: 'features', component: FeaturesComponent },
-  { path: 'about', component: AboutComponent },
-  { path: 'contact', component: ContactComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+  {
+    path: '',
+    loadComponent: () => import('./pages/landing/landing.component').then(m => m.LandingComponent)
+  },
+  {
+    path: 'features',
+    loadComponent: () => import('./pages/features/features.component').then(m => m.FeaturesComponent)
+  },
+  {
+    path: 'about',
+    loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent)
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent)
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent)
+  },
   {
     path: 'dashboard',
-    component: DashboardComponent,
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     children: [
-      { path: '', component: RifasPreviewComponent },
-      { path: 'crear-rifas', component: CrearRifasComponent },
-      { path: 'administrar-rifas', component: AdministrarRifasComponent },
-      { path: 'visualizar-rifas/:id', component: VisualizarRifasComponent },
-      { path: 'venta-boletos', component: VentaBoletosComponent },
-      { path: 'venta-boletos/:id', component: VentaBoletosComponent },
-      { path: 'consultar-datos', component: ConsultarDatosComponent },
-      { path: 'crear-vendedor', component: CrearVendedorComponent },
-      { path: 'administrar-vendedor', component: AdministrarVendedorComponent }
+      {
+        path: '',
+        loadComponent: () => import('./pages/dashboard/pages/rifas-preview/rifas-preview.component').then(m => m.RifasPreviewComponent)
+      },
+      {
+        path: 'crear-rifas',
+        loadComponent: () => import('./pages/dashboard/pages/crear-rifas/crear-rifas.component').then(m => m.CrearRifasComponent)
+      },
+      {
+        path: 'administrar-rifas',
+        loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
+      },
+      {
+        path: 'visualizar-rifas/:id',
+        loadComponent: () => import('./pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component').then(m => m.VisualizarRifasComponent)
+      },
+      {
+        path: 'venta-boletos',
+        loadComponent: () => import('./pages/dashboard/pages/venta-boletos/venta-boletos.component').then(m => m.VentaBoletosComponent)
+      },
+      {
+        path: 'venta-boletos/:id',
+        loadComponent: () => import('./pages/dashboard/pages/venta-boletos/venta-boletos.component').then(m => m.VentaBoletosComponent)
+      },
+      {
+        path: 'consultar-datos',
+        loadComponent: () => import('./pages/dashboard/pages/consultar-datos/consultar-datos.component').then(m => m.ConsultarDatosComponent)
+      },
+      {
+        path: 'crear-vendedor',
+        loadComponent: () => import('./pages/dashboard/pages/crear-vendedor/crear-vendedor.component').then(m => m.CrearVendedorComponent)
+      },
+      {
+        path: 'administrar-vendedor',
+        loadComponent: () => import('./pages/dashboard/pages/administrar-vendedor/administrar-vendedor.component').then(m => m.AdministrarVendedorComponent)
+      }
     ]
   },
   { path: '**', redirectTo: '' }

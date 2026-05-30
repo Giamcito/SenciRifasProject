@@ -94,6 +94,7 @@ export class VisualizarRifasComponent implements OnInit {
 
     this.loadingBoletos = true;
     this.error = '';
+    this.boletos = [];
 
     this.boletoService.obtenerBoletos(this.rifaId, {
       page: this.paginaActual,
