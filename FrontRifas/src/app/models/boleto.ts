@@ -23,4 +23,14 @@ export interface Estadisticas {
   totalRecaudado?: number;
 }
 
+export interface BoletoPage {
+  content: Boleto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
 export const EstadoVentaValues: EstadoVenta[] = ['DISPONIBLE', 'VENDIDO', 'ABONADO', 'RESERVADO', 'CANCELADO'];

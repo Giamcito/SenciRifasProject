@@ -1,7 +1,7 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Boleto, Estadisticas } from '../models/boleto';
+import { Boleto, BoletoPage, Estadisticas, EstadoVenta } from '../models/boleto';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -24,12 +24,26 @@ export class BoletoService {
   }
 
   /**
-   * Obtener todos los boletos de una rifa
+   * Obtener boletos de una rifa paginados
    */
-  obtenerBoletos(rifaId: number): Observable<Boleto[]> {
-    return this.http.get<Boleto[]>(
+  obtenerBoletos(rifaId: number, params: { page?: number; size?: number; estado?: EstadoVenta | 'TODOS' } = {}): Observable<BoletoPage> {
+    let httpParams = new HttpParams();
+
+    if (params.page !== undefined) {
+      httpParams = httpParams.set('page', params.page);
+    }
+
+    if (params.size !== undefined) {
+      httpParams = httpParams.set('size', params.size);
+    }
+
+    if (params.estado && params.estado !== 'TODOS') {
+      httpParams = httpParams.set('estado', params.estado);
+    }
+
+    return this.http.get<BoletoPage>(
       `${this.apiUrl}/${rifaId}/boletos`,
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders(), params: httpParams }
     );
   }
 
