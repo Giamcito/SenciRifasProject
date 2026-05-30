@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
 import { RifaService } from '../../../../services/rifa.service';
@@ -20,8 +20,14 @@ export class AdministrarRifasComponent implements OnInit {
   successMessage: string = '';
   editingId: number | null = null;
   editingData: any = {};
+  selectedRifaId: number | null = null;
 
-  constructor(private rifaService: RifaService, private boletoService: BoletoService, private router: Router) {}
+  constructor(
+    private rifaService: RifaService,
+    private boletoService: BoletoService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   generarBoletos(rifaId: number) {
     if (!confirm('Generar todos los boletos para esta rifa? Esto puede tardar.')) return;
@@ -39,10 +45,33 @@ export class AdministrarRifasComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarRifas();
+    this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      this.selectedRifaId = id ? Number(id) : null;
+      this.cargarRifasDesdeServidor();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.enfocarRifaSeleccionada(), 0);
+  }
+
+  private enfocarRifaSeleccionada(): void {
+    if (!this.selectedRifaId) {
+      return;
+    }
+
+    setTimeout(() => {
+      const elemento = document.getElementById(`rifa-${this.selectedRifaId}`);
+      elemento?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 
   cargarRifas(): void {
+    this.cargarRifasDesdeServidor();
+  }
+
+  private cargarRifasDesdeServidor(): void {
     this.loading = true;
     this.error = '';
 
@@ -50,6 +79,7 @@ export class AdministrarRifasComponent implements OnInit {
       next: (data) => {
         this.rifas = data;
         this.loading = false;
+        this.enfocarRifaSeleccionada();
       },
       error: (err) => {
         this.loading = false;
@@ -111,6 +141,10 @@ export class AdministrarRifasComponent implements OnInit {
 
   verRifa(rifaId: number): void {
     this.router.navigate(['/dashboard/visualizar-rifas', rifaId]);
+  }
+
+  esRifaSeleccionada(rifaId: number): boolean {
+    return this.selectedRifaId === rifaId;
   }
 
   obtenerCantidadCifras(cantidad: number): number {

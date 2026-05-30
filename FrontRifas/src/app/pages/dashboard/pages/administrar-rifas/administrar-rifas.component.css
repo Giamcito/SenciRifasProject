@@ -103,6 +103,12 @@
   background-color: #f0f8f5;
 }
 
+.vendedores-table tbody tr.selected-rifa {
+  background-color: #eef6ff;
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
 .nombre {
   font-weight: 600;
   color: #333;

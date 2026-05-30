@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { redirectIfAuthenticatedGuard, requireAuthenticationGuard } from './guards/auth-redirect.guard';
 
 export const routes: Routes = [
   {
@@ -19,14 +20,17 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canMatch: [redirectIfAuthenticatedGuard],
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
+    canMatch: [redirectIfAuthenticatedGuard],
     loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
     path: 'dashboard',
+    canMatch: [requireAuthenticationGuard],
     loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     children: [
       {
@@ -39,6 +43,10 @@ export const routes: Routes = [
       },
       {
         path: 'administrar-rifas',
+        loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
+      },
+      {
+        path: 'administrar-rifas/:id',
         loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {

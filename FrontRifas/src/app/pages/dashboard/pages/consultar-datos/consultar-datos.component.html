@@ -1,5 +1,25 @@
 <div class="content-section">
   <h2>🔎 Consultar Datos</h2>
-  <p>Actualiza datos de ventas, abonos y pagos</p>
-  <button class="btn btn-primary">Actualizar Datos</button>
+  <p>Consulta un resumen rápido de la rifa seleccionada desde la portada del dashboard.</p>
+
+  <div class="rifa-summary" *ngIf="loading">
+    Cargando rifa...
+  </div>
+
+  <div class="rifa-summary error" *ngIf="!loading && error">
+    {{ error }}
+  </div>
+
+  <div class="rifa-summary" *ngIf="!loading && !error && rifa">
+    <h3>{{ rifa.nombre }}</h3>
+    <p><strong>Boletos:</strong> {{ rifa.cantidadBoletos }}</p>
+    <p><strong>Valor por boleto:</strong> {{ rifa.valorBoleto | currency:'COP':'symbol':'1.0-0' }}</p>
+    <p><strong>Total potencial:</strong> {{ (rifa.cantidadBoletos * rifa.valorBoleto) | currency:'COP':'symbol':'1.0-0' }}</p>
+    <button class="btn btn-primary" (click)="volverAdministracion()">Volver a administración</button>
+  </div>
+
+  <div class="rifa-summary" *ngIf="!loading && !error && !rifa">
+    <p>No se ha seleccionado una rifa desde el dashboard.</p>
+    <button class="btn btn-primary" (click)="volverAdministracion()">Ir a administrar rifas</button>
+  </div>
 </div>
