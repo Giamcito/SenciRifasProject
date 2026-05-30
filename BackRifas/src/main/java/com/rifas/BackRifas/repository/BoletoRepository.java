@@ -3,6 +3,8 @@ package com.rifas.BackRifas.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,16 @@ public interface BoletoRepository extends JpaRepository<Boleto, Long> {
      * Obtener todos los boletos de una rifa
      */
     List<Boleto> findByRifaId(Long rifaId);
+
+    /**
+     * Obtener boletos de una rifa paginados
+     */
+    Page<Boleto> findByRifaId(Long rifaId, Pageable pageable);
+
+    /**
+     * Obtener boletos de una rifa paginados por estado
+     */
+    Page<Boleto> findByRifaIdAndEstadoVenta(Long rifaId, EstadoVenta estadoVenta, Pageable pageable);
 
     /**
      * Obtener un boleto específico por rifa y número

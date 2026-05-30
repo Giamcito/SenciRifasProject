@@ -5,10 +5,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
+import com.rifas.BackRifas.dto.BoletoPageDTO;
 import com.rifas.BackRifas.dto.CreateBoletoRequest;
 import com.rifas.BackRifas.model.Boleto;
 import com.rifas.BackRifas.model.EstadoVenta;
@@ -72,6 +77,36 @@ public class BoletoService {
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
+
+        /**
+         * Obtener boletos de una rifa paginados
+         */
+        public BoletoPageDTO obtenerBoletosPaginados(Long rifaId, Long usuarioId, int page, int size, EstadoVenta estadoVenta) {
+        Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+            .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+        int pagina = Math.max(page, 0);
+        int tamano = Math.min(Math.max(size, 1), 500);
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.ASC, "numero"));
+
+        Page<Boleto> boletos = estadoVenta == null
+            ? boletoRepository.findByRifaId(rifa.getId(), pageable)
+            : boletoRepository.findByRifaIdAndEstadoVenta(rifa.getId(), estadoVenta, pageable);
+
+        List<BoletoDTO> contenido = boletos.getContent().stream()
+            .map(this::convertirADTO)
+            .collect(Collectors.toList());
+
+        return new BoletoPageDTO(
+            contenido,
+            boletos.getNumber(),
+            boletos.getSize(),
+            boletos.getTotalElements(),
+            boletos.getTotalPages(),
+            boletos.isFirst(),
+            boletos.isLast()
+        );
+        }
 
         /**
          * Obtener un boleto específico por número con validación de usuario
@@ -256,10 +291,10 @@ public class BoletoService {
                 boleto.getRifa().getId(),
                 boleto.getNumero(),
                 boleto.getEstadoVenta(),
-            boleto.getVendedorId(),
-            boleto.getVendedorNombre(),
-            boleto.getCompradorNombre(),
-            boleto.getCompradorTelefono(),
+                boleto.getVendedorId(),
+                boleto.getVendedorNombre(),
+                boleto.getCompradorNombre(),
+                boleto.getCompradorTelefono(),
                 boleto.getFechaVenta(),
                 boleto.getMontoAbonado(),
                 boleto.getCreatedAt(),

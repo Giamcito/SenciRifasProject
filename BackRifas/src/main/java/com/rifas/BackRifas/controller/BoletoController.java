@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
+import com.rifas.BackRifas.dto.BoletoPageDTO;
 import com.rifas.BackRifas.dto.CreateBoletoRequest;
 import com.rifas.BackRifas.dto.PagoRequest;
+import com.rifas.BackRifas.model.EstadoVenta;
 import com.rifas.BackRifas.repository.UsuarioRepository;
 import com.rifas.BackRifas.service.BoletoService;
 import com.rifas.BackRifas.service.BoletoService.EstadisticasDTO;
@@ -40,13 +43,18 @@ public class BoletoController {
     }
 
     /**
-     * Obtener todos los boletos de una rifa
+     * Obtener boletos de una rifa paginados
      */
     @GetMapping("/{rifaId}/boletos")
-    public ResponseEntity<List<BoletoDTO>> obtenerBoletos(@PathVariable Long rifaId, HttpServletRequest httpRequest) {
+    public ResponseEntity<BoletoPageDTO> obtenerBoletos(
+            @PathVariable Long rifaId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "500") int size,
+            @RequestParam(required = false) EstadoVenta estado,
+            HttpServletRequest httpRequest) {
         try {
             Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
-            List<BoletoDTO> boletos = boletoService.obtenerBoletosPorRifa(rifaId, usuarioId);
+            BoletoPageDTO boletos = boletoService.obtenerBoletosPaginados(rifaId, usuarioId, page, size, estado);
             return ResponseEntity.ok(boletos);
         } catch (RuntimeException e) {
             String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
