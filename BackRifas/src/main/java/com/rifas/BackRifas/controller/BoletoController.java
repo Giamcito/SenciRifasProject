@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
 import com.rifas.BackRifas.dto.BoletoPageDTO;
+import com.rifas.BackRifas.dto.ConsultaVendedorDTO;
 import com.rifas.BackRifas.dto.CreateBoletoRequest;
 import com.rifas.BackRifas.dto.PagoRequest;
 import com.rifas.BackRifas.model.EstadoVenta;
@@ -210,6 +211,23 @@ public class BoletoController {
             Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
             BoletoDTO updated = boletoService.asignarPropietario(rifaId, boletoId, request, usuarioId);
             return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
+     * Obtener consulta de un vendedor dentro de una rifa
+     */
+    @GetMapping("/{rifaId}/consultas/vendedores/{vendedorId}")
+    public ResponseEntity<?> obtenerConsultaVendedor(@PathVariable Long rifaId,
+                                                     @PathVariable Long vendedorId,
+                                                     @RequestParam(required = false) EstadoVenta estado,
+                                                     HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            ConsultaVendedorDTO consulta = boletoService.obtenerConsultaVendedor(rifaId, vendedorId, usuarioId, estado);
+            return ResponseEntity.ok(consulta);
         } catch (RuntimeException e) {
             return manejarError(e);
         }

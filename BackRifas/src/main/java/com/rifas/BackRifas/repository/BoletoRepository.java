@@ -32,6 +32,36 @@ public interface BoletoRepository extends JpaRepository<Boleto, Long> {
     Page<Boleto> findByRifaIdAndEstadoVenta(Long rifaId, EstadoVenta estadoVenta, Pageable pageable);
 
     /**
+     * Obtener boletos de una rifa asignados a un vendedor
+     */
+    @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId ORDER BY b.numero ASC")
+    List<Boleto> findByRifaIdAndVendedorIdOrderByNumeroAsc(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId);
+
+    /**
+     * Obtener boletos de una rifa asignados a un vendedor y filtrados por estado
+     */
+    @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId AND b.estadoVenta = :estadoVenta ORDER BY b.numero ASC")
+    List<Boleto> findByRifaIdAndVendedorIdAndEstadoVentaOrderByNumeroAsc(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId, @Param("estadoVenta") EstadoVenta estadoVenta);
+
+    /**
+     * Contar boletos asignados a un vendedor dentro de una rifa
+     */
+    @Query("SELECT COUNT(b) FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId")
+    long countByRifaIdAndVendedorId(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId);
+
+    /**
+     * Contar boletos asignados a un vendedor dentro de una rifa por estado
+     */
+    @Query("SELECT COUNT(b) FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId AND b.estadoVenta = :estadoVenta")
+    long countByRifaIdAndVendedorIdAndEstadoVenta(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId, @Param("estadoVenta") EstadoVenta estadoVenta);
+
+    /**
+     * Sumar el dinero abonado en los boletos de un vendedor dentro de una rifa
+     */
+    @Query("SELECT COALESCE(SUM(b.montoAbonado), 0) FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId")
+    java.math.BigDecimal sumMontoAbonadoByRifaIdAndVendedorId(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId);
+
+    /**
      * Obtener un boleto específico por rifa y número
      */
     Optional<Boleto> findByRifaIdAndNumero(Long rifaId, String numero);

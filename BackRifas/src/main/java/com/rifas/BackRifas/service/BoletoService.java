@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
 import com.rifas.BackRifas.dto.BoletoPageDTO;
+import com.rifas.BackRifas.dto.ConsultaVendedorDTO;
 import com.rifas.BackRifas.dto.CreateBoletoRequest;
 import com.rifas.BackRifas.model.Boleto;
 import com.rifas.BackRifas.model.EstadoVenta;
@@ -281,6 +282,42 @@ public class BoletoService {
         Boleto actualizado = boletoRepository.save(boleto);
         return convertirADTO(actualizado);
     }
+
+        /**
+         * Obtener un resumen de ventas de un vendedor en una rifa, incluyendo sus boletos
+         */
+        public ConsultaVendedorDTO obtenerConsultaVendedor(Long rifaId, Long vendedorId, Long usuarioId, EstadoVenta estadoVenta) {
+        Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+            .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+        var vendedor = vendedorRepository.findByIdAndUsuarioId(vendedorId, usuarioId)
+            .orElseThrow(() -> new RuntimeException("Vendedor no encontrado"));
+
+        List<Boleto> boletos = estadoVenta == null
+            ? boletoRepository.findByRifaIdAndVendedorIdOrderByNumeroAsc(rifa.getId(), vendedor.getId())
+            : boletoRepository.findByRifaIdAndVendedorIdAndEstadoVentaOrderByNumeroAsc(rifa.getId(), vendedor.getId(), estadoVenta);
+
+        long totalBoletas = boletoRepository.countByRifaIdAndVendedorId(rifa.getId(), vendedor.getId());
+        long totalVendidas = boletoRepository.countByRifaIdAndVendedorIdAndEstadoVenta(rifa.getId(), vendedor.getId(), EstadoVenta.VENDIDO);
+        long totalAbonadas = boletoRepository.countByRifaIdAndVendedorIdAndEstadoVenta(rifa.getId(), vendedor.getId(), EstadoVenta.ABONADO);
+        long totalDisponibles = totalBoletas - totalVendidas - totalAbonadas;
+        BigDecimal dineroRecogido = boletoRepository.sumMontoAbonadoByRifaIdAndVendedorId(rifa.getId(), vendedor.getId());
+
+        List<BoletoDTO> boletosDTO = boletos.stream()
+            .map(this::convertirADTO)
+            .collect(Collectors.toList());
+
+        return new ConsultaVendedorDTO(
+            vendedor.getId(),
+            vendedor.getNombre(),
+            totalBoletas,
+            totalVendidas,
+            totalAbonadas,
+            totalDisponibles,
+            dineroRecogido,
+            boletosDTO
+        );
+        }
 
     /**
      * Convertir Boleto a DTO
