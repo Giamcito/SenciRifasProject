@@ -1,11 +1,69 @@
 <div class="content-section">
-  <h2>📋 Rifas Creadas</h2>
-  <p>Vista previa de tus rifas actualmente activas</p>
-  
-  <div class="rifas-container">
+  <div class="preview-header">
+    <div>
+      <h2>📋 Rifas Creadas</h2>
+      <p>Vista previa de tus rifas actualmente activas</p>
+    </div>
+    <button type="button" class="btn-refresh" (click)="cargarRifas()" [disabled]="loading">
+      {{ loading ? 'Cargando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <div class="rifas-container" *ngIf="loading">
+    <div class="empty-state">
+      <p>Cargando rifas...</p>
+    </div>
+  </div>
+
+  <div class="rifas-container" *ngIf="!loading && error">
+    <div class="empty-state">
+      <p>{{ error }}</p>
+    </div>
+  </div>
+
+  <div class="rifas-container" *ngIf="!loading && !error && rifas.length === 0">
     <div class="empty-state">
       <p>No hay rifas creadas aún</p>
       <p class="hint">Crea tu primera rifa desde la sección "Crear Rifas" en el menú lateral</p>
     </div>
+  </div>
+
+  <div class="rifas-grid" *ngIf="!loading && !error && rifas.length > 0">
+    <article class="rifa-card" *ngFor="let rifa of rifas; trackBy: trackByRifaId">
+      <div class="rifa-card-top">
+        <div>
+          <h3>{{ rifa.nombre }}</h3>
+          <p>Creada el {{ rifa.createdAt | date:'dd/MM/yyyy' }}</p>
+        </div>
+        <span class="rifa-badge">Activa</span>
+      </div>
+
+      <div class="rifa-stats">
+        <div>
+          <span class="label">Boletos</span>
+          <strong>{{ rifa.cantidadBoletos }}</strong>
+        </div>
+        <div>
+          <span class="label">Valor</span>
+          <strong>{{ formatoMoneda(rifa.valorBoleto) }}</strong>
+        </div>
+      </div>
+
+      <div class="rifa-total">
+        Total potencial: {{ formatoMoneda(rifa.cantidadBoletos * rifa.valorBoleto) }}
+      </div>
+
+      <div class="rifa-actions">
+        <button type="button" class="action-btn action-admin" (click)="irAAdministrar(rifa)">
+          Administrar rifa
+        </button>
+        <button type="button" class="action-btn action-vender" (click)="irAVender(rifa)">
+          Vender boleto
+        </button>
+        <button type="button" class="action-btn action-consultar" (click)="irAConsultar(rifa)">
+          Consultar datos
+        </button>
+      </div>
+    </article>
   </div>
 </div>

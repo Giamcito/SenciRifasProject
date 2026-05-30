@@ -225,12 +225,50 @@
   border-radius: 6px;
 }
 
+.filtro-grupo-acciones {
+  gap: 0.65rem;
+}
+
+.btn-filtro {
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-filtro-primary {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-filtro-primary:hover {
+  background: #229954;
+}
+
+.btn-filtro-secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-filtro-secondary:hover {
+  background: #cbd5e1;
+}
+
 /* Grid de Boletos */
 .boletos-grid-container {
   background: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading-boletos,
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
 }
 
 .boletos-grid {
@@ -359,6 +397,49 @@
 
 .btn-cancelar:hover {
   background-color: #7f8c8d;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.paginacion-info {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-pagina {
+  border: none;
+  background: #0f172a;
+  color: white;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-pagina:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-pagina:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .modal-backdrop {

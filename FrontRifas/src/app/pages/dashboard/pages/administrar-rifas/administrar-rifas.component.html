@@ -38,7 +38,7 @@
         </thead>
         <tbody>
           <!-- Fila de datos -->
-          <tr *ngFor="let rifa of rifas" [class.editing]="editingId === rifa.id">
+          <tr *ngFor="let rifa of rifas" [attr.id]="'rifa-' + rifa.id" [class.editing]="editingId === rifa.id" [class.selected-rifa]="esRifaSeleccionada(rifa.id)">
             <!-- Nombre -->
             <td *ngIf="editingId !== rifa.id" class="nombre">{{ rifa.nombre }}</td>
             <td *ngIf="editingId === rifa.id" class="edit-row">

@@ -21,11 +21,17 @@ export class VisualizarRifasComponent implements OnInit {
   boletos: Boleto[] = [];
   estadisticas: Estadisticas | null = null;
   loading: boolean = false;
+  loadingBoletos: boolean = false;
   error: string = '';
   success: string = '';
   
   filtroEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero: string = '';
+  paginaActual: number = 0;
+  tamanoPagina: number = 500;
+  totalBoletos: number = 0;
+  totalPaginas: number = 0;
+  resumenBoletos: string = '';
   vendedores: Vendedor[] = [];
   showBoletoModal: boolean = false;
   modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' = 'VENDER';
@@ -48,6 +54,7 @@ export class VisualizarRifasComponent implements OnInit {
     this.route.params.subscribe((params: any) => {
       this.rifaId = Number(params['id']);
       if (this.rifaId) {
+        this.paginaActual = 0;
         this.cargarDatos();
       }
     });
@@ -63,7 +70,7 @@ export class VisualizarRifasComponent implements OnInit {
     this.rifaService.obtenerRifa(this.rifaId).subscribe({
       next: (rifa: Rifa) => {
         this.rifa = rifa;
-        // Cargar boletos y estadísticas
+        this.loading = false;
         this.cargarBoletos();
         this.cargarEstadisticas();
         this.cargarVendedores();
@@ -78,14 +85,57 @@ export class VisualizarRifasComponent implements OnInit {
   cargarBoletos(): void {
     if (!this.rifaId) return;
 
-    this.boletoService.obtenerBoletos(this.rifaId).subscribe({
-      next: (boletos: Boleto[]) => {
-        this.boletos = boletos;
-        this.loading = false;
+    const numeroBuscado = this.normalizarNumeroBusqueda(this.busquedaNumero);
+
+    if (numeroBuscado) {
+      this.cargarBoletoPorNumero(numeroBuscado);
+      return;
+    }
+
+    this.loadingBoletos = true;
+    this.error = '';
+    this.boletos = [];
+
+    this.boletoService.obtenerBoletos(this.rifaId, {
+      page: this.paginaActual,
+      size: this.tamanoPagina,
+      estado: this.filtroEstado
+    }).subscribe({
+      next: (pagina) => {
+        this.boletos = pagina.content;
+        this.totalBoletos = pagina.totalElements;
+        this.totalPaginas = pagina.totalPages;
+        this.loadingBoletos = false;
+        this.actualizarResumenBoletos();
       },
       error: (err: any) => {
-        this.loading = false;
+        this.loadingBoletos = false;
         this.error = 'Error al cargar los boletos';
+      }
+    });
+  }
+
+  cargarBoletoPorNumero(numero: string): void {
+    if (!this.rifaId) return;
+
+    this.loadingBoletos = true;
+    this.error = '';
+
+    this.boletoService.obtenerBoletoPorNumero(this.rifaId, numero).subscribe({
+      next: (boleto) => {
+        const coincideFiltro = this.filtroEstado === 'TODOS' || boleto.estadoVenta === this.filtroEstado;
+        this.boletos = coincideFiltro ? [boleto] : [];
+        this.totalBoletos = coincideFiltro ? 1 : 0;
+        this.totalPaginas = 1;
+        this.loadingBoletos = false;
+        this.actualizarResumenBoletos(coincideFiltro ? 1 : 0, numero);
+      },
+      error: () => {
+        this.boletos = [];
+        this.totalBoletos = 0;
+        this.totalPaginas = 0;
+        this.loadingBoletos = false;
+        this.actualizarResumenBoletos(0, numero);
       }
     });
   }
@@ -114,20 +164,69 @@ export class VisualizarRifasComponent implements OnInit {
     });
   }
 
-  obtenerBoletosFiltrados(): Boleto[] {
-    let filtrados = this.boletos;
+  aplicarFiltros(): void {
+    this.paginaActual = 0;
+    this.cargarBoletos();
+  }
 
-    // Filtrar por estado
-    if (this.filtroEstado !== 'TODOS') {
-      filtrados = filtrados.filter(b => b.estadoVenta === this.filtroEstado);
+  limpiarFiltros(): void {
+    this.filtroEstado = 'TODOS';
+    this.busquedaNumero = '';
+    this.paginaActual = 0;
+    this.cargarBoletos();
+  }
+
+  cambiarPagina(delta: number): void {
+    if (this.loadingBoletos || this.totalPaginas <= 1) {
+      return;
     }
 
-    // Filtrar por número
-    if (this.busquedaNumero.trim()) {
-      filtrados = filtrados.filter(b => b.numero.includes(this.busquedaNumero.trim()));
+    const nuevaPagina = this.paginaActual + delta;
+    if (nuevaPagina < 0 || nuevaPagina >= this.totalPaginas) {
+      return;
     }
 
-    return filtrados;
+    this.paginaActual = nuevaPagina;
+    this.cargarBoletos();
+  }
+
+  normalizarNumeroBusqueda(numero: string): string {
+    const limpio = numero.trim();
+    if (!limpio || !this.rifa) {
+      return '';
+    }
+
+    return limpio.padStart(this.obtenerCifrasBoleto(), '0');
+  }
+
+  obtenerCifrasBoleto(): number {
+    if (!this.rifa) {
+      return 1;
+    }
+
+    return Math.max(String(this.rifa.cantidadBoletos - 1).length, 1);
+  }
+
+  actualizarResumenBoletos(cantidadMostrada: number = this.boletos.length, numeroBuscado?: string): void {
+    if (numeroBuscado) {
+      this.resumenBoletos = cantidadMostrada > 0
+        ? `Se encontró el boleto ${numeroBuscado}`
+        : `No se encontró el boleto ${numeroBuscado}`;
+      return;
+    }
+
+    if (this.totalBoletos === 0) {
+      this.resumenBoletos = 'No hay boletos para mostrar';
+      return;
+    }
+
+    const inicio = this.paginaActual * this.tamanoPagina + 1;
+    const fin = this.paginaActual * this.tamanoPagina + cantidadMostrada;
+    this.resumenBoletos = `Mostrando ${inicio}-${fin} de ${this.totalBoletos} boletos`;
+  }
+
+  trackByBoletoId(index: number, boleto: Boleto): number {
+    return boleto.id;
   }
 
   cambiarEstado(boleto: Boleto, nuevoEstado: EstadoVenta): void {

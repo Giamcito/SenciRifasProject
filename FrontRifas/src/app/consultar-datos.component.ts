@@ -2,28 +2,31 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Boleto, EstadoVenta } from '../../../../models/boleto';
-import { Rifa } from '../../../../models/rifa';
-import { BoletoService, ConsultaVendedor } from '../../../../services/boleto.service';
-import { RifaService } from '../../../../services/rifa.service';
-import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
+import { Boleto, EstadoVenta } from './models/boleto';
+import { Rifa } from './models/rifa';
+import { BoletoService, ConsultaVendedor } from './services/boleto.service';
+import { RifaService } from './services/rifa.service';
+import { Vendedor, VendedorService } from './services/vendedor.service';
 
 @Component({
   selector: 'app-consultar-datos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './consultar-datos.component.html',
-  styleUrl: './consultar-datos.component.css'
+  templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
+  styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
 })
 export class ConsultarDatosComponent implements OnInit {
   rifaId: number | null = null;
   rifa: Rifa | null = null;
+  rifas: Rifa[] = [];
   vendedores: Vendedor[] = [];
   selectedVendedorId: number | null = null;
+  selectedRifaId: number | null = null;
   selectedEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero = '';
   consulta: ConsultaVendedor | null = null;
   loading = false;
+  loadingRifas = false;
   loadingConsulta = false;
   error = '';
 
@@ -43,13 +46,60 @@ export class ConsultarDatosComponent implements OnInit {
       const vendedorValue = params.get('vendedorId');
 
       this.rifaId = rifaValue ? Number(rifaValue) : null;
+      this.selectedRifaId = this.rifaId;
       this.selectedVendedorId = vendedorValue ? Number(vendedorValue) : null;
 
-      if (this.rifaId) {
+      this.cargarRifas();
+      this.cargarVendedores();
+
+      if (this.selectedRifaId) {
         this.cargarRifa();
-        this.cargarVendedores();
       }
     });
+  }
+
+  cargarRifas(): void {
+    this.loadingRifas = true;
+
+    this.rifaService.obtenerRifas().subscribe({
+      next: (rifas) => {
+        this.rifas = rifas;
+        this.loadingRifas = false;
+
+        if (!this.selectedRifaId && this.rifas.length > 0) {
+          this.selectedRifaId = this.rifas[0].id;
+        }
+
+        if (this.selectedRifaId && !this.rifa) {
+          this.cargarRifaSeleccionada();
+        }
+      },
+      error: () => {
+        this.rifas = [];
+        this.loadingRifas = false;
+      }
+    });
+  }
+
+  seleccionarRifa(): void {
+    this.rifaId = this.selectedRifaId;
+    this.rifa = null;
+    this.consulta = null;
+
+    if (!this.rifaId) {
+      return;
+    }
+
+    this.cargarRifaSeleccionada();
+  }
+
+  private cargarRifaSeleccionada(): void {
+    if (!this.selectedRifaId) {
+      return;
+    }
+
+    this.rifaId = this.selectedRifaId;
+    this.cargarRifa();
   }
 
   cargarRifa(): void {
@@ -160,5 +210,9 @@ export class ConsultarDatosComponent implements OnInit {
 
   volverAdministracion(): void {
     this.router.navigate(['/dashboard/administrar-rifas']);
+  }
+
+  tieneRifaSeleccionada(): boolean {
+    return !!this.rifaId && !!this.rifa;
   }
 }

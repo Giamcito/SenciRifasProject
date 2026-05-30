@@ -76,7 +76,7 @@
     <div class="filtros-container">
       <div class="filtro-grupo">
         <label>Filtrar por Estado:</label>
-        <select [(ngModel)]="filtroEstado" class="select-filtro">
+        <select [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()" class="select-filtro">
           <option value="TODOS">Todos</option>
           <option value="DISPONIBLE">Disponibles</option>
           <option value="VENDIDO">Vendidos</option>
@@ -86,22 +86,31 @@
 
       <div class="filtro-grupo">
         <label>Buscar Boleto:</label>
-        <input type="text" [(ngModel)]="busquedaNumero" class="input-busqueda" placeholder="Ej: 001, 523..." />
+        <input type="text" [(ngModel)]="busquedaNumero" class="input-busqueda" placeholder="Ej: 001, 523..." (keyup.enter)="aplicarFiltros()" />
+      </div>
+
+      <div class="filtro-grupo filtro-grupo-acciones">
+        <button type="button" class="btn-filtro btn-filtro-primary" (click)="aplicarFiltros()">Buscar</button>
+        <button type="button" class="btn-filtro btn-filtro-secondary" (click)="limpiarFiltros()">Limpiar</button>
       </div>
 
       <div class="contador">
-        Mostrando {{ obtenerBoletosFiltrados().length }} de {{ boletos.length }} boletos
+        {{ resumenBoletos }}
       </div>
     </div>
 
     <!-- Tabla/Grid de Boletos -->
     <div class="boletos-grid-container">
-      <div *ngIf="obtenerBoletosFiltrados().length === 0" class="empty-state">
-        <p>No hay boletos con los filtros seleccionados</p>
+      <div *ngIf="loadingBoletos" class="loading loading-boletos">
+        Cargando boletos...
       </div>
 
-      <div class="boletos-grid">
-        <div *ngFor="let boleto of obtenerBoletosFiltrados()" 
+      <div *ngIf="!loadingBoletos && boletos.length === 0" class="empty-state">
+        <p>{{ resumenBoletos || 'No hay boletos con los filtros seleccionados' }}</p>
+      </div>
+
+      <div class="boletos-grid" *ngIf="!loadingBoletos && boletos.length > 0">
+        <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId" 
              class="boleto-card" 
              [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
              [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
@@ -159,6 +168,16 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="paginacion" *ngIf="!loadingBoletos && totalPaginas > 1 && !busquedaNumero.trim()">
+      <div class="paginacion-info">
+        Página {{ paginaActual + 1 }} de {{ totalPaginas }}
+      </div>
+      <div class="paginacion-botones">
+        <button type="button" class="btn-pagina" (click)="cambiarPagina(-1)" [disabled]="paginaActual === 0">Anterior</button>
+        <button type="button" class="btn-pagina" (click)="cambiarPagina(1)" [disabled]="paginaActual >= totalPaginas - 1">Siguiente</button>
       </div>
     </div>
   </div>
