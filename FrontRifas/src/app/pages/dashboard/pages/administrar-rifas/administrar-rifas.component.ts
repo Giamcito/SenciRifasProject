@@ -140,7 +140,7 @@ export class AdministrarRifasComponent implements OnInit {
   }
 
   verRifa(rifaId: number): void {
-    this.router.navigate(['/dashboard/visualizar-rifas', rifaId]);
+    this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifaId]);
   }
 
   esRifaSeleccionada(rifaId: number): boolean {

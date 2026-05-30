@@ -66,7 +66,7 @@ export class RifasPreviewComponent implements OnInit {
   }
 
   irAAdministrar(rifa: Rifa): void {
-    this.router.navigate(['/dashboard/visualizar-rifas', rifa.id]);
+    this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifa.id]);
   }
 
   irAVender(rifa: Rifa): void {

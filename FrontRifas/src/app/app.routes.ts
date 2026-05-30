@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ConsultarDatosComponent } from './consultar-datos.component';
 import { redirectIfAuthenticatedGuard, requireAuthenticationGuard } from './guards/auth-redirect.guard';
 
 export const routes: Routes = [
@@ -46,12 +47,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {
-        path: 'administrar-rifas/:id',
-        loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
+        path: 'administrar-rifas/visualizar-rifas/:id',
+        loadComponent: () => import('./pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component').then(m => m.VisualizarRifasComponent)
       },
       {
-        path: 'visualizar-rifas/:id',
-        loadComponent: () => import('./pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component').then(m => m.VisualizarRifasComponent)
+        path: 'administrar-rifas/:id',
+        loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {
         path: 'venta-boletos',
@@ -63,7 +64,7 @@ export const routes: Routes = [
       },
       {
         path: 'consultar-datos',
-        loadComponent: () => import('./pages/dashboard/pages/consultar-datos/consultar-datos.component').then(m => m.ConsultarDatosComponent)
+        component: ConsultarDatosComponent
       },
       {
         path: 'crear-vendedor',

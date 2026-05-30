@@ -1,25 +1,139 @@
 <div class="content-section">
-  <h2>🔎 Consultar Datos</h2>
-  <p>Consulta un resumen rápido de la rifa seleccionada desde la portada del dashboard.</p>
-
-  <div class="rifa-summary" *ngIf="loading">
-    Cargando rifa...
+  <div class="page-header">
+    <div>
+      <h2>🔎 Consultar Datos</h2>
+      <p>Analiza el rendimiento de un vendedor dentro de la rifa seleccionada.</p>
+    </div>
   </div>
 
-  <div class="rifa-summary error" *ngIf="!loading && error">
+  <div class="rifa-summary" *ngIf="loadingRifas">
+    Cargando rifas...
+  </div>
+
+  <div class="selector-card" *ngIf="!loadingRifas">
+    <div class="control-card full-width">
+      <label for="rifaSelector">Rifa</label>
+      <select id="rifaSelector" [(ngModel)]="selectedRifaId" (ngModelChange)="seleccionarRifa()">
+        <option [ngValue]="null">-- Seleccionar rifa --</option>
+        <option *ngFor="let rifaItem of rifas" [ngValue]="rifaItem.id">{{ rifaItem.nombre }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="rifa-summary" *ngIf="!loadingRifas && !tieneRifaSeleccionada()">
+    <p>Selecciona una rifa para ver las búsquedas por vendedor y las estadísticas.</p>
+  </div>
+
+  <ng-container *ngIf="tieneRifaSeleccionada() && rifa as rifaActual">
+  <div class="rifa-banner">
+    <div>
+      <span class="eyebrow">Rifa seleccionada</span>
+      <h3>{{ rifaActual.nombre }}</h3>
+    </div>
+    <div class="banner-stats">
+      <div>
+        <span>Boletos</span>
+        <strong>{{ rifaActual.cantidadBoletos }}</strong>
+      </div>
+      <div>
+        <span>Valor c/u</span>
+        <strong>{{ formatoMoneda(rifaActual.valorBoleto) }}</strong>
+      </div>
+    </div>
+  </div>
+  </ng-container>
+
+  <div class="controls-grid" *ngIf="tieneRifaSeleccionada()">
+    <div class="control-card">
+      <label for="vendedor">Vendedor</label>
+      <select id="vendedor" [(ngModel)]="selectedVendedorId" (ngModelChange)="cargarConsulta()">
+        <option [ngValue]="null">-- Seleccionar vendedor --</option>
+        <option *ngFor="let vendedor of vendedores" [ngValue]="vendedor.id">{{ vendedor.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="control-card">
+      <label for="estado">Filtrar por estado</label>
+      <select id="estado" [(ngModel)]="selectedEstado" (ngModelChange)="cargarConsulta()">
+        <option *ngFor="let estado of estadoOpciones" [ngValue]="estado">{{ estado }}</option>
+      </select>
+    </div>
+
+    <div class="control-card">
+      <label for="busqueda">Buscar boleta</label>
+      <input id="busqueda" type="text" [(ngModel)]="busquedaNumero" placeholder="Ej: 001, 523..." />
+    </div>
+  </div>
+
+  <div class="loading-box" *ngIf="tieneRifaSeleccionada() && loadingConsulta">
+    Cargando consulta...
+  </div>
+
+  <div class="stats-grid" *ngIf="tieneRifaSeleccionada() && !loadingConsulta && consulta">
+    <article class="stat-card blue">
+      <span>Vendedor</span>
+      <strong>{{ consulta.vendedorNombre }}</strong>
+    </article>
+    <article class="stat-card green">
+      <span>Dinero recogido</span>
+      <strong>{{ formatoMoneda(consulta.dineroRecogido) }}</strong>
+    </article>
+    <article class="stat-card slate">
+      <span>Boletas asignadas</span>
+      <strong>{{ consulta.totalBoletas }}</strong>
+    </article>
+    <article class="stat-card red">
+      <span>Vendidas</span>
+      <strong>{{ consulta.totalVendidas }}</strong>
+    </article>
+    <article class="stat-card amber">
+      <span>Abonadas</span>
+      <strong>{{ consulta.totalAbonadas }}</strong>
+    </article>
+    <article class="stat-card gray">
+      <span>Disponibles</span>
+      <strong>{{ consulta.totalDisponibles }}</strong>
+    </article>
+  </div>
+
+  <div class="tickets-panel" *ngIf="tieneRifaSeleccionada() && !loadingConsulta && consulta">
+    <div class="tickets-panel-header">
+      <div>
+        <h4>Boletas del vendedor</h4>
+        <p>Mostrando {{ obtenerBoletosFiltrados().length }} de {{ consulta.boletos.length }}</p>
+      </div>
+      <div class="ticket-legend">
+        <span class="legend-item"><i class="dot vendido"></i> Vendido</span>
+        <span class="legend-item"><i class="dot abonado"></i> Abonado</span>
+        <span class="legend-item"><i class="dot disponible"></i> Disponible</span>
+      </div>
+    </div>
+
+    <div class="boletos-grid" *ngIf="obtenerBoletosFiltrados().length > 0">
+      <article class="boleto-card" *ngFor="let boleto of obtenerBoletosFiltrados(); trackBy: trackByBoletoId">
+        <div class="boleto-top">
+          <strong>#{{ boleto.numero }}</strong>
+          <span class="estado-badge" [style.backgroundColor]="colorEstado(boleto.estadoVenta)">{{ boleto.estadoVenta }}</span>
+        </div>
+
+        <div class="boleto-body">
+          <div><span>Comprador</span><strong>{{ boleto.compradorNombre || 'Sin dato' }}</strong></div>
+          <div><span>Teléfono</span><strong>{{ boleto.compradorTelefono || 'Sin dato' }}</strong></div>
+          <div><span>Abonado</span><strong>{{ formatoMoneda(boleto.montoAbonado || 0) }}</strong></div>
+          <div><span>Fecha</span><strong>{{ boleto.fechaVenta ? (boleto.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="obtenerBoletosFiltrados().length === 0">
+      <p>No hay boletas que coincidan con el filtro actual.</p>
+    </div>
+  </div>
+</div>
+
+<div class="content-section" *ngIf="error && !tieneRifaSeleccionada()">
+  <div class="rifa-summary error">
     {{ error }}
   </div>
-
-  <div class="rifa-summary" *ngIf="!loading && !error && rifa">
-    <h3>{{ rifa.nombre }}</h3>
-    <p><strong>Boletos:</strong> {{ rifa.cantidadBoletos }}</p>
-    <p><strong>Valor por boleto:</strong> {{ rifa.valorBoleto | currency:'COP':'symbol':'1.0-0' }}</p>
-    <p><strong>Total potencial:</strong> {{ (rifa.cantidadBoletos * rifa.valorBoleto) | currency:'COP':'symbol':'1.0-0' }}</p>
-    <button class="btn btn-primary" (click)="volverAdministracion()">Volver a administración</button>
-  </div>
-
-  <div class="rifa-summary" *ngIf="!loading && !error && !rifa">
-    <p>No se ha seleccionado una rifa desde el dashboard.</p>
-    <button class="btn btn-primary" (click)="volverAdministracion()">Ir a administrar rifas</button>
-  </div>
+  <button class="btn btn-primary" type="button" (click)="volverAdministracion()">Ir a administrar rifas</button>
 </div>

@@ -4,6 +4,17 @@ import { Observable } from 'rxjs';
 import { Boleto, BoletoPage, Estadisticas, EstadoVenta } from '../models/boleto';
 import { AuthService } from './auth.service';
 
+export interface ConsultaVendedor {
+  vendedorId: number;
+  vendedorNombre: string;
+  totalBoletas: number;
+  totalVendidas: number;
+  totalAbonadas: number;
+  totalDisponibles: number;
+  dineroRecogido: number;
+  boletos: Boleto[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -125,6 +136,22 @@ export class BoletoService {
       `${this.apiUrl}/${rifaId}/boletos/${boletoId}/propietario`,
       datos,
       { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Obtener datos de un vendedor dentro de una rifa
+   */
+  obtenerConsultaVendedor(rifaId: number, vendedorId: number, estado?: EstadoVenta | 'TODOS'): Observable<ConsultaVendedor> {
+    let httpParams = new HttpParams();
+
+    if (estado && estado !== 'TODOS') {
+      httpParams = httpParams.set('estado', estado);
+    }
+
+    return this.http.get<ConsultaVendedor>(
+      `${this.apiUrl}/${rifaId}/consultas/vendedores/${vendedorId}`,
+      { headers: this.getHeaders(), params: httpParams }
     );
   }
 }
