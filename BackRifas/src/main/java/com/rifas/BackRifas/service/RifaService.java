@@ -8,18 +8,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.rifas.BackRifas.dto.CreateRifaRequest;
 import com.rifas.BackRifas.dto.RifaDTO;
+import com.rifas.BackRifas.model.Boleto;
+import com.rifas.BackRifas.model.GrupoBoleto;
 import com.rifas.BackRifas.model.Rifa;
 import com.rifas.BackRifas.repository.BoletoRepository;
+import com.rifas.BackRifas.repository.GrupoBoletoRepository;
 import com.rifas.BackRifas.repository.RifaRepository;
 
 @Service
 public class RifaService {
     private final RifaRepository rifaRepository;
     private final BoletoRepository boletoRepository;
+    private final GrupoBoletoRepository grupoBoletoRepository;
 
-    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository) {
+    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository) {
         this.rifaRepository = rifaRepository;
         this.boletoRepository = boletoRepository;
+        this.grupoBoletoRepository = grupoBoletoRepository;
     }
 
     /**
@@ -27,6 +32,10 @@ public class RifaService {
      */
     public RifaDTO crearRifa(CreateRifaRequest request, Long usuarioId) {
         Rifa rifa = new Rifa(request.getNombre(), request.getCantidadBoletos(), request.getValorBoleto(), usuarioId);
+        rifa.setGruposHabilitado(request.getGruposHabilitado() != null ? request.getGruposHabilitado() : false);
+        if (Boolean.TRUE.equals(rifa.getGruposHabilitado())) {
+            rifa.setValorGrupo(request.getValorBoleto());
+        }
         Rifa rifaGuardada = rifaRepository.save(rifa);
         return convertirADTO(rifaGuardada);
     }
@@ -58,6 +67,12 @@ public class RifaService {
         rifa.setNombre(request.getNombre());
         rifa.setCantidadBoletos(request.getCantidadBoletos());
         rifa.setValorBoleto(request.getValorBoleto());
+        if (request.getGruposHabilitado() != null) {
+            rifa.setGruposHabilitado(request.getGruposHabilitado());
+        }
+        if (Boolean.TRUE.equals(rifa.getGruposHabilitado())) {
+            rifa.setValorGrupo(request.getValorBoleto());
+        }
         
         Rifa rifaActualizada = rifaRepository.save(rifa);
         return convertirADTO(rifaActualizada);
@@ -71,6 +86,19 @@ public class RifaService {
         Rifa rifa = rifaRepository.findByIdAndUsuarioId(id, usuarioId)
                 .orElseThrow(() -> new RuntimeException("Rifa no encontrada o no tienes permisos para eliminarla"));
 
+        List<GrupoBoleto> grupos = grupoBoletoRepository.findByRifaIdWithBoletos(rifa.getId());
+        for (GrupoBoleto grupo : grupos) {
+            for (Boleto boleto : grupo.getBoletos()) {
+                boleto.setGrupoId(null);
+            }
+            grupo.getBoletos().clear();
+        }
+
+        if (!grupos.isEmpty()) {
+            grupoBoletoRepository.saveAll(grupos);
+            grupoBoletoRepository.deleteAll(grupos);
+        }
+
         boletoRepository.deleteByRifaId(rifa.getId());
         rifaRepository.delete(rifa);
     }
@@ -80,6 +108,7 @@ public class RifaService {
      */
     private RifaDTO convertirADTO(Rifa rifa) {
         return new RifaDTO(rifa.getId(), rifa.getNombre(), rifa.getCantidadBoletos(), rifa.getValorBoleto(), 
-                          rifa.getUsuarioId(), rifa.getCreatedAt(), rifa.getUpdatedAt());
+                          rifa.getUsuarioId(), rifa.getGruposHabilitado(), rifa.getValorGrupo(),
+                          rifa.getCreatedAt(), rifa.getUpdatedAt());
     }
 }

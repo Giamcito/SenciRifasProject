@@ -2,6 +2,8 @@ package com.rifas.BackRifas.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -14,14 +16,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "boletos")
-public class Boleto {
+@Table(name = "grupo_boletos")
+public class GrupoBoleto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,12 +32,23 @@ public class Boleto {
     @JoinColumn(name = "rifa_id", nullable = false)
     private Rifa rifa;
 
-    @Column(nullable = false, length = 10)
-    private String numero;
+    @Column(nullable = false, length = 255)
+    private String nombre;
+
+    @ManyToMany
+    @JoinTable(
+        name = "grupo_boleto_boleto",
+        joinColumns = @JoinColumn(name = "grupo_id"),
+        inverseJoinColumns = @JoinColumn(name = "boleto_id")
+    )
+    private List<Boleto> boletos = new ArrayList<>();
+
+    @Column(nullable = false)
+    private BigDecimal valor;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_venta", nullable = false, length = 20)
-    private EstadoVenta estadoVenta;
+    private EstadoVenta estadoVenta = EstadoVenta.DISPONIBLE;
 
     @Column(name = "comprador_nombre", length = 255)
     private String compradorNombre;
@@ -48,12 +61,6 @@ public class Boleto {
 
     @Column(name = "vendedor_nombre", length = 255)
     private String vendedorNombre;
-
-    @Column(name = "grupo_id")
-    private Long grupoId;
-
-    @Column(length = 255)
-    private String compradorEmail;
 
     @Column(name = "fecha_venta")
     private LocalDateTime fechaVenta;
@@ -69,35 +76,13 @@ public class Boleto {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public Boleto() {}
+    public GrupoBoleto() {}
 
-    public Boleto(Rifa rifa, String numero) {
+    public GrupoBoleto(Rifa rifa, String nombre, BigDecimal valor) {
         this.rifa = rifa;
-        this.numero = numero;
+        this.nombre = nombre;
+        this.valor = valor;
         this.estadoVenta = EstadoVenta.DISPONIBLE;
-    }
-
-    public BigDecimal getMontoAbonado() {
-        return montoAbonado;
-    }
-
-    public void setMontoAbonado(BigDecimal montoAbonado) {
-        this.montoAbonado = montoAbonado;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = LocalDateTime.now();
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 
     // Getters y Setters
@@ -117,12 +102,28 @@ public class Boleto {
         this.rifa = rifa;
     }
 
-    public String getNumero() {
-        return numero;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setNumero(String numero) {
-        this.numero = numero;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public List<Boleto> getBoletos() {
+        return boletos;
+    }
+
+    public void setBoletos(List<Boleto> boletos) {
+        this.boletos = boletos;
+    }
+
+    public BigDecimal getValor() {
+        return valor;
+    }
+
+    public void setValor(BigDecimal valor) {
+        this.valor = valor;
     }
 
     public EstadoVenta getEstadoVenta() {
@@ -131,14 +132,6 @@ public class Boleto {
 
     public void setEstadoVenta(EstadoVenta estadoVenta) {
         this.estadoVenta = estadoVenta;
-    }
-
-    public String getCompradorEmail() {
-        return compradorEmail;
-    }
-
-    public void setCompradorEmail(String compradorEmail) {
-        this.compradorEmail = compradorEmail;
     }
 
     public String getCompradorNombre() {
@@ -173,20 +166,20 @@ public class Boleto {
         this.vendedorNombre = vendedorNombre;
     }
 
-    public Long getGrupoId() {
-        return grupoId;
-    }
-
-    public void setGrupoId(Long grupoId) {
-        this.grupoId = grupoId;
-    }
-
     public LocalDateTime getFechaVenta() {
         return fechaVenta;
     }
 
     public void setFechaVenta(LocalDateTime fechaVenta) {
         this.fechaVenta = fechaVenta;
+    }
+
+    public BigDecimal getMontoAbonado() {
+        return montoAbonado;
+    }
+
+    public void setMontoAbonado(BigDecimal montoAbonado) {
+        this.montoAbonado = montoAbonado;
     }
 
     public LocalDateTime getCreatedAt() {

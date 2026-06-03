@@ -369,6 +369,8 @@ export class VisualizarRifasComponent implements OnInit {
     switch (estado) {
       case 'DISPONIBLE':
         return '#27ae60'; // Verde
+      case 'AGRUPADA':
+        return '#3b82f6'; // Azul
       case 'VENDIDO':
         return '#e74c3c'; // Rojo
       case 'ABONADO':

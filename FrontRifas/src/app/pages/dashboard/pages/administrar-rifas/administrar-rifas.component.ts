@@ -34,7 +34,21 @@ export class AdministrarRifasComponent implements OnInit {
     this.boletoService.generarBoletos(rifaId).subscribe({
       next: () => {
         this.successMessage = 'Boletos generados correctamente';
-        setTimeout(() => (this.successMessage = ''), 3000);
+        
+        // Obtener la rifa para verificar si tiene grupos habilitados
+        const rifa = this.rifas.find(r => r.id === rifaId);
+        
+        setTimeout(() => {
+          this.successMessage = '';
+          
+          // Si la rifa tiene grupos habilitados, redirigir a agrupar-boletos
+          if (rifa?.gruposHabilitado) {
+            this.router.navigate(['/dashboard/agrupar-boletos', rifaId]);
+          } else {
+            // Si no, ir a visualizar-rifas
+            this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifaId]);
+          }
+        }, 1000);
       },
       error: (err) => {
         this.error = err?.status === 409

@@ -81,6 +81,24 @@
         </div>
       </fieldset>
 
+      <!-- Configuración de Grupos -->
+      <fieldset class="form-section">
+        <legend>CONFIGURACIÓN DE GRUPOS DE BOLETAS (Opcional)</legend>
+        
+        <div class="form-group checkbox-group">
+          <label for="gruposHabilitado">
+            <input
+              type="checkbox"
+              id="gruposHabilitado"
+              formControlName="gruposHabilitado"
+              class="checkbox-input"
+            />
+            <span>Habilitar agrupación de boletas</span>
+          </label>
+          <small class="hint-text">Cuando se active, las boletas podrán agruparse después de generarlas. El valor del grupo será el mismo valor del boleto.</small>
+        </div>
+      </fieldset>
+
       <!-- Botones -->
       <div class="form-actions">
         <button

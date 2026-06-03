@@ -15,12 +15,16 @@ public class CreateRifaRequest {
     @Positive(message = "El valor del boleto debe ser positivo")
     private BigDecimal valorBoleto;
 
+    private Boolean gruposHabilitado = false;
+
     public CreateRifaRequest() {}
 
-    public CreateRifaRequest(String nombre, Integer cantidadBoletos, BigDecimal valorBoleto) {
+    public CreateRifaRequest(String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, 
+                           Boolean gruposHabilitado) {
         this.nombre = nombre;
         this.cantidadBoletos = cantidadBoletos;
         this.valorBoleto = valorBoleto;
+        this.gruposHabilitado = gruposHabilitado;
     }
 
     public String getNombre() {
@@ -45,5 +49,13 @@ public class CreateRifaRequest {
 
     public void setValorBoleto(BigDecimal valorBoleto) {
         this.valorBoleto = valorBoleto;
+    }
+
+    public Boolean getGruposHabilitado() {
+        return gruposHabilitado;
+    }
+
+    public void setGruposHabilitado(Boolean gruposHabilitado) {
+        this.gruposHabilitado = gruposHabilitado;
     }
 }

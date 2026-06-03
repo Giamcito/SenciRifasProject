@@ -31,6 +31,12 @@ public class Rifa {
     @Column(nullable = false)
     private Long usuarioId; // ID del usuario propietario de la rifa
 
+    @Column(nullable = false)
+    private Boolean gruposHabilitado = false;
+
+    @Column(nullable = false)
+    private BigDecimal valorGrupo = BigDecimal.ZERO;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -112,5 +118,21 @@ public class Rifa {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getGruposHabilitado() {
+        return gruposHabilitado;
+    }
+
+    public void setGruposHabilitado(Boolean gruposHabilitado) {
+        this.gruposHabilitado = gruposHabilitado;
+    }
+
+    public BigDecimal getValorGrupo() {
+        return valorGrupo;
+    }
+
+    public void setValorGrupo(BigDecimal valorGrupo) {
+        this.valorGrupo = valorGrupo;
     }
 }

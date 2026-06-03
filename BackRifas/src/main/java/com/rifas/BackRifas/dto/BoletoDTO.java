@@ -10,6 +10,12 @@ public class BoletoDTO {
     private Long rifaId;
     private String numero;
     private EstadoVenta estadoVenta;
+    private Long grupoId;
+    private String grupoNombre;
+    private EstadoVenta grupoEstadoVenta;
+    private String grupoVendedorNombre;
+    private BigDecimal grupoMontoAbonado;
+    private BigDecimal grupoSaldoPendiente;
     private Long vendedorId;
     private String vendedorNombre;
     private String compradorNombre;
@@ -22,6 +28,12 @@ public class BoletoDTO {
     public BoletoDTO() {}
 
     public BoletoDTO(Long id, Long rifaId, String numero, EstadoVenta estadoVenta,
+                     Long grupoId,
+                     String grupoNombre,
+                     EstadoVenta grupoEstadoVenta,
+                     String grupoVendedorNombre,
+                     BigDecimal grupoMontoAbonado,
+                     BigDecimal grupoSaldoPendiente,
                      Long vendedorId, String vendedorNombre,
                      String compradorNombre, String compradorTelefono, LocalDateTime fechaVenta, BigDecimal montoAbonado,
                      LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -29,6 +41,12 @@ public class BoletoDTO {
         this.rifaId = rifaId;
         this.numero = numero;
         this.estadoVenta = estadoVenta;
+        this.grupoId = grupoId;
+        this.grupoNombre = grupoNombre;
+        this.grupoEstadoVenta = grupoEstadoVenta;
+        this.grupoVendedorNombre = grupoVendedorNombre;
+        this.grupoMontoAbonado = grupoMontoAbonado;
+        this.grupoSaldoPendiente = grupoSaldoPendiente;
         this.vendedorId = vendedorId;
         this.vendedorNombre = vendedorNombre;
         this.compradorNombre = compradorNombre;
@@ -70,6 +88,54 @@ public class BoletoDTO {
 
     public void setEstadoVenta(EstadoVenta estadoVenta) {
         this.estadoVenta = estadoVenta;
+    }
+
+    public Long getGrupoId() {
+        return grupoId;
+    }
+
+    public void setGrupoId(Long grupoId) {
+        this.grupoId = grupoId;
+    }
+
+    public String getGrupoNombre() {
+        return grupoNombre;
+    }
+
+    public void setGrupoNombre(String grupoNombre) {
+        this.grupoNombre = grupoNombre;
+    }
+
+    public EstadoVenta getGrupoEstadoVenta() {
+        return grupoEstadoVenta;
+    }
+
+    public void setGrupoEstadoVenta(EstadoVenta grupoEstadoVenta) {
+        this.grupoEstadoVenta = grupoEstadoVenta;
+    }
+
+    public String getGrupoVendedorNombre() {
+        return grupoVendedorNombre;
+    }
+
+    public void setGrupoVendedorNombre(String grupoVendedorNombre) {
+        this.grupoVendedorNombre = grupoVendedorNombre;
+    }
+
+    public BigDecimal getGrupoMontoAbonado() {
+        return grupoMontoAbonado;
+    }
+
+    public void setGrupoMontoAbonado(BigDecimal grupoMontoAbonado) {
+        this.grupoMontoAbonado = grupoMontoAbonado;
+    }
+
+    public BigDecimal getGrupoSaldoPendiente() {
+        return grupoSaldoPendiente;
+    }
+
+    public void setGrupoSaldoPendiente(BigDecimal grupoSaldoPendiente) {
+        this.grupoSaldoPendiente = grupoSaldoPendiente;
     }
 
     public Long getVendedorId() {

@@ -3,8 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Boleto } from '../../../../models/boleto';
+import { GrupoBoleto } from '../../../../models/grupo';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
+import { GrupoService } from '../../../../services/grupo.service';
 import { RifaService } from '../../../../services/rifa.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
@@ -31,11 +33,15 @@ export class VentaBoletosComponent implements OnInit {
   compradorNombre?: string;
   compradorTelefono?: string;
   valorBoleto: number = 0;
+  grupoDetalle: GrupoBoleto | null = null;
+  saldoPendienteGrupo: number = 0;
+  cargandoGrupo: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private boletoService: BoletoService,
     private rifaService: RifaService,
+    private grupoService: GrupoService,
     private vendedorService: VendedorService
   ) {}
 
@@ -129,13 +135,65 @@ export class VentaBoletosComponent implements OnInit {
     this.compradorNombre = boleto.compradorNombre ?? '';
     this.compradorTelefono = boleto.compradorTelefono ?? '';
     this.montoAbono = undefined;
+    this.grupoDetalle = null;
+    this.saldoPendienteGrupo = 0;
+
+    if (boleto.grupoId) {
+      this.cargandoGrupo = true;
+      this.grupoService.obtenerGrupo(this.rifaId, boleto.grupoId, this.getToken()).subscribe({
+        next: (grupo) => {
+          this.grupoDetalle = grupo;
+          this.saldoPendienteGrupo = Math.max(Number(grupo.valor || 0) - Number(grupo.montoAbonado || 0), 0);
+          this.vendedorSeleccionadoId = grupo.vendedorId ?? this.vendedorSeleccionadoId;
+          if (this.selectedBoleto) {
+            this.selectedBoleto = {
+              id: this.selectedBoleto.id,
+              rifaId: this.selectedBoleto.rifaId,
+              numero: this.selectedBoleto.numero,
+              estadoVenta: this.selectedBoleto.estadoVenta,
+              grupoId: this.selectedBoleto.grupoId,
+              grupoNombre: grupo.nombre ?? this.selectedBoleto.grupoNombre,
+              grupoEstadoVenta: grupo.estadoVenta ?? this.selectedBoleto.grupoEstadoVenta,
+              grupoVendedorNombre: grupo.vendedorNombre ?? this.selectedBoleto.grupoVendedorNombre,
+              grupoMontoAbonado: grupo.montoAbonado ?? this.selectedBoleto.grupoMontoAbonado,
+              grupoSaldoPendiente: this.saldoPendienteGrupo,
+              vendedorId: grupo.vendedorId ?? this.selectedBoleto.vendedorId,
+              vendedorNombre: grupo.vendedorNombre ?? this.selectedBoleto.vendedorNombre,
+              compradorNombre: this.selectedBoleto.compradorNombre,
+              compradorTelefono: this.selectedBoleto.compradorTelefono,
+              fechaVenta: this.selectedBoleto.fechaVenta,
+              createdAt: this.selectedBoleto.createdAt,
+              updatedAt: this.selectedBoleto.updatedAt,
+              montoAbonado: this.selectedBoleto.montoAbonado
+            };
+          }
+          this.cargandoGrupo = false;
+        },
+        error: () => {
+          this.cargandoGrupo = false;
+        }
+      });
+    }
+
     if (boleto.estadoVenta === 'VENDIDO' || boleto.estadoVenta === 'ABONADO') {
       this.success = `Se cargaron los datos de la boleta ${boleto.numero}.`;
     }
   }
 
+  private getToken(): string {
+    return localStorage.getItem('token') || '';
+  }
+
   montoMaximoAbono(): number {
-    if (!this.selectedBoleto || !this.valorBoleto) {
+    if (!this.selectedBoleto) {
+      return 0;
+    }
+
+    if (this.grupoDetalle) {
+      return Math.max(Number(this.grupoDetalle.valor || 0) - Number(this.grupoDetalle.montoAbonado || 0), 0);
+    }
+
+    if (!this.valorBoleto) {
       return 0;
     }
 

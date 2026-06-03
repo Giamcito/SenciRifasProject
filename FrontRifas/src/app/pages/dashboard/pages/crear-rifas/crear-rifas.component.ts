@@ -23,7 +23,8 @@ export class CrearRifasComponent implements OnInit {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       cantidadBoletos: ['', [Validators.required, this.validarNumeroPositivo]],
-      valorBoleto: ['', [Validators.required, Validators.min(0.01)]]
+      valorBoleto: ['', [Validators.required, Validators.min(0.01)]],
+      gruposHabilitado: [false]
     });
   }
 
@@ -61,17 +62,18 @@ export class CrearRifasComponent implements OnInit {
     this.error = '';
     this.successMessage = '';
 
-    const rifaData = {
+    const rifaData: any = {
       nombre: this.form.value.nombre,
       cantidadBoletos: parseInt(this.form.value.cantidadBoletos, 10),
-      valorBoleto: parseFloat(this.form.value.valorBoleto)
+      valorBoleto: parseFloat(this.form.value.valorBoleto),
+      gruposHabilitado: this.form.value.gruposHabilitado || false
     };
 
     this.rifaService.crearRifa(rifaData).subscribe({
       next: (response) => {
         this.loading = false;
         this.successMessage = 'Rifa creada exitosamente';
-        this.form.reset();
+        this.form.reset({ gruposHabilitado: false });
         
         // Auto-dismiss mensaje después de 3 segundos
         setTimeout(() => {
@@ -86,7 +88,7 @@ export class CrearRifasComponent implements OnInit {
   }
 
   limpiar(): void {
-    this.form.reset();
+    this.form.reset({ gruposHabilitado: false });
     this.error = '';
     this.successMessage = '';
   }

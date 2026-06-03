@@ -55,6 +55,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {
+        path: 'agrupar-boletos',
+        loadComponent: () => import('./pages/dashboard/pages/agrupar-boletos/agrupar-boletos.component').then(m => m.AgruparBoletosComponent)
+      },
+      {
+        path: 'agrupar-boletos/:rifaId',
+        loadComponent: () => import('./pages/dashboard/pages/agrupar-boletos/agrupar-boletos.component').then(m => m.AgruparBoletosComponent)
+      },
+      {
         path: 'venta-boletos',
         loadComponent: () => import('./pages/dashboard/pages/venta-boletos/venta-boletos.component').then(m => m.VentaBoletosComponent)
       },
