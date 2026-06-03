@@ -50,6 +50,18 @@ public interface BoletoRepository extends JpaRepository<Boleto, Long> {
     long countByRifaIdAndVendedorId(@Param("rifaId") Long rifaId, @Param("vendedorId") Long vendedorId);
 
     /**
+     * Obtener todos los boletos de una rifa ordenados por número
+     */
+    @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId ORDER BY b.numero ASC")
+    List<Boleto> findByRifaIdOrderByNumeroAsc(@Param("rifaId") Long rifaId);
+
+    /**
+     * Obtener todos los boletos de un grupo ordenados por número
+     */
+    @Query("SELECT b FROM Boleto b WHERE b.grupoId = :grupoId ORDER BY b.numero ASC")
+    List<Boleto> findByGrupoIdOrderByNumeroAsc(@Param("grupoId") Long grupoId);
+
+    /**
      * Contar boletos asignados a un vendedor dentro de una rifa por estado
      */
     @Query("SELECT COUNT(b) FROM Boleto b WHERE b.rifa.id = :rifaId AND b.vendedorId = :vendedorId AND b.estadoVenta = :estadoVenta")
