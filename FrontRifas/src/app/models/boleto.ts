@@ -1,10 +1,16 @@
-export type EstadoVenta = 'DISPONIBLE' | 'VENDIDO' | 'ABONADO' | 'RESERVADO' | 'CANCELADO';
+export type EstadoVenta = 'DISPONIBLE' | 'AGRUPADA' | 'VENDIDO' | 'ABONADO' | 'RESERVADO' | 'CANCELADO';
 
 export interface Boleto {
   id: number;
   rifaId?: number;
   numero: string;
   estadoVenta: EstadoVenta;
+  grupoId?: number | null;
+  grupoNombre?: string | null;
+  grupoEstadoVenta?: string | null;
+  grupoVendedorNombre?: string | null;
+  grupoMontoAbonado?: number | null;
+  grupoSaldoPendiente?: number | null;
   vendedorId?: number | null;
   vendedorNombre?: string | null;
   compradorNombre?: string | null;
@@ -33,4 +39,4 @@ export interface BoletoPage {
   last: boolean;
 }
 
-export const EstadoVentaValues: EstadoVenta[] = ['DISPONIBLE', 'VENDIDO', 'ABONADO', 'RESERVADO', 'CANCELADO'];
+export const EstadoVentaValues: EstadoVenta[] = ['DISPONIBLE', 'AGRUPADA', 'VENDIDO', 'ABONADO', 'RESERVADO', 'CANCELADO'];

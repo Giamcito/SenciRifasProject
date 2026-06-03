@@ -12,6 +12,7 @@ export interface ConsultaVendedor {
   totalAbonadas: number;
   totalDisponibles: number;
   dineroRecogido: number;
+  dineroRecogidoGrupos?: number;
   boletos: Boleto[];
 }
 

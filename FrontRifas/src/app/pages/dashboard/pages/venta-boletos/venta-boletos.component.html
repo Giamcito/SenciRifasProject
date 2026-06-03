@@ -103,6 +103,18 @@
           <span>Vendedor</span>
           <strong>{{ selectedBoleto.vendedorNombre }}</strong>
         </div>
+        <div *ngIf="grupoDetalle">
+          <span>Grupo</span>
+          <strong>Agrupación #{{ grupoDetalle.id }}</strong>
+        </div>
+        <div *ngIf="grupoDetalle">
+          <span>Saldo pendiente</span>
+          <strong>{{ saldoPendienteGrupo | number:'1.2-2' }}</strong>
+        </div>
+        <div *ngIf="grupoDetalle?.vendedorNombre">
+          <span>Vendedor del grupo</span>
+          <strong>{{ grupoDetalle?.vendedorNombre }}</strong>
+        </div>
         <div *ngIf="selectedBoleto.compradorNombre">
           <span>Comprador</span>
           <strong>{{ selectedBoleto.compradorNombre }}</strong>
@@ -136,6 +148,10 @@
         <div class="field-group">
           <label for="compradorTelefono">Teléfono del comprador</label>
           <input id="compradorTelefono" name="compradorTelefono" autocomplete="tel" [(ngModel)]="compradorTelefono" placeholder="3001234567" />
+        </div>
+
+        <div class="limit-note" *ngIf="cargandoGrupo">
+          Cargando información de la agrupación...
         </div>
 
         <div class="payment-block" *ngIf="montoMaximoAbono() > 0">

@@ -117,6 +117,9 @@
         </div>
 
         <div class="boleto-body">
+          <div *ngIf="boleto.grupoId"><span>Agrupación</span><strong>{{ tipoAgrupacion(boleto) }}</strong></div>
+          <div *ngIf="boleto.grupoVendedorNombre"><span>Vendedor grupo</span><strong>{{ boleto.grupoVendedorNombre }}</strong></div>
+          <div *ngIf="boleto.grupoId"><span>Saldo grupo</span><strong>{{ saldoAgrupacion(boleto) }}</strong></div>
           <div><span>Comprador</span><strong>{{ boleto.compradorNombre || 'Sin dato' }}</strong></div>
           <div><span>Teléfono</span><strong>{{ boleto.compradorTelefono || 'Sin dato' }}</strong></div>
           <div><span>Abonado</span><strong>{{ formatoMoneda(boleto.montoAbonado || 0) }}</strong></div>

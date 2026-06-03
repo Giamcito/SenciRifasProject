@@ -1,0 +1,219 @@
+<div class="group-page">
+  <div class="group-hero">
+    <div>
+      <p class="eyebrow">Gestión de rifas</p>
+      <h2>Agrupar boletos</h2>
+      <p class="hero-copy" *ngIf="rifa">Organiza boletos por vendedor sin salir del flujo de administración.</p>
+      <p class="hero-copy" *ngIf="!rifa">Selecciona una rifa para administrar sus grupos de boletas.</p>
+    </div>
+    <div class="hero-chip" *ngIf="rifa">
+      <span>{{ rifa.nombre }}</span>
+      <strong>{{ rifa.cantidadBoletos }} boletos</strong>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div class="selector-section" *ngIf="!rifa">
+    <div class="section-card">
+      <div class="panel-head">
+        <div>
+          <p class="panel-kicker">1. Selección</p>
+          <h3>Seleccionar rifa</h3>
+          <p class="section-copy">Escoge la rifa que quieres organizar y luego asigna boletos al vendedor correspondiente.</p>
+        </div>
+      </div>
+
+      <div *ngIf="rifasDisponibles.length === 0 && !loading" class="empty-state">
+        <p>No hay rifas disponibles para agrupar.</p>
+      </div>
+
+      <div class="rifas-grid" *ngIf="rifasDisponibles.length > 0">
+        <button
+          type="button"
+          class="rifa-card"
+          *ngFor="let item of rifasDisponibles"
+          (click)="seleccionarRifa(item)"
+        >
+          <div class="rifa-card-top">
+            <strong>{{ item.nombre }}</strong>
+            <span class="rifa-tag" *ngIf="item.gruposHabilitado">Agrupación activa</span>
+          </div>
+          <div class="rifa-card-stats">
+            <span>{{ item.cantidadBoletos }} boletos</span>
+            <span>Valor boleto: {{ item.valorBoleto | number:'1.0-2' }}</span>
+          </div>
+          <div class="rifa-card-footer">Haz clic para abrir y organizar los grupos</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid" *ngIf="rifa">
+    <section class="panel-card left-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-kicker">1. Selección</p>
+          <h3>Vendedor y boletos</h3>
+        </div>
+        <div class="stat-pill">
+          <span>Seleccionados</span>
+          <strong>{{ boletosSeleccionados.length }}</strong>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="vendedorId">Seleccionar vendedor</label>
+        <form [formGroup]="agrupacionForm" class="group-form">
+          <select id="vendedorId" formControlName="vendedorId" class="form-control">
+            <option value="">Seleccione un vendedor</option>
+            <option *ngFor="let vendedor of vendedores" [value]="vendedor.id">
+              {{ vendedor.nombre }}
+            </option>
+          </select>
+        </form>
+      </div>
+
+      <div class="subsection-card">
+        <div class="subsection-head">
+          <div>
+            <p class="panel-kicker">Boletos disponibles</p>
+            <h4>{{ boletosDisponibles.length }} resultados</h4>
+          </div>
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="buscarBoletos()"
+            placeholder="Buscar boleto..."
+            class="form-control"
+          />
+        </div>
+
+        <div class="button-group">
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="selectTodosBoletos()"
+            [disabled]="boletosDisponibles.length === 0"
+          >
+            Seleccionar todo
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="deselectTodosBoletos()"
+            [disabled]="boletosSeleccionados.length === 0"
+          >
+            Limpiar selección
+          </button>
+        </div>
+
+        <div class="boletos-list">
+          <button
+            type="button"
+            *ngFor="let boleto of boletosDisponibles"
+            class="boleto-item"
+            [class.selected]="isBoletoSeleccionado(boleto.id)"
+            (click)="toggleBoletoSeleccionado(boleto.id)"
+          >
+            <span class="boleto-check" [class.active]="isBoletoSeleccionado(boleto.id)"></span>
+            <span class="boleto-numero">{{ boleto.numero }}</span>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary btn-full cta-btn"
+          (click)="agregarAgrupacion()"
+          [disabled]="boletosSeleccionados.length === 0 || loading"
+        >
+          Crear agrupación con {{ boletosSeleccionados.length }} boletos
+        </button>
+      </div>
+    </section>
+
+    <section class="panel-card right-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-kicker">2. Grupos</p>
+          <h3>Agrupaciones creadas</h3>
+        </div>
+        <div class="stat-pill">
+          <span>Grupos</span>
+          <strong>{{ grupos.length }}</strong>
+        </div>
+      </div>
+
+      <div *ngIf="grupos.length === 0" class="empty-state empty-soft">
+        <p>No hay grupos creados aún.</p>
+        <p>Selecciona un vendedor y boletos para crear la primera agrupación.</p>
+      </div>
+
+      <div class="group-card" *ngFor="let grupo of grupos">
+        <div class="group-header">
+          <div class="group-info">
+            <div class="group-badge">Agrupación #{{ grupo.id }}</div>
+            <h4>{{ grupo.nombre || ('Agrupación #' + grupo.id) }}</h4>
+            <p>Vendedor: {{ grupo.vendedorNombre || 'Sin asignar' }}</p>
+            <p>Valor: ${{ grupo.valor | number:'1.0-2' }}</p>
+            <p>Boletos: {{ grupo.boletos?.length || 0 }}</p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-danger btn-sm"
+            (click)="eliminarGrupo(grupo.id)"
+            [disabled]="loading"
+          >
+            Eliminar
+          </button>
+        </div>
+
+        <div class="group-boletos" *ngIf="grupo.boletos && grupo.boletos.length > 0">
+          <div class="boletos-in-group">
+            <div *ngFor="let boleto of grupo.boletos" class="boleto-in-group">
+              <span>{{ boleto.numero }}</span>
+              <button
+                type="button"
+                class="btn-remove"
+                (click)="removerBoletoDelGrupo(grupo.id, boleto.id)"
+                [disabled]="loading"
+                title="Remover boleto"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-section">
+        <button
+          type="button"
+          class="btn btn-secondary btn-full"
+          (click)="volver()"
+          [disabled]="loading"
+        >
+          Volver
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary btn-full"
+          (click)="continuarAVenta()"
+          [disabled]="loading"
+        >
+          Continuar a venta
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

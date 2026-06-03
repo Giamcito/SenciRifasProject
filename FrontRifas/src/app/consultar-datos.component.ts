@@ -181,6 +181,27 @@ export class ConsultarDatosComponent implements OnInit {
     return boletos.filter((boleto) => boleto.numero.toLowerCase().includes(busqueda));
   }
 
+  esBoletoAgrupado(boleto: Boleto): boolean {
+    return !!boleto.grupoId;
+  }
+
+  saldoAgrupacion(boleto: Boleto): string {
+    if (!boleto.grupoId) {
+      return 'No aplica';
+    }
+
+    const saldo = boleto.grupoSaldoPendiente ?? 0;
+    return this.formatoMoneda(saldo);
+  }
+
+  tipoAgrupacion(boleto: Boleto): string {
+    if (!boleto.grupoId) {
+      return 'Boleto individual';
+    }
+
+    return boleto.grupoNombre ? boleto.grupoNombre : `Agrupación #${boleto.grupoId}`;
+  }
+
   trackByBoletoId(index: number, boleto: Boleto): number {
     return boleto.id;
   }

@@ -146,14 +146,14 @@
               🏷️ Propietario
             </button>
 
-            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE'" 
+            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'" 
                     class="btn-accion btn-vender"
                     (click)="marcarVendido(boleto)"
                     title="Marcar como vendido">
               💰 Vender
             </button>
 
-            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE'" 
+            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'" 
                     class="btn-accion btn-abonar"
                     (click)="cambiarEstado(boleto, 'ABONADO')"
                     title="Abonar">
