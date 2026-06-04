@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -14,7 +12,6 @@ import jakarta.persistence.Table;
 @Table(name = "usuarios")
 public class Usuario {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -43,10 +40,18 @@ public class Usuario {
 
     @PrePersist
     protected void onCreate() {
+        if (id == null) {
+            id = generarIdAleatorio();
+        }
         if (uniqueId == null || uniqueId.isBlank()) {
             uniqueId = generarCodigoPublico();
         }
         createdAt = java.time.LocalDateTime.now();
+    }
+
+    private Long generarIdAleatorio() {
+        long candidato = UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
+        return candidato == 0 ? 1L : candidato;
     }
 
     private String generarCodigoPublico() {

@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.rifas.BackRifas.dto.AuthResponse;
+import com.rifas.BackRifas.dto.ChangePasswordRequest;
 import com.rifas.BackRifas.dto.LoginRequest;
 import com.rifas.BackRifas.dto.RegisterRequest;
 import com.rifas.BackRifas.dto.UsuarioDTO;
@@ -65,6 +66,28 @@ public class AuthService {
         return new AuthResponse(
             token,
             "Sesión iniciada exitosamente",
+            new UsuarioDTO(usuario.getId(), usuario.getUniqueId(), usuario.getNombre(), usuario.getEmail())
+        );
+    }
+
+    public AuthResponse changePassword(ChangePasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new RuntimeException("Las contraseñas nuevas no coinciden");
+        }
+
+        Usuario usuario = usuarioRepository.findByUniqueId(request.getUniqueId())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), usuario.getPassword())) {
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usuarioRepository.save(usuario);
+
+        return new AuthResponse(
+            null,
+            "Contraseña actualizada exitosamente",
             new UsuarioDTO(usuario.getId(), usuario.getUniqueId(), usuario.getNombre(), usuario.getEmail())
         );
     }
