@@ -20,11 +20,13 @@ public class RifaService {
     private final RifaRepository rifaRepository;
     private final BoletoRepository boletoRepository;
     private final GrupoBoletoRepository grupoBoletoRepository;
+    private final com.rifas.BackRifas.repository.RetiroRepository retiroRepository;
 
-    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository) {
+    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, com.rifas.BackRifas.repository.RetiroRepository retiroRepository) {
         this.rifaRepository = rifaRepository;
         this.boletoRepository = boletoRepository;
         this.grupoBoletoRepository = grupoBoletoRepository;
+        this.retiroRepository = retiroRepository;
     }
 
     /**
@@ -53,6 +55,15 @@ public class RifaService {
      */
     public RifaDTO obtenerRifa(Long id, Long usuarioId) {
         Rifa rifa = rifaRepository.findByIdAndUsuarioId(id, usuarioId)
+                .orElseThrow(() -> new RuntimeException("Rifa no encontrada o no tienes permisos para verla"));
+        return convertirADTO(rifa);
+    }
+
+    /**
+     * Obtener una rifa específica del usuario por su código público
+     */
+    public RifaDTO obtenerRifaPorCodigoPublico(String uniqueId, Long usuarioId) {
+        Rifa rifa = rifaRepository.findByUniqueIdAndUsuarioId(uniqueId, usuarioId)
                 .orElseThrow(() -> new RuntimeException("Rifa no encontrada o no tienes permisos para verla"));
         return convertirADTO(rifa);
     }
@@ -99,6 +110,8 @@ public class RifaService {
             grupoBoletoRepository.deleteAll(grupos);
         }
 
+        // eliminar retiros asociados a boletos de la rifa antes de borrar boletos para evitar violación de FK
+        retiroRepository.deleteByBoletoRifaId(rifa.getId());
         boletoRepository.deleteByRifaId(rifa.getId());
         rifaRepository.delete(rifa);
     }
@@ -107,7 +120,7 @@ public class RifaService {
      * Convertir entidad Rifa a DTO
      */
     private RifaDTO convertirADTO(Rifa rifa) {
-        return new RifaDTO(rifa.getId(), rifa.getNombre(), rifa.getCantidadBoletos(), rifa.getValorBoleto(), 
+        return new RifaDTO(rifa.getId(), rifa.getUniqueId(), rifa.getNombre(), rifa.getCantidadBoletos(), rifa.getValorBoleto(), 
                           rifa.getUsuarioId(), rifa.getGruposHabilitado(), rifa.getValorGrupo(),
                           rifa.getCreatedAt(), rifa.getUpdatedAt());
     }

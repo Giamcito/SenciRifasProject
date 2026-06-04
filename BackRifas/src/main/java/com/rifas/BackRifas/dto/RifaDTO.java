@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public class RifaDTO {
     private Long id;
+    private String uniqueId;
     private String nombre;
     private Integer cantidadBoletos;
     private BigDecimal valorBoleto;
@@ -16,10 +17,11 @@ public class RifaDTO {
 
     public RifaDTO() {}
 
-    public RifaDTO(Long id, String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, Long usuarioId, 
+    public RifaDTO(Long id, String uniqueId, String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, Long usuarioId, 
                    Boolean gruposHabilitado, BigDecimal valorGrupo,
                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
+        this.uniqueId = uniqueId;
         this.nombre = nombre;
         this.cantidadBoletos = cantidadBoletos;
         this.valorBoleto = valorBoleto;
@@ -36,6 +38,14 @@ public class RifaDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 
     public String getNombre() {

@@ -11,6 +11,7 @@ public class ConsultaVendedorDTO {
     private long totalAbonadas;
     private long totalDisponibles;
     private BigDecimal dineroRecogido;
+    private BigDecimal dineroRetirado;
     private BigDecimal dineroRecogidoGrupos;
     private List<BoletoDTO> boletos;
 
@@ -18,6 +19,7 @@ public class ConsultaVendedorDTO {
 
     public ConsultaVendedorDTO(Long vendedorId, String vendedorNombre, long totalBoletas, long totalVendidas,
                                long totalAbonadas, long totalDisponibles, BigDecimal dineroRecogido,
+                               BigDecimal dineroRetirado,
                                BigDecimal dineroRecogidoGrupos,
                                List<BoletoDTO> boletos) {
         this.vendedorId = vendedorId;
@@ -27,6 +29,7 @@ public class ConsultaVendedorDTO {
         this.totalAbonadas = totalAbonadas;
         this.totalDisponibles = totalDisponibles;
         this.dineroRecogido = dineroRecogido;
+        this.dineroRetirado = dineroRetirado;
         this.dineroRecogidoGrupos = dineroRecogidoGrupos;
         this.boletos = boletos;
     }
@@ -85,6 +88,14 @@ public class ConsultaVendedorDTO {
 
     public void setDineroRecogido(BigDecimal dineroRecogido) {
         this.dineroRecogido = dineroRecogido;
+    }
+
+    public BigDecimal getDineroRetirado() {
+        return dineroRetirado;
+    }
+
+    public void setDineroRetirado(BigDecimal dineroRetirado) {
+        this.dineroRetirado = dineroRetirado;
     }
 
     public BigDecimal getDineroRecogidoGrupos() {

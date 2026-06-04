@@ -185,6 +185,20 @@ public class BoletoController {
     }
 
     /**
+     * Registrar retiro (retirar la parte del vendedor) para un boleto
+     */
+    @PostMapping("/{rifaId}/boletos/{boletoId}/retiro")
+    public ResponseEntity<?> registrarRetiro(@PathVariable Long rifaId, @PathVariable Long boletoId, HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO boletoDTO = boletoService.registrarRetiro(rifaId, boletoId, usuarioId);
+            return ResponseEntity.ok(boletoDTO);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
      * Pagar boleto completo
      */
     @PostMapping("/{rifaId}/boletos/{boletoId}/pago")

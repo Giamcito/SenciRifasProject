@@ -22,6 +22,8 @@ public class BoletoDTO {
     private String compradorTelefono;
     private LocalDateTime fechaVenta;
     private BigDecimal montoAbonado;
+    private Boolean descontarParteVendedor;
+    private BigDecimal montoNeto;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -36,6 +38,7 @@ public class BoletoDTO {
                      BigDecimal grupoSaldoPendiente,
                      Long vendedorId, String vendedorNombre,
                      String compradorNombre, String compradorTelefono, LocalDateTime fechaVenta, BigDecimal montoAbonado,
+                     Boolean descontarParteVendedor, BigDecimal montoNeto,
                      LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.rifaId = rifaId;
@@ -53,6 +56,8 @@ public class BoletoDTO {
         this.compradorTelefono = compradorTelefono;
         this.fechaVenta = fechaVenta;
         this.montoAbonado = montoAbonado;
+        this.descontarParteVendedor = descontarParteVendedor;
+        this.montoNeto = montoNeto;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -184,6 +189,22 @@ public class BoletoDTO {
 
     public void setMontoAbonado(BigDecimal montoAbonado) {
         this.montoAbonado = montoAbonado;
+    }
+
+    public Boolean getDescontarParteVendedor() {
+        return descontarParteVendedor;
+    }
+
+    public void setDescontarParteVendedor(Boolean descontarParteVendedor) {
+        this.descontarParteVendedor = descontarParteVendedor;
+    }
+
+    public BigDecimal getMontoNeto() {
+        return montoNeto;
+    }
+
+    public void setMontoNeto(BigDecimal montoNeto) {
+        this.montoNeto = montoNeto;
     }
 
     public LocalDateTime getCreatedAt() {

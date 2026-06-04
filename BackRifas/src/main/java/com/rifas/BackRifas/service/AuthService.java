@@ -48,7 +48,7 @@ public class AuthService {
         return new AuthResponse(
             token,
             "Usuario registrado exitosamente",
-            new UsuarioDTO(usuario.getId(), usuario.getNombre(), usuario.getEmail())
+            new UsuarioDTO(usuario.getId(), usuario.getUniqueId(), usuario.getNombre(), usuario.getEmail())
         );
     }
 
@@ -65,7 +65,7 @@ public class AuthService {
         return new AuthResponse(
             token,
             "Sesión iniciada exitosamente",
-            new UsuarioDTO(usuario.getId(), usuario.getNombre(), usuario.getEmail())
+            new UsuarioDTO(usuario.getId(), usuario.getUniqueId(), usuario.getNombre(), usuario.getEmail())
         );
     }
 }

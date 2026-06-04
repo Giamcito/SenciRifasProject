@@ -328,6 +328,8 @@ public class GrupoBoletoService {
             ? null
             : grupoBoletoRepository.findById(boleto.getGrupoId()).orElse(null);
 
+        BigDecimal montoNeto = boleto.getMontoNetoRecogido() == null ? BigDecimal.ZERO : boleto.getMontoNetoRecogido();
+
         return new BoletoDTO(
                 boleto.getId(),
                 boleto.getRifa().getId(),
@@ -347,6 +349,8 @@ public class GrupoBoletoService {
                 boleto.getCompradorTelefono(),
                 boleto.getFechaVenta(),
                 boleto.getMontoAbonado(),
+                boleto.getDescontarParteVendedor(),
+                montoNeto,
                 boleto.getCreatedAt(),
                 boleto.getUpdatedAt()
         );

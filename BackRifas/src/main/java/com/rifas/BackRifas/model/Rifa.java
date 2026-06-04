@@ -2,6 +2,7 @@ package com.rifas.BackRifas.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,6 +32,9 @@ public class Rifa {
     @Column(nullable = false)
     private Long usuarioId; // ID del usuario propietario de la rifa
 
+    @Column(name = "unique_id", unique = true, updatable = false)
+    private String uniqueId;
+
     @Column(nullable = false)
     private Boolean gruposHabilitado = false;
 
@@ -54,8 +58,16 @@ public class Rifa {
 
     @PrePersist
     protected void onCreate() {
+        if (uniqueId == null || uniqueId.isBlank()) {
+            uniqueId = generarCodigoPublico();
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+    }
+
+    private String generarCodigoPublico() {
+        String aleatorio = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        return "RIFA-" + aleatorio;
     }
 
     @PreUpdate
@@ -102,6 +114,14 @@ public class Rifa {
 
     public void setUsuarioId(Long usuarioId) {
         this.usuarioId = usuarioId;
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 
     public LocalDateTime getCreatedAt() {

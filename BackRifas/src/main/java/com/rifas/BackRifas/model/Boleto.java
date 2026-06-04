@@ -61,6 +61,12 @@ public class Boleto {
     @Column(name = "monto_abonado", nullable = false)
     private BigDecimal montoAbonado = BigDecimal.ZERO;
 
+    @Column(name = "descontar_parte_vendedor", nullable = false)
+    private Boolean descontarParteVendedor = false;
+
+    @Column(name = "monto_neto_recogido", nullable = false)
+    private BigDecimal montoNetoRecogido = BigDecimal.ZERO;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -83,6 +89,22 @@ public class Boleto {
 
     public void setMontoAbonado(BigDecimal montoAbonado) {
         this.montoAbonado = montoAbonado;
+    }
+
+    public Boolean getDescontarParteVendedor() {
+        return descontarParteVendedor;
+    }
+
+    public void setDescontarParteVendedor(Boolean descontarParteVendedor) {
+        this.descontarParteVendedor = descontarParteVendedor;
+    }
+
+    public BigDecimal getMontoNetoRecogido() {
+        return montoNetoRecogido;
+    }
+
+    public void setMontoNetoRecogido(BigDecimal montoNetoRecogido) {
+        this.montoNetoRecogido = montoNetoRecogido;
     }
 
     @PrePersist

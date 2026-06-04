@@ -12,6 +12,7 @@ public class CreateBoletoRequest {
     private String vendedorNombre;
     private String compradorNombre;
     private String compradorTelefono;
+    private Boolean descontarParteVendedor;
 
     public CreateBoletoRequest() {}
 
@@ -62,5 +63,13 @@ public class CreateBoletoRequest {
 
     public void setCompradorTelefono(String compradorTelefono) {
         this.compradorTelefono = compradorTelefono;
+    }
+
+    public Boolean getDescontarParteVendedor() {
+        return descontarParteVendedor;
+    }
+
+    public void setDescontarParteVendedor(Boolean descontarParteVendedor) {
+        this.descontarParteVendedor = descontarParteVendedor;
     }
 }
