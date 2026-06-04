@@ -522,3 +522,102 @@
   }
 }
 
+/* Modal styles (same look used across admin pages) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000;
+}
+
+.modal-card {
+  width: min(100%, 520px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 { margin: 0; color: #0f172a; }
+
+.modal-close { border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: #64748b; }
+
+.modal-body { padding: 1.25rem; color: #334155; }
+.modal-body p { margin: 0; }
+
+.modal-loading {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #0f172a;
+}
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 0 1.25rem 1.25rem; }
+.btn-modal { border: none; border-radius: 12px; padding: 0.8rem 1rem; font-weight: 700; cursor: pointer; }
+.btn-modal.btn-primary { background: #27ae60; color: white; }
+.btn-modal.btn-secondary { background: #f1f5f9; color: #0f172a; }
+
+/* Mobile: mostrar filas como tarjetas para mejor legibilidad en celulares */
+@media (max-width: 600px) {
+  .content-section { padding: 0 0.6rem; }
+  .table-wrapper { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+  .vendedores-table thead { display: none; }
+  .vendedores-table, .vendedores-table tbody, .vendedores-table tr, .vendedores-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vendedores-table tr {
+    margin-bottom: 0.9rem;
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .vendedores-table td {
+    padding: 0.45rem 0.5rem;
+    border: none;
+    display: block;
+    word-break: break-word;
+  }
+
+  .vendedores-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.25rem;
+  }
+
+  /* etiquetas por columna (mismo orden que la tabla) */
+  .vendedores-table td:nth-child(1)::before { content: 'Nombre'; }
+  .vendedores-table td:nth-child(2)::before { content: 'Dirección'; }
+  .vendedores-table td:nth-child(3)::before { content: 'Teléfono'; }
+  .vendedores-table td:nth-child(4)::before { content: 'Email'; }
+  .vendedores-table td:nth-child(5)::before { content: 'Acciones'; }
+
+  .nombre { max-width: 100%; white-space: normal; overflow-wrap: anywhere; font-size: 1rem; }
+  .direccion { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+  .acciones { justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
+  .acciones button { padding: 0.6rem; font-size: 1.05rem; }
+}
+

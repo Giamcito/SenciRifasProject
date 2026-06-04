@@ -82,6 +82,20 @@ public class RifaController {
     }
 
     /**
+     * Obtener una rifa específica por su código público
+     */
+    @GetMapping("/unique/{uniqueId}")
+    public ResponseEntity<RifaDTO> obtenerRifaPorUniqueId(@PathVariable String uniqueId, HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            RifaDTO rifaDTO = rifaService.obtenerRifaPorCodigoPublico(uniqueId, usuarioId);
+            return ResponseEntity.ok(rifaDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
      * Actualizar una rifa
      */
     @PutMapping("/{id}")
@@ -107,6 +121,10 @@ public class RifaController {
             rifaService.eliminarRifa(id, usuarioId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage().toLowerCase();
+            if (msg.contains("token") || msg.contains("inválid") || msg.contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }

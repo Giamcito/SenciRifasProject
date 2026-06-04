@@ -7,6 +7,12 @@
       <span class="hamburger-line"></span>
     </button>
 
+    <button class="navbar-hamburger-menu" (click)="toggleMobileMenu()" *ngIf="!(currentUser$ | async)">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
     <h1 class="logo">SenciRifas</h1>
     
     <nav class="nav-links">
@@ -50,5 +56,21 @@
     <a routerLink="/contact" class="dropdown-item" (click)="userMenuOpen = false">📞 Contacto</a>
     <a routerLink="/dashboard" class="dropdown-item" (click)="userMenuOpen = false">📊 Dashboard</a>
     <button class="dropdown-item" (click)="logout()">🚪 Cerrar sesión</button>
+  </div>
+
+  <!-- Menú móvil desplegable (abre con la hamburguesa principal) -->
+  <div class="navbar-mobile-menu" *ngIf="mobileMenuOpen">
+    <a routerLink="/" class="mobile-item" (click)="mobileMenuOpen = false">🏠 Inicio</a>
+    <a routerLink="/features" class="mobile-item" (click)="mobileMenuOpen = false">✨ Características</a>
+    <a routerLink="/about" class="mobile-item" (click)="mobileMenuOpen = false">ℹ️ Sobre nosotros</a>
+    <a routerLink="/contact" class="mobile-item" (click)="mobileMenuOpen = false">📞 Contacto</a>
+    <ng-container *ngIf="currentUser$ | async as user">
+      <a routerLink="/dashboard" class="mobile-item" (click)="mobileMenuOpen = false">📊 Dashboard</a>
+      <button class="mobile-item" (click)="logout()">🚪 Cerrar sesión</button>
+    </ng-container>
+    <ng-container *ngIf="!(currentUser$ | async)">
+      <a routerLink="/login" class="mobile-item" (click)="mobileMenuOpen = false">🔑 Iniciar sesión</a>
+      <a routerLink="/register" class="mobile-item" (click)="mobileMenuOpen = false">📝 Registrarse</a>
+    </ng-container>
   </div>
 </header>

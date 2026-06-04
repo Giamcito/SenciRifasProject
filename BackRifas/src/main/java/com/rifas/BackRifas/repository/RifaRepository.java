@@ -12,4 +12,5 @@ import com.rifas.BackRifas.model.Rifa;
 public interface RifaRepository extends JpaRepository<Rifa, Long> {
     List<Rifa> findByUsuarioId(Long usuarioId);
     Optional<Rifa> findByIdAndUsuarioId(Long id, Long usuarioId);
+    Optional<Rifa> findByUniqueIdAndUsuarioId(String uniqueId, Long usuarioId);
 }

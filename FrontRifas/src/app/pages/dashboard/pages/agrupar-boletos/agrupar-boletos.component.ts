@@ -17,6 +17,7 @@ import { Vendedor, VendedorService } from '../../../../services/vendedor.service
 })
 export class AgruparBoletosComponent implements OnInit {
   rifasDisponibles: Rifa[] = [];
+  rifaKey: string = '';
   rifaId: number = 0;
   rifa: Rifa | null = null;
   vendedores: Vendedor[] = [];
@@ -49,10 +50,9 @@ export class AgruparBoletosComponent implements OnInit {
 
   ngOnInit(): void {
     this.token = localStorage.getItem('token') || '';
-    const rifaParam = this.route.snapshot.paramMap.get('rifaId');
-    this.rifaId = rifaParam ? parseInt(rifaParam, 10) : 0;
+    this.rifaKey = this.route.snapshot.paramMap.get('rifaKey') || '';
 
-    if (this.rifaId && this.token) {
+    if (this.rifaKey && this.token) {
       this.cargarDatos();
     } else {
       this.cargarRifasDisponibles();
@@ -78,16 +78,23 @@ export class AgruparBoletosComponent implements OnInit {
   }
 
   seleccionarRifa(rifa: Rifa): void {
-    this.router.navigate(['/dashboard/agrupar-boletos', rifa.id]);
+    this.router.navigate(['/dashboard/agrupar-boletos', rifa.uniqueId ?? rifa.id]);
   }
 
   cargarDatos(): void {
     this.loading = true;
     
+    const rifaIdFallback = Number(this.rifaKey);
+    const cargarPorId = () => this.rifaService.obtenerRifa(rifaIdFallback);
+    const cargaPrincipal = this.rifaKey && isNaN(Number(this.rifaKey))
+      ? this.rifaService.obtenerRifaPorUniqueId(this.rifaKey)
+      : cargarPorId();
+
     // Cargar rifa
-    this.rifaService.obtenerRifa(this.rifaId).subscribe({
+    cargaPrincipal.subscribe({
       next: (rifa) => {
         this.rifa = rifa;
+        this.rifaId = rifa.id;
         this.cargarVendedores();
         
         // Cargar grupos
@@ -105,6 +112,32 @@ export class AgruparBoletosComponent implements OnInit {
         });
       },
       error: () => {
+        if (this.rifaKey && !isNaN(Number(this.rifaKey))) {
+          cargarPorId().subscribe({
+            next: (rifa) => {
+              this.rifa = rifa;
+              this.rifaId = rifa.id;
+              this.cargarVendedores();
+
+              this.grupoService.obtenerGrupos(this.rifaId, this.token).subscribe({
+                next: (grupos) => {
+                  this.grupos = grupos;
+                  this.cargarBoletosDisponibles();
+                },
+                error: () => {
+                  this.error = 'Error al cargar los grupos';
+                  this.loading = false;
+                }
+              });
+            },
+            error: () => {
+              this.error = 'Error al cargar la rifa';
+              this.loading = false;
+            }
+          });
+          return;
+        }
+
         this.error = 'Error al cargar la rifa';
         this.loading = false;
       }
@@ -128,12 +161,37 @@ export class AgruparBoletosComponent implements OnInit {
         this.boletosDisponiblesOriginal = boletos;
         this.boletosDisponibles = [...boletos];
         this.loading = false;
+        // Aplicar preselección si venimos con query param `numero`
+        this.applyPrefillFromQuery();
       },
       error: () => {
         this.error = 'Error al cargar los boletos disponibles';
         this.loading = false;
       }
     });
+  }
+
+  private applyPrefillFromQuery(): void {
+    const preNumero = this.route.snapshot.queryParamMap.get('numero');
+    if (!preNumero || !this.boletosDisponibles || this.boletosDisponibles.length === 0) return;
+
+    // Normalizar y buscar el índice del boleto de inicio
+    const startIndex = this.boletosDisponibles.findIndex(b => b.numero === preNumero || b.numero === String(Number(preNumero)));
+    if (startIndex === -1) return;
+
+    const groupSize = Number(this.rifa?.cantidadAgrupacion ?? 1);
+    this.boletosSeleccionados = [];
+
+    for (let i = startIndex; i < Math.min(startIndex + groupSize, this.boletosDisponibles.length); i++) {
+      const boleto = this.boletosDisponibles[i];
+      if (boleto && !this.isBoletoSeleccionado(boleto.id)) {
+        this.boletosSeleccionados.push(boleto.id);
+      }
+    }
+
+    // Filtrar lista para mostrar la ventana de boletos alrededor del número
+    this.searchTerm = preNumero;
+    this.buscarBoletos();
   }
 
   toggleBoletoSeleccionado(boletoId: number): void {

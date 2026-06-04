@@ -1,6 +1,5 @@
 <div class="content-section">
-  <h2>Crear Nueva Rifa</h2>
-  <p>Completa los datos para crear una nueva rifa</p>
+  <h2>📚Crear Nueva Rifa</h2>
 
   <!-- Alertas -->
   <div class="alert alert-success" *ngIf="successMessage">
@@ -83,7 +82,7 @@
 
       <!-- Configuración de Grupos -->
       <fieldset class="form-section">
-        <legend>CONFIGURACIÓN DE GRUPOS DE BOLETAS (Opcional)</legend>
+        <legend>CONFIGURACIÓN DE GRUPOS EN LA RIFA (Opcional)</legend>
         
         <div class="form-group checkbox-group">
           <label for="gruposHabilitado">
@@ -95,7 +94,44 @@
             />
             <span>Habilitar agrupación de boletas</span>
           </label>
-          <small class="hint-text">Cuando se active, las boletas podrán agruparse después de generarlas. El valor del grupo será el mismo valor del boleto.</small>
+        </div>
+
+        <div class="form-group" *ngIf="form.get('gruposHabilitado')?.value">
+          <label for="cantidadAgrupacion">Cantidad de boletas por agrupación *</label>
+          <input
+            type="text"
+            id="cantidadAgrupacion"
+            formControlName="cantidadAgrupacion"
+            class="form-control"
+            [class.error]="form.get('cantidadAgrupacion')?.invalid && form.get('cantidadAgrupacion')?.touched"
+            placeholder="Ej: 5"
+            inputmode="numeric"
+          />
+          <small class="error-text" *ngIf="form.get('cantidadAgrupacion')?.invalid && form.get('cantidadAgrupacion')?.touched">
+            {{ getErrorMessage('cantidadAgrupacion') }}
+          </small>
+          <small class="hint-text">Este número divide el potencial total para mostrar el valor potencial con las agrupaciones.</small>
+        </div>
+      </fieldset>
+
+      <!-- Resumen de Potencial -->
+      <fieldset class="form-section">
+        <legend>RESUMEN DE POTENCIAL</legend>
+
+        <div class="potential-summary">
+          <div class="potential-box">
+            <span>Total potencial</span>
+            <strong>{{ formatoMoneda(getPotencialTotal()) }}</strong>
+          </div>
+
+          <div class="potential-box highlighted">
+            <span>Potencial nuevo</span>
+            <strong>{{ formatoMoneda(getPotencialMostrado()) }}</strong>
+          </div>
+
+          <p class="potential-note" *ngIf="esAgrupacionActiva() && form.getRawValue().cantidadAgrupacion">
+            {{ formatoMoneda(getPotencialTotal()) }} / {{ form.getRawValue().cantidadAgrupacion }} = {{ formatoMoneda(getPotencialMostrado()) }}
+          </p>
         </div>
       </fieldset>
 

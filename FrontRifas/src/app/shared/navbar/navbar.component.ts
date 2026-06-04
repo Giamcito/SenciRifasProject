@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SidebarService } from '../../services/sidebar.service';
 
@@ -16,7 +16,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentUser$: Observable<any>;
   timeRemaining: string = '';
   userMenuOpen: boolean = false;
+  mobileMenuOpen: boolean = false;
   private intervalId: any;
+  private sidebarSub?: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -31,11 +33,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.intervalId = setInterval(() => {
       this.updateTimeRemaining();
     }, 1000);
+
+    // Close user menu when sidebar opens elsewhere
+    this.sidebarSub = this.sidebarService.sidebarOpen$.subscribe(open => {
+      if (open) {
+        this.userMenuOpen = false;
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
+    }
+    if (this.sidebarSub) {
+      this.sidebarSub.unsubscribe();
     }
   }
 
@@ -72,10 +84,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar(): void {
+    // ensure user menu is closed when toggling sidebar from navbar
+    this.userMenuOpen = false;
     this.sidebarService.toggleSidebar();
   }
 
   toggleUserMenu(): void {
-    this.userMenuOpen = !this.userMenuOpen;
+    const willOpen = !this.userMenuOpen;
+    this.userMenuOpen = willOpen;
+    if (willOpen) {
+      // close sidebar if opening user menu
+      this.sidebarService.closeSidebar();
+    }
+  }
+
+  toggleMobileMenu(): void {
+    const willOpen = !this.mobileMenuOpen;
+    this.mobileMenuOpen = willOpen;
+    if (willOpen) {
+      // close other menus when opening mobile menu
+      this.userMenuOpen = false;
+      this.sidebarService.closeSidebar();
+    }
   }
 }

@@ -24,6 +24,7 @@ import com.rifas.BackRifas.model.GrupoBoleto;
 import com.rifas.BackRifas.model.Rifa;
 import com.rifas.BackRifas.repository.BoletoRepository;
 import com.rifas.BackRifas.repository.GrupoBoletoRepository;
+import com.rifas.BackRifas.repository.RetiroRepository;
 import com.rifas.BackRifas.repository.RifaRepository;
 import com.rifas.BackRifas.repository.VendedorRepository;
 
@@ -33,12 +34,14 @@ public class BoletoService {
     private final GrupoBoletoRepository grupoBoletoRepository;
     private final RifaRepository rifaRepository;
     private final VendedorRepository vendedorRepository;
+    private final RetiroRepository retiroRepository;
 
-    public BoletoService(BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, RifaRepository rifaRepository, VendedorRepository vendedorRepository) {
+    public BoletoService(BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, RifaRepository rifaRepository, VendedorRepository vendedorRepository, RetiroRepository retiroRepository) {
         this.boletoRepository = boletoRepository;
         this.grupoBoletoRepository = grupoBoletoRepository;
         this.rifaRepository = rifaRepository;
         this.vendedorRepository = vendedorRepository;
+        this.retiroRepository = retiroRepository;
     }
 
     /**
@@ -176,6 +179,9 @@ public class BoletoService {
         asignarVendedorSiCorresponde(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
         boleto.setCompradorNombre(request.getCompradorNombre());
         boleto.setCompradorTelefono(request.getCompradorTelefono());
+        if (request.getDescontarParteVendedor() != null) {
+            boleto.setDescontarParteVendedor(request.getDescontarParteVendedor());
+        }
 
         if (request.getEstadoVenta() == EstadoVenta.VENDIDO) {
             if (boleto.getMontoAbonado() == null || boleto.getMontoAbonado().compareTo(BigDecimal.ZERO) <= 0) {
@@ -183,6 +189,8 @@ public class BoletoService {
             }
             boleto.setFechaVenta(LocalDateTime.now());
         }
+
+        boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
 
         Boleto actualizado = boletoRepository.save(boleto);
         sincronizarGrupoSiCorresponde(actualizado);
@@ -238,6 +246,8 @@ public class BoletoService {
             boleto.setEstadoVenta(EstadoVenta.ABONADO);
         }
 
+        boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
+
         Boleto actualizado = boletoRepository.save(boleto);
         sincronizarGrupoSiCorresponde(actualizado);
         actualizado = boletoRepository.findById(actualizado.getId())
@@ -271,6 +281,8 @@ public class BoletoService {
         if (request.getCompradorNombre() != null) boleto.setCompradorNombre(request.getCompradorNombre());
         if (request.getCompradorTelefono() != null) boleto.setCompradorTelefono(request.getCompradorTelefono());
 
+        boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
+
         Boleto actualizado = boletoRepository.save(boleto);
         sincronizarGrupoSiCorresponde(actualizado);
         actualizado = boletoRepository.findById(actualizado.getId())
@@ -293,6 +305,8 @@ public class BoletoService {
         }
 
         asignarVendedor(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
+
+        boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
 
         Boleto actualizado = boletoRepository.save(boleto);
         sincronizarGrupoSiCorresponde(actualizado);
@@ -328,6 +342,7 @@ public class BoletoService {
 
         BigDecimal dineroRecogidoGrupos = calcularDineroRecogidoGrupos(boletosTotales);
         BigDecimal dineroRecogido = calcularDineroRecogidoTotal(boletosTotales);
+        BigDecimal dineroRetirado = retiroRepository.sumMontoByRifaIdAndVendedorId(rifa.getId(), vendedor.getId());
 
         return new ConsultaVendedorDTO(
             vendedor.getId(),
@@ -337,10 +352,67 @@ public class BoletoService {
             totalAbonadas,
             totalDisponibles,
             dineroRecogido,
+            dineroRetirado,
             dineroRecogidoGrupos,
             boletosDTO
         );
         }
+
+    public BoletoDTO registrarRetiro(Long rifaId, Long boletoId, Long usuarioId) {
+        Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+                .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+        Boleto boleto = boletoRepository.findById(boletoId)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+
+        if (!boleto.getRifa().getId().equals(rifa.getId())) {
+            throw new RuntimeException("Boleto no pertenece a la rifa indicada");
+        }
+
+
+        BigDecimal parte = obtenerParteDelVendedor(boleto);
+
+        Long grupoId = boleto.getGrupoId();
+
+        // Si la boleta pertenece a un grupo, evitar crear múltiples retiros para la misma agrupación
+        if (grupoId != null) {
+            if (retiroRepository.existsByGrupoIdAndVendedorId(grupoId, boleto.getVendedorId())) {
+                // Ya existe un retiro para esta agrupación y vendedor; actualizar flag y devolver
+                boleto.setDescontarParteVendedor(true);
+                boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
+                boletoRepository.save(boleto);
+                sincronizarGrupoSiCorresponde(boleto);
+                Boleto actualizado2 = boletoRepository.findById(boleto.getId())
+                        .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+                return convertirADTO(actualizado2);
+            }
+        }
+
+        com.rifas.BackRifas.model.Retiro retiro = new com.rifas.BackRifas.model.Retiro();
+        retiro.setBoleto(boleto);
+        Long vendedorId = boleto.getVendedorId();
+        if (vendedorId == null && boleto.getGrupoId() != null) {
+            GrupoBoleto grupo = grupoBoletoRepository.findById(boleto.getGrupoId()).orElse(null);
+            if (grupo != null) vendedorId = grupo.getVendedorId();
+        }
+        retiro.setVendedorId(vendedorId);
+        retiro.setMonto(parte);
+        retiro.setFecha(LocalDateTime.now());
+        retiro.setGrupoId(grupoId);
+
+        retiroRepository.save(retiro);
+
+        // Marcar toda la agrupación (si aplica)
+        boleto.setDescontarParteVendedor(true);
+        boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
+        boletoRepository.save(boleto);
+        sincronizarGrupoSiCorresponde(boleto);
+
+        Boleto actualizado = boletoRepository.findById(boleto.getId())
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+
+        return convertirADTO(actualizado);
+    }
 
     /**
      * Convertir Boleto a DTO
@@ -349,6 +421,8 @@ public class BoletoService {
         GrupoBoleto grupo = boleto.getGrupoId() == null
             ? null
             : grupoBoletoRepository.findById(boleto.getGrupoId()).orElse(null);
+
+        BigDecimal montoNeto = obtenerMontoNetoRecogido(boleto);
 
         return new BoletoDTO(
                 boleto.getId(),
@@ -367,6 +441,8 @@ public class BoletoService {
                 boleto.getCompradorTelefono(),
                 boleto.getFechaVenta(),
                 boleto.getMontoAbonado(),
+                boleto.getDescontarParteVendedor(),
+                montoNeto,
                 boleto.getCreatedAt(),
                 boleto.getUpdatedAt()
         );
@@ -403,11 +479,11 @@ public class BoletoService {
                 continue;
             }
 
-            GrupoBoleto grupo = grupoBoletoRepository.findById(boleto.getGrupoId()).orElse(null);
-            if (grupo != null && grupo.getMontoAbonado() != null) {
-                total = total.add(grupo.getMontoAbonado());
+            List<Boleto> boletosGrupo = boletoRepository.findByGrupoIdOrderByNumeroAsc(boleto.getGrupoId());
+            if (!boletosGrupo.isEmpty()) {
+                total = total.add(obtenerMontoNetoRecogido(boletosGrupo.get(0)));
             } else {
-                total = total.add(boleto.getMontoAbonado() == null ? BigDecimal.ZERO : boleto.getMontoAbonado());
+                total = total.add(obtenerMontoNetoRecogido(boleto));
             }
         }
 
@@ -416,15 +492,80 @@ public class BoletoService {
 
     private BigDecimal calcularDineroRecogidoTotal(List<Boleto> boletos) {
         BigDecimal total = BigDecimal.ZERO;
+        Set<Long> gruposContabilizados = new HashSet<>();
+        Set<Long> boletosContabilizados = new HashSet<>();
 
         for (Boleto boleto : boletos) {
             if (boleto.getGrupoId() == null) {
-                total = total.add(boleto.getMontoAbonado() == null ? BigDecimal.ZERO : boleto.getMontoAbonado());
+                if (!boletosContabilizados.add(boleto.getId())) {
+                    continue;
+                }
+                total = total.add(obtenerMontoNetoRecogido(boleto));
+                continue;
+            }
+
+            if (!gruposContabilizados.add(boleto.getGrupoId())) {
+                continue;
+            }
+
+            List<Boleto> boletosGrupo = boletoRepository.findByGrupoIdOrderByNumeroAsc(boleto.getGrupoId());
+            if (!boletosGrupo.isEmpty()) {
+                total = total.add(obtenerMontoNetoRecogido(boletosGrupo.get(0)));
+            } else {
+                total = total.add(obtenerMontoNetoRecogido(boleto));
             }
         }
 
-        total = total.add(calcularDineroRecogidoGrupos(boletos));
         return total;
+    }
+
+    private BigDecimal calcularMontoNetoRecogido(Boleto boleto) {
+        BigDecimal montoAbonado = boleto.getMontoAbonado() == null ? BigDecimal.ZERO : boleto.getMontoAbonado();
+
+        if (!Boolean.TRUE.equals(boleto.getDescontarParteVendedor())) {
+            return montoAbonado;
+        }
+
+        if (boleto.getEstadoVenta() != EstadoVenta.VENDIDO) {
+            return montoAbonado;
+        }
+
+        BigDecimal parteVendedor = obtenerParteDelVendedor(boleto);
+        if (parteVendedor.compareTo(BigDecimal.ZERO) <= 0) {
+            return montoAbonado;
+        }
+
+        BigDecimal neto = montoAbonado.subtract(parteVendedor);
+        return neto.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : neto;
+    }
+
+    private BigDecimal obtenerMontoNetoRecogido(Boleto boleto) {
+        if (boleto.getMontoNetoRecogido() != null) {
+            return boleto.getMontoNetoRecogido();
+        }
+
+        return calcularMontoNetoRecogido(boleto);
+    }
+
+    private BigDecimal obtenerParteDelVendedor(Boleto boleto) {
+        Long vendedorId = boleto.getVendedorId();
+
+        if (vendedorId == null && boleto.getGrupoId() != null) {
+            GrupoBoleto grupo = grupoBoletoRepository.findById(boleto.getGrupoId()).orElse(null);
+            if (grupo != null) {
+                vendedorId = grupo.getVendedorId();
+            }
+        }
+
+        if (vendedorId == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return vendedorRepository.findById(vendedorId)
+            .map(vendedor -> vendedor.getParteDelDinero() == null
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(vendedor.getParteDelDinero()))
+            .orElse(BigDecimal.ZERO);
     }
 
     private void asignarVendedor(Boleto boleto, Long vendedorId, String vendedorNombre, Long usuarioId) {
@@ -467,6 +608,8 @@ public class BoletoService {
             boletoGrupo.setCompradorTelefono(boletoActualizado.getCompradorTelefono());
             boletoGrupo.setFechaVenta(boletoActualizado.getFechaVenta());
             boletoGrupo.setMontoAbonado(boletoActualizado.getMontoAbonado());
+            boletoGrupo.setDescontarParteVendedor(boletoActualizado.getDescontarParteVendedor());
+            boletoGrupo.setMontoNetoRecogido(boletoActualizado.getMontoNetoRecogido());
             boletoGrupo.setGrupoId(boletoActualizado.getGrupoId());
         }
 

@@ -48,7 +48,7 @@
                 </button>
                 <button 
                   class="btn-delete" 
-                  (click)="eliminarVendedor(vendedor.id!, vendedor.nombre)"
+                  (click)="mostrarEliminarVendedor(vendedor.id!, vendedor.nombre)"
                   title="Eliminar"
                 >
                   🗑️
@@ -126,6 +126,25 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Modal para eliminar vendedor -->
+  <div class="modal-backdrop" *ngIf="modalVisible" (click)="modalTipo !== 'confirmacion' ? cerrarModal() : null">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ modalTitulo }}</h3>
+        <button type="button" class="modal-close" (click)="cerrarModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>{{ modalMensaje }}</p>
+        <div class="modal-loading" *ngIf="modalLoading">Procesando...</div>
+      </div>
+      <div class="modal-footer" *ngIf="!modalLoading">
+        <button *ngIf="modalTipo === 'confirmacion'" type="button" class="btn-modal btn-primary" (click)="confirmarEliminacionVendedor()">Eliminar</button>
+        <button *ngIf="modalTipo === 'confirmacion'" type="button" class="btn-modal btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button *ngIf="modalTipo !== 'confirmacion'" type="button" class="btn-modal btn-primary" (click)="cerrarModal()">Continuar</button>
+      </div>
     </div>
   </div>
 </div>

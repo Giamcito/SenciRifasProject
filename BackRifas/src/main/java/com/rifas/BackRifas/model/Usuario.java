@@ -1,9 +1,9 @@
 package com.rifas.BackRifas.model;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 @Table(name = "usuarios")
 public class Usuario {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -23,6 +22,9 @@ public class Usuario {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(name = "unique_id", unique = true, updatable = false)
+    private String uniqueId;
 
     @Column(name = "created_at")
     private java.time.LocalDateTime createdAt;
@@ -38,7 +40,23 @@ public class Usuario {
 
     @PrePersist
     protected void onCreate() {
+        if (id == null) {
+            id = generarIdAleatorio();
+        }
+        if (uniqueId == null || uniqueId.isBlank()) {
+            uniqueId = generarCodigoPublico();
+        }
         createdAt = java.time.LocalDateTime.now();
+    }
+
+    private Long generarIdAleatorio() {
+        long candidato = UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
+        return candidato == 0 ? 1L : candidato;
+    }
+
+    private String generarCodigoPublico() {
+        String aleatorio = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        return "USR-" + aleatorio;
     }
 
     public Long getId() {
@@ -71,6 +89,14 @@ public class Usuario {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 
     public java.time.LocalDateTime getCreatedAt() {

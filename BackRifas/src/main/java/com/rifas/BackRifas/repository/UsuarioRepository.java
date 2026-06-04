@@ -10,5 +10,6 @@ import com.rifas.BackRifas.model.Usuario;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByUniqueId(String uniqueId);
     boolean existsByEmail(String email);
 }

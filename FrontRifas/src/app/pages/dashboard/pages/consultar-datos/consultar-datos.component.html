@@ -2,7 +2,6 @@
   <div class="page-header">
     <div>
       <h2>🔎 Consultar Datos</h2>
-      <p>Analiza el rendimiento de un vendedor dentro de la rifa seleccionada.</p>
     </div>
   </div>
 
@@ -61,7 +60,7 @@
 
     <div class="control-card">
       <label for="busqueda">Buscar boleta</label>
-      <input id="busqueda" type="text" [(ngModel)]="busquedaNumero" placeholder="Ej: 001, 523..." />
+      <input id="busqueda" type="text" [(ngModel)]="busquedaNumero" (ngModelChange)="reiniciarPaginacionBoletos()" placeholder="Ej: 001, 523..." />
     </div>
   </div>
 
@@ -69,15 +68,38 @@
     Cargando consulta...
   </div>
 
+  <div class="loading-box" *ngIf="tieneRifaSeleccionada() && loadingResumenVendedores">
+    Cargando resumen general...
+  </div>
+
   <div class="stats-grid" *ngIf="tieneRifaSeleccionada() && !loadingConsulta && consulta">
-    <article class="stat-card blue">
-      <span>Vendedor</span>
+    <article class="stat-card slate">
+      <span>Vendedor seleccionado</span>
       <strong>{{ consulta.vendedorNombre }}</strong>
     </article>
-    <article class="stat-card green">
-      <span>Dinero recogido</span>
+        <article class="stat-card blue">
+      <span>Dinero recogido Total -Retiros</span>
+      <strong>{{ formatoMoneda(resumenGeneral.dineroRecogidoVendedores) }}</strong>
+    </article>
+        <article class="stat-card gray">
+      <span>Total de abonos general</span>
+      <strong>{{ formatoMoneda(resumenGeneral.dineroAbonos) }}</strong>
+    </article>
+
+    <article class="stat-card blue">
+      <span>Dinero recogido Vendedor</span>
       <strong>{{ formatoMoneda(consulta.dineroRecogido) }}</strong>
     </article>
+
+    <article class="stat-card green">
+      <span>Dinero retirado Vendedor</span>
+      <strong>{{ formatoMoneda(consulta.dineroRetirado || 0) }}</strong>
+    </article>
+    <article class="stat-card amber">
+      <span>Dinero recogido en abonos Vendedor</span>
+      <strong>{{ formatoMoneda(calcularDineroAbonos(consulta)) }}</strong>
+    </article>
+
     <article class="stat-card slate">
       <span>Boletas asignadas</span>
       <strong>{{ consulta.totalBoletas }}</strong>
@@ -90,17 +112,13 @@
       <span>Abonadas</span>
       <strong>{{ consulta.totalAbonadas }}</strong>
     </article>
-    <article class="stat-card gray">
-      <span>Disponibles</span>
-      <strong>{{ consulta.totalDisponibles }}</strong>
-    </article>
   </div>
 
   <div class="tickets-panel" *ngIf="tieneRifaSeleccionada() && !loadingConsulta && consulta">
     <div class="tickets-panel-header">
       <div>
         <h4>Boletas del vendedor</h4>
-        <p>Mostrando {{ obtenerBoletosFiltrados().length }} de {{ consulta.boletos.length }}</p>
+        <p>Mostrando {{ rangoVisibleBoletos() }}</p>
       </div>
       <div class="ticket-legend">
         <span class="legend-item"><i class="dot vendido"></i> Vendido</span>
@@ -109,8 +127,8 @@
       </div>
     </div>
 
-    <div class="boletos-grid" *ngIf="obtenerBoletosFiltrados().length > 0">
-      <article class="boleto-card" *ngFor="let boleto of obtenerBoletosFiltrados(); trackBy: trackByBoletoId">
+    <div class="boletos-grid" *ngIf="obtenerBoletosVisibles().length > 0">
+      <article class="boleto-card" *ngFor="let boleto of obtenerBoletosVisibles(); trackBy: trackByBoletoId">
         <div class="boleto-top">
           <strong>#{{ boleto.numero }}</strong>
           <span class="estado-badge" [style.backgroundColor]="colorEstado(boleto.estadoVenta)">{{ boleto.estadoVenta }}</span>
@@ -130,6 +148,20 @@
 
     <div class="empty-state" *ngIf="obtenerBoletosFiltrados().length === 0">
       <p>No hay boletas que coincidan con el filtro actual.</p>
+    </div>
+
+    <div class="pagination-bar" *ngIf="obtenerBoletosFiltrados().length > 0">
+      <button class="btn btn-secondary" type="button" (click)="paginaAnteriorBoletos()" [disabled]="paginaBoletos === 0">
+        Anterior
+      </button>
+
+      <div class="pagination-info">
+        Página {{ paginaBoletos + 1 }} de {{ obtenerTotalPaginasBoletos() }}
+      </div>
+
+      <button class="btn btn-secondary" type="button" (click)="paginaSiguienteBoletos()" [disabled]="paginaBoletos + 1 >= obtenerTotalPaginasBoletos()">
+        Siguiente
+      </button>
     </div>
   </div>
 </div>
