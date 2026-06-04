@@ -53,3 +53,58 @@
 .usuario-card p {
   color: #0f172a;
 }
+
+.password-form {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: grid;
+  gap: 1rem;
+}
+
+.password-form h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.password-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.password-form input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  color: #0f172a;
+}
+
+.password-form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.9rem 1.2rem;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.password-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.success-message {
+  margin: 0;
+  color: #15803d;
+}
+
+.error-message {
+  margin: 0;
+  color: #b91c1c;
+}

@@ -16,7 +16,7 @@
         <span class="menu-text">Dashboard</span>
       </a>
 
-      <a routerLink="usuario" class="menu-item home-btn" routerLinkActive="active" (click)="closeSidebar()">
+      <a [routerLink]="user?.uniqueId ? ['/dashboard/usuario', user.uniqueId] : ['/dashboard/usuario']" class="menu-item home-btn" routerLinkActive="active" (click)="closeSidebar()">
         <span class="menu-icon">👤</span>
         <span class="menu-text">Usuario</span>
       </a>

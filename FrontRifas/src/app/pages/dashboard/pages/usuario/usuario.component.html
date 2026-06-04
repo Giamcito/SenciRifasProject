@@ -2,20 +2,39 @@
   <div class="usuario-card" *ngIf="user; else noUser">
     <span class="eyebrow">Perfil de usuario</span>
     <h2>{{ user.nombre }}</h2>
+
     <div class="usuario-info">
       <div>
         <span>Email</span>
         <strong>{{ user.email }}</strong>
       </div>
-      <div>
-        <span>Id</span>
-        <strong>{{ user.id }}</strong>
-      </div>
-      <div>
-        <span>Código público</span>
-        <strong>{{ user.uniqueId || 'Sin código' }}</strong>
-      </div>
     </div>
+
+    <form class="password-form" [formGroup]="passwordForm" (ngSubmit)="cambiarContrasena()">
+      <h3>Cambiar contraseña</h3>
+
+      <label>
+        Contraseña actual
+        <input type="password" formControlName="currentPassword" placeholder="Ingresa tu contraseña actual" />
+      </label>
+
+      <label>
+        Nueva contraseña
+        <input type="password" formControlName="newPassword" placeholder="Ingresa la nueva contraseña" />
+      </label>
+
+      <label>
+        Confirmar nueva contraseña
+        <input type="password" formControlName="confirmNewPassword" placeholder="Repite la nueva contraseña" />
+      </label>
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Actualizando...' : 'Cambiar contraseña' }}
+      </button>
+
+      <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
+      <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </form>
   </div>
 
   <ng-template #noUser>

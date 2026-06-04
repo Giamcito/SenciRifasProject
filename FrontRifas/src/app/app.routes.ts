@@ -85,6 +85,10 @@ export const routes: Routes = [
       {
         path: 'usuario',
         loadComponent: () => import('./pages/dashboard/pages/usuario/usuario.component').then(m => m.UsuarioComponent)
+      },
+      {
+        path: 'usuario/:uniqueId',
+        loadComponent: () => import('./pages/dashboard/pages/usuario/usuario.component').then(m => m.UsuarioComponent)
       }
     ]
   },

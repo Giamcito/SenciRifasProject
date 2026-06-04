@@ -1,5 +1,6 @@
 .dashboard-wrapper {
   display: flex;
+  align-items: flex-start;
   min-height: calc(100vh - 100px);
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   margin-top: -2rem;
@@ -28,6 +29,23 @@
   overflow-y: auto;
   border-right: 3px solid #27ae60;
   transition: all 0.3s ease;
+}
+
+@media (min-width: 769px) {
+  .dashboard-sidebar {
+    position: fixed;
+    left: 0;
+    top: 100px;
+    height: calc(100vh - 100px);
+    z-index: 1450;
+  }
+
+  .dashboard-main {
+    min-width: 0;
+    width: calc(100% - 280px);
+    margin-left: 280px;
+    overflow-y: visible;
+  }
 }
 
 .sidebar-header {
