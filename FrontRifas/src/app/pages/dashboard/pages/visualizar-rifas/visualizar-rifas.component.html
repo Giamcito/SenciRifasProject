@@ -81,6 +81,7 @@
           <option value="DISPONIBLE">Disponibles</option>
           <option value="VENDIDO">Vendidos</option>
           <option value="ABONADO">Abonados</option>
+          <option value="CANCELADO">Cancelados</option>
         </select>
       </div>
 
@@ -114,7 +115,8 @@
              class="boleto-card" 
              [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
              [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
-             [class.abonado]="boleto.estadoVenta === 'ABONADO'">
+             [class.abonado]="boleto.estadoVenta === 'ABONADO'"
+             [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
           
           <div class="boleto-numero">{{ boleto.numero }}</div>
           
@@ -128,6 +130,12 @@
             <small *ngIf="boleto.vendedorNombre">
               <strong>Vendedor:</strong> {{ boleto.vendedorNombre }}
             </small>
+            <small *ngIf="boleto.estadoVenta === 'VENDIDO' && boleto.vendedorId">
+              <strong>Parte vendedor:</strong> {{ formatoMoneda(obtenerParteDelVendedor(boleto)) }}
+            </small>
+            <small *ngIf="boleto.estadoVenta === 'VENDIDO'">
+              <strong>Valor neto:</strong> {{ formatoMoneda(obtenerMontoNeto(boleto)) }}
+            </small>
             <small *ngIf="boleto.compradorNombre">
               <strong>Comprador:</strong> {{ boleto.compradorNombre }}
             </small>
@@ -140,6 +148,17 @@
           </div>
 
           <div class="boleto-acciones">
+            <label *ngIf="boleto.estadoVenta === 'VENDIDO'" class="checkbox-descuento">
+              <input
+                type="checkbox"
+                [checked]="boleto.descontarParteVendedor ?? false"
+                [disabled]="!boleto.vendedorId"
+                (change)="actualizarDescuentoVendedor(boleto, descuentoVendedor.checked)"
+                #descuentoVendedor
+              />
+              <span>Descontar parte del vendedor</span>
+            </label>
+
             <button class="btn-accion btn-vender"
                     (click)="asignarPropietario(boleto)"
                     title="Asignar propietario">

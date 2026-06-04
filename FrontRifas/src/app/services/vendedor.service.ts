@@ -9,6 +9,7 @@ export interface Vendedor {
   numeroCelular?: string;
   direccion?: string;
   parteDelDinero: number;
+  seleccionado?: boolean;
 }
 
 @Injectable({

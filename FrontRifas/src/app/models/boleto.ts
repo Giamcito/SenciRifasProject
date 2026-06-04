@@ -19,6 +19,8 @@ export interface Boleto {
   createdAt?: string | null;
   updatedAt?: string | null;
   montoAbonado?: number;
+  descontarParteVendedor?: boolean;
+  montoNeto?: number | null;
 }
 
 export interface Estadisticas {

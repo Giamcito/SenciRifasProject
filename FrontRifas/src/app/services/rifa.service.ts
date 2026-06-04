@@ -27,6 +27,10 @@ export class RifaService {
     return this.http.get<Rifa>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
 
+  obtenerRifaPorUniqueId(uniqueId: string): Observable<Rifa> {
+    return this.http.get<Rifa>(`${this.apiUrl}/unique/${encodeURIComponent(uniqueId)}`, { headers: this.getHeaders() });
+  }
+
   actualizarRifa(id: number, rifa: Omit<Rifa, 'id' | 'usuarioId' | 'createdAt' | 'updatedAt'>): Observable<Rifa> {
     return this.http.put<Rifa>(`${this.apiUrl}/${id}`, rifa, { headers: this.getHeaders() });
   }

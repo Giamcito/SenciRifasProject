@@ -12,6 +12,7 @@ export interface ConsultaVendedor {
   totalAbonadas: number;
   totalDisponibles: number;
   dineroRecogido: number;
+  dineroRetirado?: number;
   dineroRecogidoGrupos?: number;
   boletos: Boleto[];
 }
@@ -99,7 +100,7 @@ export class BoletoService {
   /**
    * Actualizar estado de un boleto
    */
-  actualizarBoleto(rifaId: number, boletoId: number, datos: { estadoVenta: string; vendedorId?: number; vendedorNombre?: string; compradorNombre?: string; compradorTelefono?: string }): Observable<Boleto> {
+  actualizarBoleto(rifaId: number, boletoId: number, datos: { estadoVenta: string; vendedorId?: number; vendedorNombre?: string; compradorNombre?: string; compradorTelefono?: string; descontarParteVendedor?: boolean }): Observable<Boleto> {
     return this.http.put<Boleto>(
       `${this.apiUrl}/${rifaId}/boletos/${boletoId}`,
       datos,
@@ -153,6 +154,17 @@ export class BoletoService {
     return this.http.get<ConsultaVendedor>(
       `${this.apiUrl}/${rifaId}/consultas/vendedores/${vendedorId}`,
       { headers: this.getHeaders(), params: httpParams }
+    );
+  }
+
+  /**
+   * Registrar retiro (retirar la parte del vendedor) para un boleto
+   */
+  registrarRetiro(rifaId: number, boletoId: number): Observable<Boleto> {
+    return this.http.post<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/retiro`,
+      {},
+      { headers: this.getHeaders() }
     );
   }
 }

@@ -1,0 +1,27 @@
+<div class="usuario-page">
+  <div class="usuario-card" *ngIf="user; else noUser">
+    <span class="eyebrow">Perfil de usuario</span>
+    <h2>{{ user.nombre }}</h2>
+    <div class="usuario-info">
+      <div>
+        <span>Email</span>
+        <strong>{{ user.email }}</strong>
+      </div>
+      <div>
+        <span>Id</span>
+        <strong>{{ user.id }}</strong>
+      </div>
+      <div>
+        <span>Código público</span>
+        <strong>{{ user.uniqueId || 'Sin código' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noUser>
+    <div class="usuario-card">
+      <h2>Usuario</h2>
+      <p>No hay información de usuario disponible.</p>
+    </div>
+  </ng-template>
+</div>

@@ -47,11 +47,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {
-        path: 'administrar-rifas/visualizar-rifas/:id',
+        path: 'administrar-rifas/visualizar-rifas/:rifaKey',
         loadComponent: () => import('./pages/dashboard/pages/visualizar-rifas/visualizar-rifas.component').then(m => m.VisualizarRifasComponent)
       },
       {
-        path: 'administrar-rifas/:id',
+        path: 'administrar-rifas/:rifaKey',
         loadComponent: () => import('./pages/dashboard/pages/administrar-rifas/administrar-rifas.component').then(m => m.AdministrarRifasComponent)
       },
       {
@@ -59,7 +59,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/pages/agrupar-boletos/agrupar-boletos.component').then(m => m.AgruparBoletosComponent)
       },
       {
-        path: 'agrupar-boletos/:rifaId',
+        path: 'agrupar-boletos/:rifaKey',
         loadComponent: () => import('./pages/dashboard/pages/agrupar-boletos/agrupar-boletos.component').then(m => m.AgruparBoletosComponent)
       },
       {
@@ -81,6 +81,10 @@ export const routes: Routes = [
       {
         path: 'administrar-vendedor',
         loadComponent: () => import('./pages/dashboard/pages/administrar-vendedor/administrar-vendedor.component').then(m => m.AdministrarVendedorComponent)
+      },
+      {
+        path: 'usuario',
+        loadComponent: () => import('./pages/dashboard/pages/usuario/usuario.component').then(m => m.UsuarioComponent)
       }
     ]
   },

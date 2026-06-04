@@ -16,6 +16,7 @@ import { Vendedor, VendedorService } from '../../../../services/vendedor.service
   styleUrls: ['./visualizar-rifas.component.css']
 })
 export class VisualizarRifasComponent implements OnInit {
+  rifaKey: string = '';
   rifaId: number = 0;
   rifa: Rifa | null = null;
   boletos: Boleto[] = [];
@@ -52,8 +53,8 @@ export class VisualizarRifasComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe((params: any) => {
-      this.rifaId = Number(params['id']);
-      if (this.rifaId) {
+      this.rifaKey = String(params['rifaKey'] || '');
+      if (this.rifaKey) {
         this.paginaActual = 0;
         this.cargarDatos();
       }
@@ -61,21 +62,46 @@ export class VisualizarRifasComponent implements OnInit {
   }
 
   cargarDatos(): void {
-    if (!this.rifaId) return;
+    if (!this.rifaKey) return;
 
     this.loading = true;
     this.error = '';
 
+    const rifaIdFallback = Number(this.rifaKey);
+    const cargarPorId = () => this.rifaService.obtenerRifa(rifaIdFallback);
+    const cargaPrincipal = this.rifaKey && isNaN(Number(this.rifaKey))
+      ? this.rifaService.obtenerRifaPorUniqueId(this.rifaKey)
+      : cargarPorId();
+
     // Cargar rifa
-    this.rifaService.obtenerRifa(this.rifaId).subscribe({
+    cargaPrincipal.subscribe({
       next: (rifa: Rifa) => {
         this.rifa = rifa;
+        this.rifaId = rifa.id;
         this.loading = false;
         this.cargarBoletos();
         this.cargarEstadisticas();
         this.cargarVendedores();
       },
       error: (err: any) => {
+        if (this.rifaKey && !isNaN(Number(this.rifaKey))) {
+          cargarPorId().subscribe({
+            next: (rifa: Rifa) => {
+              this.rifa = rifa;
+              this.rifaId = rifa.id;
+              this.loading = false;
+              this.cargarBoletos();
+              this.cargarEstadisticas();
+              this.cargarVendedores();
+            },
+            error: () => {
+              this.loading = false;
+              this.error = 'Error al cargar la rifa';
+            }
+          });
+          return;
+        }
+
         this.loading = false;
         this.error = 'Error al cargar la rifa';
       }
@@ -245,6 +271,78 @@ export class VisualizarRifasComponent implements OnInit {
 
   seguirAbonando(boleto: Boleto): void {
     this.abrirModal(boleto, 'ABONAR');
+  }
+
+  actualizarDescuentoVendedor(boleto: Boleto, descontarParteVendedor: boolean): void {
+    if (!this.rifaId || boleto.estadoVenta !== 'VENDIDO') {
+      return;
+    }
+
+    if (descontarParteVendedor) {
+      // Registrar un retiro (se puede registrar múltiples veces)
+      this.boletoService.registrarRetiro(this.rifaId, boleto.id).subscribe({
+        next: (boletoActualizado) => {
+          this.success = `Retiro registrado para el boleto ${boletoActualizado.numero}`;
+          setTimeout(() => (this.success = ''), 3000);
+          this.cargarBoletos();
+          this.cargarEstadisticas();
+        },
+        error: () => {
+          this.error = 'Error al registrar el retiro';
+        }
+      });
+      return;
+    }
+
+    // Si se desmarca, simplemente actualizamos el flag
+    this.boletoService.actualizarBoleto(this.rifaId, boleto.id, {
+      estadoVenta: boleto.estadoVenta,
+      compradorNombre: boleto.compradorNombre || '',
+      compradorTelefono: boleto.compradorTelefono || '',
+      descontarParteVendedor
+    }).subscribe({
+      next: (boletoActualizado) => {
+        this.success = `Se actualizó el descuento del boleto ${boletoActualizado.numero}`;
+        setTimeout(() => (this.success = ''), 3000);
+        this.cargarBoletos();
+        this.cargarEstadisticas();
+      },
+      error: () => {
+        this.error = 'Error al actualizar la parte del vendedor';
+      }
+    });
+  }
+
+  obtenerVendedorDelBoleto(boleto: Boleto): Vendedor | undefined {
+    return this.vendedores.find((vendedor) => vendedor.id === boleto.vendedorId);
+  }
+
+  obtenerParteDelVendedor(boleto: Boleto): number {
+    if (
+      boleto.descontarParteVendedor &&
+      boleto.estadoVenta === 'VENDIDO' &&
+      boleto.montoNeto !== undefined &&
+      boleto.montoNeto !== null
+    ) {
+      const montoAbonado = Number(boleto.montoAbonado || 0);
+      return Math.max(montoAbonado - Number(boleto.montoNeto), 0);
+    }
+
+    const vendedor = this.obtenerVendedorDelBoleto(boleto);
+    return vendedor?.parteDelDinero ?? 0;
+  }
+
+  obtenerMontoNeto(boleto: Boleto): number {
+    if (boleto.montoNeto !== undefined && boleto.montoNeto !== null) {
+      return boleto.montoNeto;
+    }
+
+    const montoAbonado = Number(boleto.montoAbonado || 0);
+    if (!boleto.descontarParteVendedor || boleto.estadoVenta !== 'VENDIDO') {
+      return montoAbonado;
+    }
+
+    return Math.max(montoAbonado - this.obtenerParteDelVendedor(boleto), 0);
   }
 
   abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO'): void {

@@ -43,10 +43,10 @@ export class AdministrarRifasComponent implements OnInit {
           
           // Si la rifa tiene grupos habilitados, redirigir a agrupar-boletos
           if (rifa?.gruposHabilitado) {
-            this.router.navigate(['/dashboard/agrupar-boletos', rifaId]);
+            this.router.navigate(['/dashboard/agrupar-boletos', rifa?.uniqueId ?? rifaId]);
           } else {
             // Si no, ir a visualizar-rifas
-            this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifaId]);
+            this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifa?.uniqueId ?? rifaId]);
           }
         }, 1000);
       },
@@ -60,7 +60,7 @@ export class AdministrarRifasComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
+      const id = params.get('rifaKey');
       this.selectedRifaId = id ? Number(id) : null;
       this.cargarRifasDesdeServidor();
     });
@@ -154,7 +154,8 @@ export class AdministrarRifasComponent implements OnInit {
   }
 
   verRifa(rifaId: number): void {
-    this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifaId]);
+    const rifa = this.rifas.find((item) => item.id === rifaId);
+    this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifa?.uniqueId ?? rifaId]);
   }
 
   esRifaSeleccionada(rifaId: number): boolean {
