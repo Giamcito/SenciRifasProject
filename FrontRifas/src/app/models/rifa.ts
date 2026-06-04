@@ -6,6 +6,7 @@ export interface Rifa {
   valorBoleto: number;
   usuarioId: number;
   gruposHabilitado?: boolean;
+  cantidadAgrupacion?: number;
   valorGrupo?: number;
   createdAt: string;
   updatedAt: string;

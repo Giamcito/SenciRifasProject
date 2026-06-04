@@ -27,24 +27,24 @@
       <!-- Sección Gestión de Rifas -->
       <div class="menu-section">
         <button class="menu-header" (click)="toggleRifas()">
-          <span class="menu-icon">📄</span>
+          <span class="menu-icon">📅</span>
           <span class="menu-text">Rifas</span>
           <span class="toggle-arrow" [class.expanded]="expandedRifas">▶</span>
         </button>
         
         <div class="submenu" [class.expanded]="expandedRifas">
           <a routerLink="crear-rifas" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
-            <span class="menu-icon">📊</span>
+            <span class="menu-icon">📚</span>
             <span class="menu-text">Crear Rifas</span>
           </a>
           
           <a routerLink="administrar-rifas" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
-            <span class="menu-icon">⚙️</span>
+            <span class="menu-icon">📈</span>
             <span class="menu-text">Administrar Rifas</span>
           </a>
 
           <a routerLink="agrupar-boletos" class="menu-item" routerLinkActive="active" (click)="closeSidebar()">
-            <span class="menu-icon">🧩</span>
+            <span class="menu-icon">📥</span>
             <span class="menu-text">Agrupar Boletas</span>
           </a>
           

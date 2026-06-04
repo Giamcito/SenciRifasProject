@@ -6,6 +6,7 @@ import { Boleto, Estadisticas, EstadoVenta } from '../../../../models/boleto';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
 import { RifaService } from '../../../../services/rifa.service';
+import { SidebarService } from '../../../../services/sidebar.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
@@ -49,6 +50,8 @@ export class VisualizarRifasComponent implements OnInit {
     private boletoService: BoletoService,
     private rifaService: RifaService,
     private vendedorService: VendedorService
+    ,
+    private sidebarService: SidebarService
   ) {}
 
   ngOnInit(): void {
@@ -353,6 +356,7 @@ export class VisualizarRifasComponent implements OnInit {
     this.modalCompradorTelefono = boleto.compradorTelefono || '';
     this.modalMonto = modo === 'ABONAR' ? undefined : undefined;
     this.modalError = '';
+    this.sidebarService.closeSidebar();
     this.showBoletoModal = true;
   }
 
@@ -490,5 +494,17 @@ export class VisualizarRifasComponent implements OnInit {
       style: 'currency',
       currency: 'COP'
     }).format(valor);
+  }
+
+  getSaldoPendiente(boleto: Boleto): number {
+    // Si el boleto pertenece a un grupo y trae saldo pendiente del grupo, usar ese valor
+    if (boleto.grupoSaldoPendiente !== undefined && boleto.grupoSaldoPendiente !== null) {
+      return Math.max(Number(boleto.grupoSaldoPendiente), 0);
+    }
+
+    // En caso contrario usar el valor de la rifa menos lo abonado en el boleto
+    const valor = this.rifa?.valorBoleto || 0;
+    const abonado = Number(boleto.montoAbonado || 0);
+    return Math.max(Number(valor) - abonado, 0);
   }
 }

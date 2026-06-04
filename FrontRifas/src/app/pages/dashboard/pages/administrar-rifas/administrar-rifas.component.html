@@ -1,5 +1,5 @@
 <div class="content-section">
-  <h2>Administrar Rifas</h2>
+  <h2>📈Administrar Rifas</h2>
   <p>Visualiza y edita tus rifas creadas</p>
 
   <!-- Alertas -->
@@ -9,6 +9,39 @@
 
   <div class="alert alert-error" *ngIf="error">
     {{ error }}
+  </div>
+
+  <!-- Modal Generación de Boletos -->
+  <div class="modal-backdrop" *ngIf="modalVisible" (click)="modalTipo !== 'confirmacion' ? cerrarModal() : null">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ modalTitulo }}</h3>
+        <button type="button" class="modal-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p>{{ modalMensaje }}</p>
+        <div *ngIf="modalAccion === 'activarAgrupacion' && modalTipo === 'confirmacion'" class="modal-input">
+          <label>Cantidad por agrupación</label>
+          <input type="number" [(ngModel)]="modalCantidadAgrupacion" min="1" class="form-control-inline" />
+        </div>
+        <div class="modal-loading" *ngIf="modalLoading">
+          Procesando...
+        </div>
+      </div>
+
+      <div class="modal-footer" *ngIf="!modalLoading">
+        <button *ngIf="modalTipo === 'confirmacion'" type="button" class="btn-modal btn-primary" (click)="accionModalPrincipal()">
+          {{ modalAccion === 'eliminar' ? 'Eliminar' : (modalAccion === 'activarAgrupacion' ? 'Activar' : (modalAccion === 'desactivarAgrupacion' ? 'Desactivar' : 'Generar')) }}
+        </button>
+        <button *ngIf="modalTipo === 'confirmacion'" type="button" class="btn-modal btn-secondary" (click)="cerrarModal()">
+          Cancelar
+        </button>
+        <button *ngIf="modalTipo !== 'confirmacion'" type="button" class="btn-modal btn-primary" (click)="continuarDespuesDelModal()">
+          Continuar
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Loading -->
@@ -32,6 +65,7 @@
             <th>Boletos</th>
             <th>Cifras</th>
             <th>Valor c/u</th>
+            <th>Agrupación</th>
             <th>Total</th>
             <th>Acciones</th>
           </tr>
@@ -61,19 +95,50 @@
               <input type="number" [(ngModel)]="editingData.valorBoleto" class="form-control-inline" step="0.01" />
             </td>
 
+            <!-- Agrupación -->
+            <td *ngIf="editingId !== rifa.id">
+              <span class="group-badge" [class.active]="esRifaAgrupada(rifa)">
+                {{ esRifaAgrupada(rifa) ? 'Con agrupación' : 'Sin agrupación' }}
+              </span>
+              <div class="group-detail" *ngIf="esRifaAgrupada(rifa)">
+                {{ obtenerDetalleAgrupacion(rifa) }}
+              </div>
+            </td>
+            <td *ngIf="editingId === rifa.id" class="edit-row">
+              <span class="group-badge" [class.active]="esRifaAgrupada(editingData)">
+                {{ esRifaAgrupada(editingData) ? 'Con agrupación' : 'Sin agrupación' }}
+              </span>
+              <div class="group-detail" *ngIf="esRifaAgrupada(editingData)">
+                {{ obtenerDetalleAgrupacion(editingData) }}
+              </div>
+              <div class="group-edit" *ngIf="editingData.gruposHabilitado">
+                <label>boletas por agrupación</label>
+                <input
+                  type="number"
+                  [(ngModel)]="editingData.cantidadAgrupacion"
+                  class="form-control-inline"
+                  min="1"
+                  inputmode="numeric"
+                  placeholder="Ej: 5"
+                />
+              </div>
+            </td>
+
             <!-- Total -->
             <td *ngIf="editingId !== rifa.id" class="dinero">
-              {{ formatoMoneda(rifa.cantidadBoletos * rifa.valorBoleto) }}
+              {{ formatoMoneda(obtenerValorAgrupacion(rifa)) }}
             </td>
             <td *ngIf="editingId === rifa.id" class="dinero">
-              {{ formatoMoneda(editingData.cantidadBoletos * editingData.valorBoleto) }}
+              {{ formatoMoneda(obtenerValorAgrupacion(editingData)) }}
             </td>
 
             <!-- Acciones -->
             <td>
               <div class="acciones" *ngIf="editingId !== rifa.id">
                 <button class="btn-view" (click)="verRifa(rifa.id)" title="Ver">👁️</button>
-                  <button class="btn-generate" (click)="generarBoletos(rifa.id)" title="Generar boletos">🎟️</button>
+                <button class="btn-generate" (click)="generarBoletos(rifa.id)" title="Generar boletos">🎟️</button>
+                <button *ngIf="!esRifaAgrupada(rifa)" type="button" class="btn-activate" (click)="activarAgrupacion(rifa)" title="Activar agrupación">🔗</button>
+                <button *ngIf="esRifaAgrupada(rifa)" type="button" class="btn-deactivate" (click)="desactivarAgrupacion(rifa)" title="Desactivar agrupación">🔓</button>
                 <button class="btn-edit" (click)="editarRifa(rifa)" title="Editar">✏️</button>
                 <button class="btn-delete" (click)="eliminarRifa(rifa.id)" title="Eliminar">🗑️</button>
               </div>

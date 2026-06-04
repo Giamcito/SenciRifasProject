@@ -161,12 +161,37 @@ export class AgruparBoletosComponent implements OnInit {
         this.boletosDisponiblesOriginal = boletos;
         this.boletosDisponibles = [...boletos];
         this.loading = false;
+        // Aplicar preselección si venimos con query param `numero`
+        this.applyPrefillFromQuery();
       },
       error: () => {
         this.error = 'Error al cargar los boletos disponibles';
         this.loading = false;
       }
     });
+  }
+
+  private applyPrefillFromQuery(): void {
+    const preNumero = this.route.snapshot.queryParamMap.get('numero');
+    if (!preNumero || !this.boletosDisponibles || this.boletosDisponibles.length === 0) return;
+
+    // Normalizar y buscar el índice del boleto de inicio
+    const startIndex = this.boletosDisponibles.findIndex(b => b.numero === preNumero || b.numero === String(Number(preNumero)));
+    if (startIndex === -1) return;
+
+    const groupSize = Number(this.rifa?.cantidadAgrupacion ?? 1);
+    this.boletosSeleccionados = [];
+
+    for (let i = startIndex; i < Math.min(startIndex + groupSize, this.boletosDisponibles.length); i++) {
+      const boleto = this.boletosDisponibles[i];
+      if (boleto && !this.isBoletoSeleccionado(boleto.id)) {
+        this.boletosSeleccionados.push(boleto.id);
+      }
+    }
+
+    // Filtrar lista para mostrar la ventana de boletos alrededor del número
+    this.searchTerm = preNumero;
+    this.buscarBoletos();
   }
 
   toggleBoletoSeleccionado(boletoId: number): void {

@@ -14,7 +14,7 @@
 .group-hero h2 {
   margin: 0.2rem 0 0;
   font-size: 1.8rem;
-  color: #0f172a;
+  color: #27ae60;
 }
 
 .eyebrow,
@@ -36,7 +36,7 @@
 
 .hero-chip,
 .stat-pill {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
+  background: linear-gradient(135deg, #093a0d 0%, #000000 100%);
   color: white;
   border-radius: 16px;
   padding: 0.95rem 1.05rem;
@@ -131,7 +131,7 @@
 .subsection-head h4,
 .group-info h4 {
   margin: 0;
-  color: #0f172a;
+  color: #27ae60;
 }
 
 .subsection-card {
@@ -215,7 +215,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #27ae60, #1f7a3f);
+  background: linear-gradient(135deg, #093a0d 0%, #000000 100%);
   color: white;
   box-shadow: 0 10px 24px rgba(39, 174, 96, 0.18);
 }
@@ -496,7 +496,7 @@
 
   .hero-chip,
   .stat-pill {
-    width: 100%;
+    width: 90%;
   }
 
   .button-group {

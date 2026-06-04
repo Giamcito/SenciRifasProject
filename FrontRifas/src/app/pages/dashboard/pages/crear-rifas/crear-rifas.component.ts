@@ -24,11 +24,28 @@ export class CrearRifasComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       cantidadBoletos: ['', [Validators.required, this.validarNumeroPositivo]],
       valorBoleto: ['', [Validators.required, Validators.min(0.01)]],
-      gruposHabilitado: [false]
+      gruposHabilitado: [false],
+      cantidadAgrupacion: [{ value: '', disabled: true }, [Validators.required, this.validarNumeroPositivo]]
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const gruposControl = this.form.get('gruposHabilitado');
+    gruposControl?.valueChanges.subscribe((habilitado) => {
+      const cantidadAgrupacion = this.form.get('cantidadAgrupacion');
+
+      if (habilitado) {
+        cantidadAgrupacion?.enable({ emitEvent: false });
+        cantidadAgrupacion?.setValidators([Validators.required, this.validarNumeroPositivo]);
+      } else {
+        cantidadAgrupacion?.reset('');
+        cantidadAgrupacion?.disable({ emitEvent: false });
+        cantidadAgrupacion?.clearValidators();
+      }
+
+      cantidadAgrupacion?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
 
   // Validador personalizado para números positivos enteros
   validarNumeroPositivo(control: AbstractControl): ValidationErrors | null {
@@ -66,14 +83,18 @@ export class CrearRifasComponent implements OnInit {
       nombre: this.form.value.nombre,
       cantidadBoletos: parseInt(this.form.value.cantidadBoletos, 10),
       valorBoleto: parseFloat(this.form.value.valorBoleto),
-      gruposHabilitado: this.form.value.gruposHabilitado || false
+      gruposHabilitado: this.form.value.gruposHabilitado || false,
+      cantidadAgrupacion: this.form.value.gruposHabilitado
+        ? parseInt(this.form.getRawValue().cantidadAgrupacion, 10)
+        : null
     };
 
     this.rifaService.crearRifa(rifaData).subscribe({
       next: (response) => {
         this.loading = false;
         this.successMessage = 'Rifa creada exitosamente';
-        this.form.reset({ gruposHabilitado: false });
+        this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '' });
+        this.form.get('cantidadAgrupacion')?.disable({ emitEvent: false });
         
         // Auto-dismiss mensaje después de 3 segundos
         setTimeout(() => {
@@ -88,9 +109,43 @@ export class CrearRifasComponent implements OnInit {
   }
 
   limpiar(): void {
-    this.form.reset({ gruposHabilitado: false });
+    this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '' });
+    this.form.get('cantidadAgrupacion')?.disable({ emitEvent: false });
     this.error = '';
     this.successMessage = '';
+  }
+
+  esAgrupacionActiva(): boolean {
+    return !!this.form.get('gruposHabilitado')?.value;
+  }
+
+  getPotencialTotal(): number {
+    const cantidadBoletos = Number(this.form.get('cantidadBoletos')?.value || 0);
+    const valorBoleto = Number(this.form.get('valorBoleto')?.value || 0);
+    return cantidadBoletos * valorBoleto;
+  }
+
+  getPotencialMostrado(): number {
+    const total = this.getPotencialTotal();
+
+    if (!this.esAgrupacionActiva()) {
+      return total;
+    }
+
+    const cantidadAgrupacion = Number(this.form.getRawValue().cantidadAgrupacion || 0);
+    if (cantidadAgrupacion <= 0) {
+      return total;
+    }
+
+    return total / cantidadAgrupacion;
+  }
+
+  formatoMoneda(valor: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0
+    }).format(valor || 0);
   }
 
   getErrorMessage(fieldName: string): string {

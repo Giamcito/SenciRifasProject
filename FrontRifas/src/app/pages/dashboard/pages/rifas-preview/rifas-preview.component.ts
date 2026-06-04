@@ -65,6 +65,19 @@ export class RifasPreviewComponent implements OnInit {
     }).format(valor);
   }
 
+  obtenerValorAgrupacion(rifa: Rifa): number {
+    if (rifa.gruposHabilitado && Number(rifa.cantidadAgrupacion) > 0) {
+      const totalPotencial = Number(rifa.cantidadBoletos || 0) * Number(rifa.valorBoleto || 0);
+      return totalPotencial / Number(rifa.cantidadAgrupacion);
+    }
+
+    if (rifa.gruposHabilitado && typeof rifa.valorGrupo === 'number') {
+      return rifa.valorGrupo;
+    }
+
+    return Number(rifa.cantidadBoletos || 0) * Number(rifa.valorBoleto || 0);
+  }
+
   irAAdministrar(rifa: Rifa): void {
     this.router.navigate(['/dashboard/administrar-rifas/visualizar-rifas', rifa.uniqueId ?? rifa.id]);
   }

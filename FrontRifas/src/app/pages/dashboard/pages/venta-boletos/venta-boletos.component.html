@@ -1,9 +1,7 @@
 <div class="venta-boletos">
   <div class="venta-hero">
     <div>
-      <p class="eyebrow">Gestión de tickets</p>
-      <h2>Venta / Abono de Boletos</h2>
-      <p class="hero-copy">Busca un boleto y completa la venta o el abono desde una vista más limpia y consistente con el resto del panel.</p>
+      <h2>💰Venta / Abono de Boletos</h2>
     </div>
     <div class="hero-chip" *ngIf="rifaId && rifa">
       <span>{{ rifa.nombre }}</span>
@@ -137,7 +135,7 @@
         </div>
 
         <div class="owner-actions">
-          <button type="button" class="btn-secondary action-btn" (click)="asignarPropietario()">Asignar propietario</button>
+          <button type="button" class="btn-secondary action-btn" (click)="asignarPropietario()" [disabled]="groupingRequired">Asignar propietario</button>
         </div>
 
         <div class="field-group">
@@ -154,6 +152,11 @@
           Cargando información de la agrupación...
         </div>
 
+        <div class="limit-note warning" *ngIf="groupingRequired">
+          Esta rifa tiene agrupación activa: las boletas se venden como grupo.
+          <a [routerLink]="['/dashboard/agrupar-boletos', rifa?.uniqueId ?? rifaId]" class="link">Ir a Agrupar Boletos</a>
+        </div>
+
         <div class="payment-block" *ngIf="montoMaximoAbono() > 0">
           <div class="field-group grow">
             <label for="montoAbono">Abonar monto</label>
@@ -163,7 +166,7 @@
             <div class="limit-note" *ngIf="montoMaximoAbono() > 0">
               Máximo a abonar: {{ montoMaximoAbono() | number:'1.2-2' }}
             </div>
-            <button type="button" class="btn-secondary action-btn" (click)="abonar()">Abonar</button>
+            <button type="button" class="btn-secondary action-btn" (click)="abonar()" [disabled]="groupingRequired">Abonar</button>
           </div>
         </div>
 
@@ -172,7 +175,7 @@
         </div>
 
         <div class="pago">
-          <button class="btn-primary action-btn full-width" (click)="pagar()">Pagar completo</button>
+          <button class="btn-primary action-btn full-width" (click)="pagar()" [disabled]="groupingRequired">Pagar completo</button>
         </div>
       </div>
     </section>

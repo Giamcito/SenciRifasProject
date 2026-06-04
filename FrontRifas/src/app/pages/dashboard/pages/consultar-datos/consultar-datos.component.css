@@ -420,6 +420,34 @@
   }
 }
 
+@media (max-width: 600px) {
+  .controls-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .control-card {
+    padding: 0.75rem;
+  }
+
+  .control-card select,
+  .control-card input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .selector-card {
+    padding-right: 0.4rem;
+    padding-left: 0.4rem;
+  }
+
+  .control-card select {
+    position: relative;
+    z-index: 5;
+  }
+}
+
 .rifa-summary {
   background: white;
   border-radius: 16px;

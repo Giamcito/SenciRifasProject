@@ -5,7 +5,6 @@
 
   <!-- Título -->
   <h2>{{ rifa?.nombre }}</h2>
-  <p class="descripcion" *ngIf="rifa">Visualiza el estado de venta de todos los boletos</p>
 
   <!-- Alertas -->
   <div class="alert alert-success" *ngIf="success">
@@ -23,21 +22,6 @@
 
   <!-- Contenido principal -->
   <div *ngIf="!loading && rifa && estadisticas">
-    <!-- Información de la Rifa -->
-    <div class="rifa-info">
-      <div class="info-card">
-        <div class="label">Cifras</div>
-        <div class="value">{{ rifa.cantidadBoletos.toString().length }} cifras</div>
-      </div>
-      <div class="info-card">
-        <div class="label">Valor c/u</div>
-        <div class="value">{{ formatoMoneda(rifa.valorBoleto) }}</div>
-      </div>
-      <div class="info-card">
-        <div class="label">Total Potencial</div>
-        <div class="value">{{ formatoMoneda(rifa.cantidadBoletos * rifa.valorBoleto) }}</div>
-      </div>
-    </div>
 
     <!-- Estadísticas -->
     <div class="estadisticas-container">
@@ -112,11 +96,11 @@
 
       <div class="boletos-grid" *ngIf="!loadingBoletos && boletos.length > 0">
         <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId" 
-             class="boleto-card" 
-             [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
-             [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
-             [class.abonado]="boleto.estadoVenta === 'ABONADO'"
-             [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
+            class="boleto-card" 
+            [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
+            [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
+            [class.abonado]="boleto.estadoVenta === 'ABONADO'"
+            [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
           
           <div class="boleto-numero">{{ boleto.numero }}</div>
           
@@ -133,9 +117,6 @@
             <small *ngIf="boleto.estadoVenta === 'VENDIDO' && boleto.vendedorId">
               <strong>Parte vendedor:</strong> {{ formatoMoneda(obtenerParteDelVendedor(boleto)) }}
             </small>
-            <small *ngIf="boleto.estadoVenta === 'VENDIDO'">
-              <strong>Valor neto:</strong> {{ formatoMoneda(obtenerMontoNeto(boleto)) }}
-            </small>
             <small *ngIf="boleto.compradorNombre">
               <strong>Comprador:</strong> {{ boleto.compradorNombre }}
             </small>
@@ -144,6 +125,9 @@
             </small>
             <small *ngIf="boleto.fechaVenta">
               <strong>Fecha:</strong> {{ boleto.fechaVenta | date: 'dd/MM/yyyy HH:mm' }}
+            </small>
+            <small>
+              <strong>Saldo pendiente:</strong> {{ formatoMoneda(getSaldoPendiente(boleto)) }}
             </small>
           </div>
 

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Boleto } from '../../../../models/boleto';
 import { GrupoBoleto } from '../../../../models/grupo';
 import { Rifa } from '../../../../models/rifa';
@@ -13,7 +13,7 @@ import { Vendedor, VendedorService } from '../../../../services/vendedor.service
 @Component({
   selector: 'app-venta-boletos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './venta-boletos.component.html',
   styleUrls: ['./venta-boletos.component.css']
 })
@@ -36,6 +36,7 @@ export class VentaBoletosComponent implements OnInit {
   grupoDetalle: GrupoBoleto | null = null;
   saldoPendienteGrupo: number = 0;
   cargandoGrupo: boolean = false;
+  groupingRequired: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,6 +44,8 @@ export class VentaBoletosComponent implements OnInit {
     private rifaService: RifaService,
     private grupoService: GrupoService,
     private vendedorService: VendedorService
+    ,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -137,6 +140,7 @@ export class VentaBoletosComponent implements OnInit {
     this.montoAbono = undefined;
     this.grupoDetalle = null;
     this.saldoPendienteGrupo = 0;
+    this.groupingRequired = false;
 
     if (boleto.grupoId) {
       this.cargandoGrupo = true;
@@ -175,6 +179,17 @@ export class VentaBoletosComponent implements OnInit {
       });
     }
 
+    // Si la rifa tiene agrupación habilitada y la boleta no pertenece a un grupo,
+    // bloquear acciones individuales y notificar al usuario.
+    if (this.rifa?.gruposHabilitado && !boleto.grupoId) {
+      this.groupingRequired = true;
+      this.error = 'Esta rifa tiene agrupación activa: las boletas deben venderse como grupo. Te llevo a Agrupar Boletos.';
+      this.success = '';
+      // Navegar al flujo de agrupación con el número prellenado
+      this.router.navigate(['/dashboard/agrupar-boletos', this.rifa?.uniqueId ?? this.rifaId], { queryParams: { numero: boleto.numero } });
+      return;
+    }
+
     if (boleto.estadoVenta === 'VENDIDO' || boleto.estadoVenta === 'ABONADO') {
       this.success = `Se cargaron los datos de la boleta ${boleto.numero}.`;
     }
@@ -202,6 +217,10 @@ export class VentaBoletosComponent implements OnInit {
   }
 
   abonar() {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación. Agrupa la boleta primero.';
+      return;
+    }
     const monto = Number(this.montoAbono);
     const maximo = this.montoMaximoAbono();
     if (!this.selectedBoleto || !this.vendedorSeleccionadoId || !Number.isFinite(monto) || monto <= 0) {
@@ -233,6 +252,10 @@ export class VentaBoletosComponent implements OnInit {
   }
 
   asignarPropietario() {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación. Agrupa la boleta primero.';
+      return;
+    }
     if (!this.selectedBoleto || !this.vendedorSeleccionadoId) {
       this.error = 'Selecciona un boleto y un vendedor.';
       return;
@@ -254,6 +277,10 @@ export class VentaBoletosComponent implements OnInit {
   }
 
   pagar() {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación. Agrupa la boleta primero.';
+      return;
+    }
     if (!this.selectedBoleto || !this.vendedorSeleccionadoId) {
       this.error = 'Selecciona un boleto y un vendedor.';
       return;

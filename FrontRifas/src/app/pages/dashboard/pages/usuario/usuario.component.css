@@ -10,7 +10,7 @@
   border-radius: 20px;
   padding: 1.5rem;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  border-left: 6px solid #3b82f6;
+  border-left: 6px solid #27ae60;
 }
 
 .eyebrow {
@@ -75,7 +75,7 @@
 }
 
 .password-form input {
-  width: 100%;
+  width: 80%;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
   padding: 0.85rem 1rem;
@@ -88,10 +88,15 @@
   border: 0;
   border-radius: 12px;
   padding: 0.9rem 1.2rem;
-  background: #3b82f6;
+  background: #27ae60;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+}
+
+.password-form button:hover:not(:disabled) {
+  background: #15803d;
+  transform: translateY(-1px);
 }
 
 .password-form button:disabled {
@@ -107,4 +112,52 @@
 .error-message {
   margin: 0;
   color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  .usuario-card {
+    width: min(100%, 640px);
+    padding: 1.25rem;
+  }
+
+  .usuario-info {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .usuario-page { padding: 0.6rem; }
+  .usuario-card {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+    border-left: 4px solid #3b82f6;
+  }
+
+  .usuario-info {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .usuario-info div {
+    padding: 0.85rem;
+  }
+
+  .eyebrow { font-size: 0.72rem; }
+  .usuario-card h2 { font-size: 1.2rem; }
+  .usuario-info span { font-size: 0.72rem; }
+  .usuario-info strong { font-size: 1rem; }
+
+  .password-form { margin-top: 1rem; padding-top: 1rem; }
+  .password-form input { padding: 0.7rem 0.9rem; border-radius: 10px; }
+  .password-form button { width: 100%; padding: 0.85rem; }
+}
+
+@media (max-width: 360px) {
+  .usuario-card { padding: 0.75rem; }
+  .usuario-card h2 { font-size: 1.05rem; }
+  .usuario-info div { padding: 0.65rem; }
+  .password-form input { padding: 0.6rem 0.75rem; }
 }
