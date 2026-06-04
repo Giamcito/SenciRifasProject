@@ -11,6 +11,7 @@ public class RifaDTO {
     private BigDecimal valorBoleto;
     private Long usuarioId;
     private Boolean gruposHabilitado;
+    private Integer cantidadAgrupacion;
     private BigDecimal valorGrupo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -18,7 +19,7 @@ public class RifaDTO {
     public RifaDTO() {}
 
     public RifaDTO(Long id, String uniqueId, String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, Long usuarioId, 
-                   Boolean gruposHabilitado, BigDecimal valorGrupo,
+                   Boolean gruposHabilitado, Integer cantidadAgrupacion, BigDecimal valorGrupo,
                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.uniqueId = uniqueId;
@@ -27,6 +28,7 @@ public class RifaDTO {
         this.valorBoleto = valorBoleto;
         this.usuarioId = usuarioId;
         this.gruposHabilitado = gruposHabilitado;
+        this.cantidadAgrupacion = cantidadAgrupacion;
         this.valorGrupo = valorGrupo;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -102,6 +104,14 @@ public class RifaDTO {
 
     public void setGruposHabilitado(Boolean gruposHabilitado) {
         this.gruposHabilitado = gruposHabilitado;
+    }
+
+    public Integer getCantidadAgrupacion() {
+        return cantidadAgrupacion;
+    }
+
+    public void setCantidadAgrupacion(Integer cantidadAgrupacion) {
+        this.cantidadAgrupacion = cantidadAgrupacion;
     }
 
     public BigDecimal getValorGrupo() {

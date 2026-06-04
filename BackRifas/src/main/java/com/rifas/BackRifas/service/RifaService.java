@@ -1,5 +1,6 @@
 package com.rifas.BackRifas.service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,10 @@ public class RifaService {
         Rifa rifa = new Rifa(request.getNombre(), request.getCantidadBoletos(), request.getValorBoleto(), usuarioId);
         rifa.setGruposHabilitado(request.getGruposHabilitado() != null ? request.getGruposHabilitado() : false);
         if (Boolean.TRUE.equals(rifa.getGruposHabilitado())) {
-            rifa.setValorGrupo(request.getValorBoleto());
+            configurarAgrupacion(rifa, request.getCantidadAgrupacion());
+        } else {
+            rifa.setCantidadAgrupacion(null);
+            rifa.setValorGrupo(java.math.BigDecimal.ZERO);
         }
         Rifa rifaGuardada = rifaRepository.save(rifa);
         return convertirADTO(rifaGuardada);
@@ -82,7 +86,10 @@ public class RifaService {
             rifa.setGruposHabilitado(request.getGruposHabilitado());
         }
         if (Boolean.TRUE.equals(rifa.getGruposHabilitado())) {
-            rifa.setValorGrupo(request.getValorBoleto());
+            configurarAgrupacion(rifa, request.getCantidadAgrupacion());
+        } else {
+            rifa.setCantidadAgrupacion(null);
+            rifa.setValorGrupo(java.math.BigDecimal.ZERO);
         }
         
         Rifa rifaActualizada = rifaRepository.save(rifa);
@@ -121,7 +128,18 @@ public class RifaService {
      */
     private RifaDTO convertirADTO(Rifa rifa) {
         return new RifaDTO(rifa.getId(), rifa.getUniqueId(), rifa.getNombre(), rifa.getCantidadBoletos(), rifa.getValorBoleto(), 
-                          rifa.getUsuarioId(), rifa.getGruposHabilitado(), rifa.getValorGrupo(),
+                          rifa.getUsuarioId(), rifa.getGruposHabilitado(), rifa.getCantidadAgrupacion(), rifa.getValorGrupo(),
                           rifa.getCreatedAt(), rifa.getUpdatedAt());
+    }
+
+    private void configurarAgrupacion(Rifa rifa, Integer cantidadAgrupacion) {
+        if (cantidadAgrupacion == null || cantidadAgrupacion < 1) {
+            throw new RuntimeException("La cantidad de agrupación debe ser mayor o igual a 1");
+        }
+
+        rifa.setCantidadAgrupacion(cantidadAgrupacion);
+
+        java.math.BigDecimal totalPotencial = rifa.getValorBoleto().multiply(java.math.BigDecimal.valueOf(rifa.getCantidadBoletos()));
+        rifa.setValorGrupo(totalPotencial.divide(java.math.BigDecimal.valueOf(cantidadAgrupacion), 2, RoundingMode.HALF_UP));
     }
 }

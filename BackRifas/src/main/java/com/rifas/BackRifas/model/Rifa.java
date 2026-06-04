@@ -38,6 +38,9 @@ public class Rifa {
     @Column(nullable = false)
     private Boolean gruposHabilitado = false;
 
+    @Column(name = "cantidad_agrupacion")
+    private Integer cantidadAgrupacion;
+
     @Column(nullable = false)
     private BigDecimal valorGrupo = BigDecimal.ZERO;
 
@@ -146,6 +149,14 @@ public class Rifa {
 
     public void setGruposHabilitado(Boolean gruposHabilitado) {
         this.gruposHabilitado = gruposHabilitado;
+    }
+
+    public Integer getCantidadAgrupacion() {
+        return cantidadAgrupacion;
+    }
+
+    public void setCantidadAgrupacion(Integer cantidadAgrupacion) {
+        this.cantidadAgrupacion = cantidadAgrupacion;
     }
 
     public BigDecimal getValorGrupo() {
