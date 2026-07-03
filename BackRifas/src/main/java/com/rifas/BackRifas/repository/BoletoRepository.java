@@ -55,6 +55,24 @@ public interface BoletoRepository extends JpaRepository<Boleto, Long> {
     @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId ORDER BY b.numero ASC")
     List<Boleto> findByRifaIdOrderByNumeroAsc(@Param("rifaId") Long rifaId);
 
+        /**
+         * Obtener boletos disponibles de una rifa paginados
+         */
+        Page<Boleto> findByRifaIdAndGrupoIdIsNullAndEstadoVentaOrderByNumeroAsc(
+            Long rifaId,
+            EstadoVenta estadoVenta,
+            Pageable pageable);
+
+        /**
+         * Obtener boletos disponibles de una rifa paginados con búsqueda por número
+         */
+        @Query("SELECT b FROM Boleto b WHERE b.rifa.id = :rifaId AND b.grupoId IS NULL AND b.estadoVenta = :estadoVenta AND LOWER(b.numero) LIKE LOWER(CONCAT('%', :busqueda, '%')) ORDER BY b.numero ASC")
+        Page<Boleto> findBoletosDisponiblesConBusqueda(
+            @Param("rifaId") Long rifaId,
+            @Param("estadoVenta") EstadoVenta estadoVenta,
+            @Param("busqueda") String busqueda,
+            Pageable pageable);
+
     /**
      * Obtener todos los boletos de un grupo ordenados por número
      */
