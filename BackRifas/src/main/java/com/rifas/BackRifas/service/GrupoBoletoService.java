@@ -1,13 +1,19 @@
 package com.rifas.BackRifas.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.rifas.BackRifas.dto.BoletoDTO;
+import com.rifas.BackRifas.dto.BoletoPageDTO;
 import com.rifas.BackRifas.dto.CrearAgrupacionRequest;
 import com.rifas.BackRifas.dto.GrupoBoletoDTO;
 import com.rifas.BackRifas.model.Boleto;
@@ -39,6 +45,44 @@ public class GrupoBoletoService {
     /**
      * Crear una agrupación con vendedor asignado y boletos seleccionados
      */
+
+    /**
+     * Obtener boletos disponibles paginados para evitar cargar miles de registros de una sola vez
+     */
+    @Transactional(readOnly = true)
+    public BoletoPageDTO obtenerBoletosDisponiblesPaginados(Long rifaId, String busqueda, Long usuarioId, int page, int size) {
+    rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+        .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "numero"));
+
+    Page<Boleto> boletosPage;
+    if (busqueda != null && !busqueda.isBlank()) {
+        boletosPage = boletoRepository.findBoletosDisponiblesConBusqueda(
+            rifaId,
+            EstadoVenta.DISPONIBLE,
+            busqueda,
+            pageable);
+    } else {
+        boletosPage = boletoRepository.findByRifaIdAndGrupoIdIsNullAndEstadoVentaOrderByNumeroAsc(
+            rifaId,
+            EstadoVenta.DISPONIBLE,
+            pageable);
+    }
+
+    List<BoletoDTO> content = boletosPage.getContent().stream()
+        .map(this::convertirBoletoADTO)
+        .collect(Collectors.toList());
+
+    return new BoletoPageDTO(
+        content,
+        boletosPage.getNumber(),
+        boletosPage.getSize(),
+        boletosPage.getTotalElements(),
+        boletosPage.getTotalPages(),
+        boletosPage.isFirst(),
+        boletosPage.isLast());
+    }
     @Transactional
     public GrupoBoletoDTO crearAgrupacion(Long rifaId, CrearAgrupacionRequest request, Long usuarioId) {
         Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
@@ -254,7 +298,23 @@ public class GrupoBoletoService {
             throw new RuntimeException("El grupo no pertenece a la rifa especificada");
         }
 
-        // Remover todos los boletos del grupo
+        List<Boleto> boletosDelGrupo = new ArrayList<>(grupo.getBoletos());
+
+        for (Boleto boleto : boletosDelGrupo) {
+            boleto.setGrupoId(null);
+            if (boleto.getEstadoVenta() == EstadoVenta.AGRUPADA) {
+                boleto.setEstadoVenta(EstadoVenta.DISPONIBLE);
+            }
+            boleto.setVendedorId(null);
+            boleto.setVendedorNombre(null);
+            boleto.setCompradorNombre(null);
+            boleto.setCompradorTelefono(null);
+            boleto.setFechaVenta(null);
+            boleto.setMontoAbonado(BigDecimal.ZERO);
+        }
+
+        boletoRepository.saveAll(boletosDelGrupo);
+
         grupo.getBoletos().clear();
         grupoBoletoRepository.save(grupo);
         

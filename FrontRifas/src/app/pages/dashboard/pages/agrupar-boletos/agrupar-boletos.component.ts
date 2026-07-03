@@ -22,8 +22,17 @@ export class AgruparBoletosComponent implements OnInit {
   rifa: Rifa | null = null;
   vendedores: Vendedor[] = [];
   grupos: GrupoBoleto[] = [];
+  gruposPage = 0;
+  gruposPageSize = 5;
+  gruposSearchTerm: string = '';
   boletosDisponibles: Boleto[] = [];
-  boletosDisponiblesOriginal: Boleto[] = [];
+  boletosPage = 0;
+  boletosPageSize = 100;
+  totalBoletosDisponibles = 0;
+  totalPaginasBoletos = 0;
+  ultimaPaginaBoletos = false;
+  prefillIntentado = false;
+  prefillAplicado = false;
   
   searchTerm: string = '';
   agrupacionForm: FormGroup;
@@ -122,6 +131,7 @@ export class AgruparBoletosComponent implements OnInit {
               this.grupoService.obtenerGrupos(this.rifaId, this.token).subscribe({
                 next: (grupos) => {
                   this.grupos = grupos;
+                  this.gruposPage = 0;
                   this.cargarBoletosDisponibles();
                 },
                 error: () => {
@@ -156,10 +166,35 @@ export class AgruparBoletosComponent implements OnInit {
   }
 
   cargarBoletosDisponibles(): void {
-    this.grupoService.obtenerBoletosDisponibles(this.rifaId, undefined, this.token).subscribe({
+    this.boletosPage = 0;
+    this.ultimaPaginaBoletos = false;
+    this.cargarBoletosDisponiblesPage(true);
+  }
+
+  cargarMasBoletos(): void {
+    if (this.ultimaPaginaBoletos || this.loading) {
+      return;
+    }
+
+    this.boletosPage += 1;
+    this.cargarBoletosDisponiblesPage(false);
+  }
+
+  private cargarBoletosDisponiblesPage(reiniciarLista: boolean): void {
+    this.loading = true;
+
+    this.grupoService.obtenerBoletosDisponibles(
+      this.rifaId,
+      this.searchTerm?.trim() || undefined,
+      this.token,
+      this.boletosPage,
+      this.boletosPageSize
+    ).subscribe({
       next: (boletos) => {
-        this.boletosDisponiblesOriginal = boletos;
-        this.boletosDisponibles = [...boletos];
+        this.totalBoletosDisponibles = boletos.totalElements;
+        this.totalPaginasBoletos = boletos.totalPages;
+        this.ultimaPaginaBoletos = boletos.last;
+        this.boletosDisponibles = reiniciarLista ? [...boletos.content] : [...this.boletosDisponibles, ...boletos.content];
         this.loading = false;
         // Aplicar preselección si venimos con query param `numero`
         this.applyPrefillFromQuery();
@@ -173,7 +208,14 @@ export class AgruparBoletosComponent implements OnInit {
 
   private applyPrefillFromQuery(): void {
     const preNumero = this.route.snapshot.queryParamMap.get('numero');
-    if (!preNumero || !this.boletosDisponibles || this.boletosDisponibles.length === 0) return;
+    if (!preNumero || this.prefillAplicado || !this.boletosDisponibles || this.boletosDisponibles.length === 0) return;
+
+    if (!this.prefillIntentado) {
+      this.prefillIntentado = true;
+      this.searchTerm = preNumero;
+      this.buscarBoletos();
+      return;
+    }
 
     // Normalizar y buscar el índice del boleto de inicio
     const startIndex = this.boletosDisponibles.findIndex(b => b.numero === preNumero || b.numero === String(Number(preNumero)));
@@ -191,7 +233,7 @@ export class AgruparBoletosComponent implements OnInit {
 
     // Filtrar lista para mostrar la ventana de boletos alrededor del número
     this.searchTerm = preNumero;
-    this.buscarBoletos();
+    this.prefillAplicado = true;
   }
 
   toggleBoletoSeleccionado(boletoId: number): void {
@@ -228,6 +270,7 @@ export class AgruparBoletosComponent implements OnInit {
       next: (grupoActualizado) => {
         const cantidadAgregada = this.boletosSeleccionados.length;
         this.grupos = [grupoActualizado, ...this.grupos];
+        this.gruposPage = 0;
         this.cargarBoletosDisponibles();
         this.boletosSeleccionados = [];
         this.agrupacionForm.reset();
@@ -289,6 +332,8 @@ export class AgruparBoletosComponent implements OnInit {
     this.grupoService.eliminarGrupo(this.rifaId, grupoId, this.token).subscribe({
       next: () => {
         this.grupos = this.grupos.filter(g => g.id !== grupoId);
+        this.ajustarPaginaGrupos();
+        this.cargarBoletosDisponibles();
 
         this.successMessage = 'Grupo eliminado';
         setTimeout(() => {
@@ -305,14 +350,10 @@ export class AgruparBoletosComponent implements OnInit {
   }
 
   buscarBoletos(): void {
-    if (!this.searchTerm) {
-      this.boletosDisponibles = [...this.boletosDisponiblesOriginal];
-    } else {
-      const termLower = this.searchTerm.toLowerCase();
-      this.boletosDisponibles = this.boletosDisponiblesOriginal.filter(b =>
-        b.numero.toLowerCase().includes(termLower)
-      );
-    }
+    this.boletosPage = 0;
+    this.ultimaPaginaBoletos = false;
+    this.prefillAplicado = false;
+    this.cargarBoletosDisponiblesPage(true);
   }
 
   selectTodosBoletos(): void {
@@ -329,6 +370,65 @@ export class AgruparBoletosComponent implements OnInit {
 
   continuarAVenta(): void {
     this.router.navigate(['/dashboard/venta-boletos', this.rifaId]);
+  }
+
+  get gruposFiltrados(): GrupoBoleto[] {
+    const term = this.gruposSearchTerm.trim().toLowerCase();
+
+    if (!term) {
+      return this.grupos;
+    }
+
+    return this.grupos.filter((grupo) =>
+      (grupo.boletos ?? []).some((boleto) => boleto.numero.toLowerCase().includes(term))
+    );
+  }
+
+  get totalPaginasGrupos(): number {
+    return Math.max(1, Math.ceil(this.gruposFiltrados.length / this.gruposPageSize));
+  }
+
+  get gruposMostrados(): GrupoBoleto[] {
+    const startIndex = this.gruposPage * this.gruposPageSize;
+    return this.gruposFiltrados.slice(startIndex, startIndex + this.gruposPageSize);
+  }
+
+  get paginaActualGrupos(): number {
+    return this.gruposFiltrados.length === 0 ? 0 : this.gruposPage + 1;
+  }
+
+  get haySiguientePaginaGrupos(): boolean {
+    return this.gruposPage < this.totalPaginasGrupos - 1;
+  }
+
+  get hayBusquedaGrupos(): boolean {
+    return this.gruposSearchTerm.trim().length > 0;
+  }
+
+  paginaAnteriorGrupos(): void {
+    if (this.gruposPage > 0) {
+      this.gruposPage -= 1;
+    }
+  }
+
+  paginaSiguienteGrupos(): void {
+    if (this.haySiguientePaginaGrupos) {
+      this.gruposPage += 1;
+    }
+  }
+
+  limpiarBusquedaGrupos(): void {
+    this.gruposSearchTerm = '';
+    this.gruposPage = 0;
+  }
+
+  onBusquedaGruposChange(): void {
+    this.gruposPage = 0;
+  }
+
+  private ajustarPaginaGrupos(): void {
+    const maxPage = Math.max(0, Math.ceil(this.gruposFiltrados.length / this.gruposPageSize) - 1);
+    this.gruposPage = Math.min(this.gruposPage, maxPage);
   }
 
   isBoletoSeleccionado(boletoId: number): boolean {

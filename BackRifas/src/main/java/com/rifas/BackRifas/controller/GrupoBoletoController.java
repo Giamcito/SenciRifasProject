@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rifas.BackRifas.dto.BoletoDTO;
+import com.rifas.BackRifas.dto.BoletoPageDTO;
 import com.rifas.BackRifas.dto.CrearAgrupacionRequest;
 import com.rifas.BackRifas.dto.GrupoBoletoDTO;
 import com.rifas.BackRifas.repository.UsuarioRepository;
@@ -117,13 +117,15 @@ public class GrupoBoletoController {
      * Obtener boletos disponibles (no asignados a ningún grupo)
      */
     @GetMapping("/boletos-disponibles")
-    public ResponseEntity<List<BoletoDTO>> obtenerBoletosDisponibles(
+    public ResponseEntity<BoletoPageDTO> obtenerBoletosDisponibles(
             @PathVariable Long rifaId,
             @RequestParam(required = false) String busqueda,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
             @RequestParam(required = false) String token,
             HttpServletRequest request) {
         Long usuarioId = obtenerUsuarioIdDelToken(token);
-        List<BoletoDTO> boletos = grupoBoletoService.obtenerBoletosDisponibles(rifaId, busqueda, usuarioId);
+        BoletoPageDTO boletos = grupoBoletoService.obtenerBoletosDisponiblesPaginados(rifaId, busqueda, usuarioId, page, size);
         return ResponseEntity.ok(boletos);
     }
 

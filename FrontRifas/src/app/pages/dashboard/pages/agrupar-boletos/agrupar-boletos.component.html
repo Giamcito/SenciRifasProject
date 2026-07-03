@@ -82,7 +82,7 @@
         <div class="subsection-head">
           <div>
             <p class="panel-kicker">Boletos disponibles</p>
-            <h4>{{ boletosDisponibles.length }} resultados</h4>
+            <h4>{{ boletosDisponibles.length }} de {{ totalBoletosDisponibles }} resultados</h4>
           </div>
         </div>
 
@@ -130,6 +130,16 @@
 
         <button
           type="button"
+          class="btn btn-secondary btn-full"
+          (click)="cargarMasBoletos()"
+          [disabled]="loading || ultimaPaginaBoletos"
+          *ngIf="!ultimaPaginaBoletos && totalBoletosDisponibles > boletosDisponibles.length"
+        >
+          Cargar más boletos
+        </button>
+
+        <button
+          type="button"
           class="btn btn-primary btn-full cta-btn"
           (click)="agregarAgrupacion()"
           [disabled]="boletosSeleccionados.length === 0 || loading"
@@ -156,10 +166,44 @@
         <p>Selecciona un vendedor y boletos para crear la primera agrupación.</p>
       </div>
 
-      <div class="group-card" *ngFor="let grupo of grupos">
+      <div class="search-box" *ngIf="grupos.length > 0">
+        <input
+          type="text"
+          [(ngModel)]="gruposSearchTerm"
+          (input)="onBusquedaGruposChange()"
+          placeholder="Buscar por número de boleto..."
+          class="form-control"
+        />
+      </div>
+
+      <div class="button-group" *ngIf="hayBusquedaGrupos">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          (click)="limpiarBusquedaGrupos()"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+
+      <div class="empty-state empty-soft" *ngIf="hayBusquedaGrupos && gruposFiltrados.length === 0">
+        <p>No se encontraron agrupaciones con ese número de boleto.</p>
+      </div>
+
+      <div class="actions-section" style=" margin-bottom: 1rem;" *ngIf="gruposFiltrados.length > 0">
+        <button
+          type="button"
+          class="btn btn-primary btn-full"
+          (click)="continuarAVenta()"
+          [disabled]="loading"
+        >
+          Continuar a venta
+        </button>
+      </div>
+
+      <div class="group-card" *ngFor="let grupo of gruposMostrados">
         <div class="group-header">
           <div class="group-info">
-            <div class="group-badge">Agrupación #{{ grupo.id }}</div>
             <h4>{{ grupo.nombre || ('Agrupación #' + grupo.id) }}</h4>
             <p>Vendedor: {{ grupo.vendedorNombre || 'Sin asignar' }}</p>
             <p>Valor: ${{ grupo.valor | number:'1.0-2' }}</p>
@@ -193,6 +237,30 @@
         </div>
       </div>
 
+      <div class="actions-section" *ngIf="gruposFiltrados.length > 0">
+        <div class="button-group pagination-controls">
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="paginaAnteriorGrupos()"
+            [disabled]="gruposPage === 0"
+          >
+            Anterior
+          </button>
+          <span class="pagination-label">
+            Página {{ paginaActualGrupos }} de {{ totalPaginasGrupos }}
+          </span>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="paginaSiguienteGrupos()"
+            [disabled]="!haySiguientePaginaGrupos"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+
       <div class="actions-section">
         <button
           type="button"
@@ -201,14 +269,6 @@
           [disabled]="loading"
         >
           Volver
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary btn-full"
-          (click)="continuarAVenta()"
-          [disabled]="loading"
-        >
-          Continuar a venta
         </button>
       </div>
     </section>
