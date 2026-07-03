@@ -3,6 +3,16 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Boleto, GrupoBoleto } from '../models/grupo';
 
+export interface BoletoPageResponse {
+  content: Boleto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -48,7 +58,7 @@ export class GrupoService {
   /**
    * Obtener boletos disponibles (no asignados a ningún grupo)
    */
-  obtenerBoletosDisponibles(rifaId: number, busqueda?: string, token?: string): Observable<Boleto[]> {
+  obtenerBoletosDisponibles(rifaId: number, busqueda?: string, token?: string, page: number = 0, size: number = 100): Observable<BoletoPageResponse> {
     let params = new HttpParams();
     if (token) {
       params = params.set('token', token);
@@ -56,7 +66,9 @@ export class GrupoService {
     if (busqueda) {
       params = params.set('busqueda', busqueda);
     }
-    return this.http.get<Boleto[]>(`${this.apiUrl}/${rifaId}/grupos/boletos-disponibles`, { params });
+    params = params.set('page', page.toString());
+    params = params.set('size', size.toString());
+    return this.http.get<BoletoPageResponse>(`${this.apiUrl}/${rifaId}/grupos/boletos-disponibles`, { params });
   }
 
   /**
