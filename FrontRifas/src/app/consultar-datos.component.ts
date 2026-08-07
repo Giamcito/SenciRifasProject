@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -25,7 +25,7 @@ interface ResumenVendedorConsulta {
   templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
   styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
 })
-export class ConsultarDatosComponent implements OnInit {
+export class ConsultarDatosComponent implements OnInit, OnDestroy {
   readonly boletosPorPagina = 100;
   rifaId: number | null = null;
   rifa: Rifa | null = null;
@@ -48,6 +48,11 @@ export class ConsultarDatosComponent implements OnInit {
   loadingConsulta = false;
   loadingResumenVendedores = false;
   error = '';
+  private readonly refreshOnFocus = () => {
+    if (this.tieneRifaSeleccionada()) {
+      this.cargarConsulta();
+    }
+  };
 
   readonly estadoOpciones: Array<EstadoVenta | 'TODOS'> = ['TODOS', 'DISPONIBLE', 'ABONADO', 'VENDIDO', 'RESERVADO', 'CANCELADO'];
 
@@ -60,6 +65,8 @@ export class ConsultarDatosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    window.addEventListener('focus', this.refreshOnFocus);
+
     this.route.queryParamMap.subscribe((params) => {
       const rifaValue = params.get('rifaId');
       const vendedorValue = params.get('vendedorId');
@@ -75,6 +82,10 @@ export class ConsultarDatosComponent implements OnInit {
         this.cargarRifa();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('focus', this.refreshOnFocus);
   }
 
   cargarRifas(): void {
@@ -198,7 +209,10 @@ export class ConsultarDatosComponent implements OnInit {
 
     this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, this.selectedEstado).subscribe({
       next: (consulta) => {
-        this.consulta = consulta;
+        this.consulta = {
+          ...consulta,
+          dineroRetirado: this.calcularDineroRetirado(consulta)
+        };
         this.loadingConsulta = false;
       },
       error: () => {
@@ -245,7 +259,7 @@ export class ConsultarDatosComponent implements OnInit {
                   vendedorId: vendedor.id,
                   vendedorNombre: vendedor.nombre,
               dineroRecogido: Number(consulta.dineroRecogido || 0),
-                  dineroRetirado: Number((consulta as any).dineroRetirado || 0),
+              dineroRetirado: this.calcularDineroRetirado(consulta),
                   dineroAbonos: this.calcularDineroAbonos(consulta)
                 } as ResumenVendedorConsulta;
           })
@@ -291,6 +305,37 @@ export class ConsultarDatosComponent implements OnInit {
       // Preferir monto abonado del grupo cuando exista
       const montoGrupo = (boleto as any).grupoMontoAbonado ?? boleto.montoAbonado ?? 0;
       total += Number(montoGrupo || 0);
+    }
+
+    return total;
+  }
+
+  calcularDineroRetirado(consulta: ConsultaVendedor): number {
+    const boletos = consulta.boletos || [];
+    let total = 0;
+    const gruposContabilizados = new Set<number>();
+
+    for (const boleto of boletos) {
+      const montoAbonado = Number(boleto.montoAbonado || 0);
+      const montoNeto = Number(boleto.montoNeto || 0);
+      const descontar = Boolean(boleto.descontarParteVendedor);
+
+      if (!boleto.grupoId) {
+        if (descontar && boleto.estadoVenta === 'VENDIDO') {
+          total += Math.max(montoAbonado - montoNeto, 0);
+        }
+        continue;
+      }
+
+      if (gruposContabilizados.has(boleto.grupoId)) {
+        continue;
+      }
+
+      gruposContabilizados.add(boleto.grupoId);
+
+      if (descontar && boleto.estadoVenta === 'VENDIDO') {
+        total += Math.max(montoAbonado - montoNeto, 0);
+      }
     }
 
     return total;

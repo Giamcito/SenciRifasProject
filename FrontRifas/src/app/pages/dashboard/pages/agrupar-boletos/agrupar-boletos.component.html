@@ -274,3 +274,29 @@
     </section>
   </div>
 </div>
+
+<div
+  class="modal-backdrop"
+  *ngIf="mostrarModalEliminarGrupo"
+  (click)="onModalBackdropClick($event)"
+>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalEliminarGrupoTitulo">
+    <div class="modal-header">
+      <h3 id="modalEliminarGrupoTitulo">Confirmar eliminación</h3>
+      <button type="button" class="modal-close" (click)="cerrarModalEliminarGrupo()" aria-label="Cerrar modal">×</button>
+    </div>
+
+    <p class="modal-message">
+      ¿Estás seguro de que deseas eliminar este grupo? Los boletos relacionados volverán a estar disponibles.
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="cerrarModalEliminarGrupo()" [disabled]="loading">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminarGrupo()" [disabled]="loading">
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>

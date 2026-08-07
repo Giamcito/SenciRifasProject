@@ -1,7 +1,4 @@
 <div class="content-section">
-  <div class="header-volver">
-    <button class="btn-volver" (click)="volver()">← Volver</button>
-  </div>
 
   <!-- Título -->
   <h2>{{ rifa?.nombre }}</h2>
@@ -65,7 +62,6 @@
           <option value="DISPONIBLE">Disponibles</option>
           <option value="VENDIDO">Vendidos</option>
           <option value="ABONADO">Abonados</option>
-          <option value="CANCELADO">Cancelados</option>
         </select>
       </div>
 
@@ -90,88 +86,164 @@
         Cargando boletos...
       </div>
 
-      <div *ngIf="!loadingBoletos && boletos.length === 0" class="empty-state">
-        <p>{{ resumenBoletos || 'No hay boletos con los filtros seleccionados' }}</p>
-      </div>
+      <ng-container *ngIf="!loadingBoletos">
+        <ng-container *ngIf="grupoBusqueda as grupo; else listadoNormal">
+          <div class="grupo-result-card">
+            <div class="grupo-result-header">
+              <div>
+                <h3>{{ grupo.nombre }}</h3>
+              </div>
+              <span class="grupo-result-badge" [style.backgroundColor]="obtenerColorPorEstado(grupo.estadoVenta)">
+                {{ grupo.estadoVenta }}
+              </span>
+            </div>
 
-      <div class="boletos-grid" *ngIf="!loadingBoletos && boletos.length > 0">
-        <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId" 
-            class="boleto-card" 
-            [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
-            [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
-            [class.abonado]="boleto.estadoVenta === 'ABONADO'"
-            [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
-          
-          <div class="boleto-numero">{{ boleto.numero }}</div>
-          
-          <div class="boleto-estado">
-            <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(boleto.estadoVenta)">
-              {{ boleto.estadoVenta }}
-            </span>
+            <div class="grupo-result-stats">
+              <div>
+                <span>Vendedor</span>
+                <strong>{{ grupo.vendedorNombre || 'Sin asignar' }}</strong>
+              </div>
+              <div>
+                <span>Boletos</span>
+                <strong>{{ grupo.boletos?.length || 0 }}</strong>
+              </div>
+              <div>
+                <span>Valor grupo</span>
+                <strong>{{ formatoMoneda(grupo.valor) }}</strong>
+              </div>
+              <div>
+                <span>Monto abonado</span>
+                <strong>{{ formatoMoneda(grupo.montoAbonado || 0) }}</strong>
+              </div>
+              <div>
+                <span>Saldo pendiente</span>
+                <strong>{{ formatoMoneda(saldoPendienteGrupo(grupo)) }}</strong>
+              </div>
+            </div>
+
+            <div class="grupo-result-boletos" *ngIf="grupo.boletos && grupo.boletos.length > 0">
+              <span *ngFor="let boleto of grupo.boletos" class="grupo-boleto-chip">
+                {{ boleto.numero }}
+              </span>
+            </div>
+
+            <div class="grupo-result-actions" *ngIf="obtenerBoletoPrincipalGrupo(grupo) as boletoPrincipal">
+              <label *ngIf="boletoPrincipal.estadoVenta === 'VENDIDO' || boletoPrincipal.estadoVenta === 'CANCELADO'" class="checkbox-descuento grupo-checkbox-descuento">
+                <input
+                  type="checkbox"
+                  [checked]="boletoPrincipal.descontarParteVendedor ?? false"
+                  [disabled]="!boletoPrincipal.vendedorId"
+                  (change)="actualizarDescuentoGrupo(grupo, descuentoGrupo.checked)"
+                  #descuentoGrupo
+                />
+                <span>Descontar parte del vendedor</span>
+              </label>
+
+              <button class="btn-accion btn-vender" (click)="asignarPropietarioGrupo(grupo)" title="Asignar propietario">
+                🏷️ Propietario
+              </button>
+
+              <button *ngIf="boletoPrincipal.estadoVenta === 'DISPONIBLE' || boletoPrincipal.estadoVenta === 'AGRUPADA'"
+                      class="btn-accion btn-vender"
+                      (click)="marcarVendidoGrupo(grupo)"
+                      title="Marcar como vendido">
+                💰 Vender
+              </button>
+
+              <button *ngIf="boletoPrincipal.estadoVenta === 'DISPONIBLE' || boletoPrincipal.estadoVenta === 'AGRUPADA'"
+                      class="btn-accion btn-abonar"
+                      (click)="cambiarEstadoGrupo(grupo, 'ABONADO')"
+                      title="Abonar">
+                💳 Abonar
+              </button>
+
+              <button *ngIf="boletoPrincipal.estadoVenta === 'ABONADO'"
+                      class="btn-accion btn-abonar"
+                      (click)="seguirAbonandoGrupo(grupo)"
+                      title="Seguir abonando">
+                💳 Seguir abonando
+              </button>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #listadoNormal>
+          <div *ngIf="boletos.length === 0" class="empty-state">
+            <p>{{ resumenBoletos || 'No hay boletos con los filtros seleccionados' }}</p>
           </div>
 
-          <div class="boleto-info">
-            <small *ngIf="boleto.vendedorNombre">
-              <strong>Vendedor:</strong> {{ boleto.vendedorNombre }}
-            </small>
-            <small *ngIf="boleto.estadoVenta === 'VENDIDO' && boleto.vendedorId">
-              <strong>Parte vendedor:</strong> {{ formatoMoneda(obtenerParteDelVendedor(boleto)) }}
-            </small>
-            <small *ngIf="boleto.compradorNombre">
-              <strong>Comprador:</strong> {{ boleto.compradorNombre }}
-            </small>
-            <small *ngIf="boleto.compradorTelefono">
-              <strong>Teléfono:</strong> {{ boleto.compradorTelefono }}
-            </small>
-            <small *ngIf="boleto.fechaVenta">
-              <strong>Fecha:</strong> {{ boleto.fechaVenta | date: 'dd/MM/yyyy HH:mm' }}
-            </small>
-            <small>
-              <strong>Saldo pendiente:</strong> {{ formatoMoneda(getSaldoPendiente(boleto)) }}
-            </small>
+          <div class="boletos-grid" *ngIf="boletos.length > 0">
+            <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId"
+                class="boleto-card"
+                [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
+                [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
+                [class.abonado]="boleto.estadoVenta === 'ABONADO'"
+                [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
+
+              <div class="boleto-numero">{{ boleto.numero }}</div>
+
+              <div class="boleto-estado">
+                <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(boleto.estadoVenta)">
+                  {{ boleto.estadoVenta }}
+                </span>
+              </div>
+
+              <div class="boleto-info">
+                <small *ngIf="boleto.vendedorNombre">
+                  <strong>Vendedor:</strong> {{ boleto.vendedorNombre }}</small>
+                <small *ngIf="boleto.estadoVenta === 'VENDIDO' && boleto.vendedorId">
+                  <strong>Parte vendedor:</strong> {{ formatoMoneda(obtenerParteDelVendedor(boleto)) }}</small>
+                <small *ngIf="boleto.compradorNombre">
+                  <strong>Comprador:</strong> {{ boleto.compradorNombre }}</small>
+                <small *ngIf="boleto.compradorTelefono">
+                  <strong>Teléfono:</strong> {{ boleto.compradorTelefono }}</small>
+                <small *ngIf="boleto.fechaVenta">
+                  <strong>Fecha:</strong> {{ boleto.fechaVenta | date: 'dd/MM/yyyy HH:mm' }}</small>
+                <small>
+                  <strong>Saldo pendiente:</strong> {{ formatoMoneda(getSaldoPendiente(boleto)) }}</small>
+              </div>
+
+              <div class="boleto-acciones">
+                <label *ngIf="boleto.estadoVenta === 'VENDIDO'" class="checkbox-descuento">
+                  <input
+                    type="checkbox"
+                    [checked]="boleto.descontarParteVendedor ?? false"
+                    [disabled]="!boleto.vendedorId"
+                    (change)="actualizarDescuentoVendedor(boleto, descuentoVendedor.checked)"
+                    #descuentoVendedor
+                  />
+                  <span>Descontar parte del vendedor</span>
+                </label>
+
+                <button class="btn-accion btn-vender" (click)="asignarPropietario(boleto)" title="Asignar propietario">
+                  🏷️ Propietario
+                </button>
+
+                <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'"
+                        class="btn-accion btn-vender"
+                        (click)="marcarVendido(boleto)"
+                        title="Marcar como vendido">
+                  💰 Vender
+                </button>
+
+                <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'"
+                        class="btn-accion btn-abonar"
+                        (click)="cambiarEstado(boleto, 'ABONADO')"
+                        title="Abonar">
+                  💳 Abonar
+                </button>
+
+                <button *ngIf="boleto.estadoVenta === 'ABONADO'"
+                        class="btn-accion btn-abonar"
+                        (click)="seguirAbonando(boleto)"
+                        title="Seguir abonando">
+                  💳 Seguir abonando
+                </button>
+              </div>
+            </div>
           </div>
-
-          <div class="boleto-acciones">
-            <label *ngIf="boleto.estadoVenta === 'VENDIDO'" class="checkbox-descuento">
-              <input
-                type="checkbox"
-                [checked]="boleto.descontarParteVendedor ?? false"
-                [disabled]="!boleto.vendedorId"
-                (change)="actualizarDescuentoVendedor(boleto, descuentoVendedor.checked)"
-                #descuentoVendedor
-              />
-              <span>Descontar parte del vendedor</span>
-            </label>
-
-            <button class="btn-accion btn-vender"
-                    (click)="asignarPropietario(boleto)"
-                    title="Asignar propietario">
-              🏷️ Propietario
-            </button>
-
-            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'" 
-                    class="btn-accion btn-vender"
-                    (click)="marcarVendido(boleto)"
-                    title="Marcar como vendido">
-              💰 Vender
-            </button>
-
-            <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'" 
-                    class="btn-accion btn-abonar"
-                    (click)="cambiarEstado(boleto, 'ABONADO')"
-                    title="Abonar">
-              💳 Abonar
-            </button>
-
-            <button *ngIf="boleto.estadoVenta === 'ABONADO'" 
-                    class="btn-accion btn-abonar"
-                    (click)="seguirAbonando(boleto)"
-                    title="Seguir abonando">
-              💳 Seguir abonando
-            </button>
-          </div>
-        </div>
-      </div>
+        </ng-template>
+      </ng-container>
     </div>
 
     <div class="paginacion" *ngIf="!loadingBoletos && totalPaginas > 1 && !busquedaNumero.trim()">
@@ -230,4 +302,3 @@
       <button type="button" class="btn-primary" (click)="confirmarModal()">Confirmar</button>
     </div>
   </div>
-</div>

@@ -27,4 +27,6 @@ export interface Boleto {
   vendedorNombre?: string;
   fechaVenta?: string;
   montoAbonado?: number;
+  descontarParteVendedor?: boolean;
+  montoNeto?: number | null;
 }

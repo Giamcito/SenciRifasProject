@@ -3,8 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Boleto, Estadisticas, EstadoVenta } from '../../../../models/boleto';
+import { GrupoBoleto, Boleto as GrupoBoletoItem } from '../../../../models/grupo';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
+import { GrupoService } from '../../../../services/grupo.service';
 import { RifaService } from '../../../../services/rifa.service';
 import { SidebarService } from '../../../../services/sidebar.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
@@ -26,11 +28,13 @@ export class VisualizarRifasComponent implements OnInit {
   loadingBoletos: boolean = false;
   error: string = '';
   success: string = '';
+  grupoBusqueda: GrupoBoleto | null = null;
+  boletoBusqueda: Boleto | null = null;
   
   filtroEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero: string = '';
   paginaActual: number = 0;
-  tamanoPagina: number = 500;
+  tamanoPagina: number = 100;
   totalBoletos: number = 0;
   totalPaginas: number = 0;
   resumenBoletos: string = '';
@@ -48,6 +52,7 @@ export class VisualizarRifasComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private boletoService: BoletoService,
+    private grupoService: GrupoService,
     private rifaService: RifaService,
     private vendedorService: VendedorService
     ,
@@ -81,6 +86,7 @@ export class VisualizarRifasComponent implements OnInit {
       next: (rifa: Rifa) => {
         this.rifa = rifa;
         this.rifaId = rifa.id;
+        this.grupoBusqueda = null;
         this.loading = false;
         this.cargarBoletos();
         this.cargarEstadisticas();
@@ -92,6 +98,7 @@ export class VisualizarRifasComponent implements OnInit {
             next: (rifa: Rifa) => {
               this.rifa = rifa;
               this.rifaId = rifa.id;
+              this.grupoBusqueda = null;
               this.loading = false;
               this.cargarBoletos();
               this.cargarEstadisticas();
@@ -117,12 +124,14 @@ export class VisualizarRifasComponent implements OnInit {
     const numeroBuscado = this.normalizarNumeroBusqueda(this.busquedaNumero);
 
     if (numeroBuscado) {
-      this.cargarBoletoPorNumero(numeroBuscado);
+      this.cargarResultadoBusqueda(numeroBuscado);
       return;
     }
 
     this.loadingBoletos = true;
     this.error = '';
+    this.grupoBusqueda = null;
+    this.boletoBusqueda = null;
     this.boletos = [];
 
     this.boletoService.obtenerBoletos(this.rifaId, {
@@ -144,20 +153,37 @@ export class VisualizarRifasComponent implements OnInit {
     });
   }
 
-  cargarBoletoPorNumero(numero: string): void {
+  private cargarResultadoBusqueda(numero: string): void {
     if (!this.rifaId) return;
 
     this.loadingBoletos = true;
     this.error = '';
+    this.grupoBusqueda = null;
+    this.boletoBusqueda = null;
+    this.boletos = [];
 
     this.boletoService.obtenerBoletoPorNumero(this.rifaId, numero).subscribe({
       next: (boleto) => {
         const coincideFiltro = this.filtroEstado === 'TODOS' || boleto.estadoVenta === this.filtroEstado;
-        this.boletos = coincideFiltro ? [boleto] : [];
-        this.totalBoletos = coincideFiltro ? 1 : 0;
+        if (!coincideFiltro) {
+          this.loadingBoletos = false;
+          this.totalBoletos = 0;
+          this.totalPaginas = 0;
+          this.actualizarResumenBoletos(0, numero);
+          return;
+        }
+
+        if (this.rifa?.gruposHabilitado && boleto.grupoId) {
+          this.cargarGrupoCompletoPorBoleto(boleto, numero);
+          return;
+        }
+
+        this.boletoBusqueda = boleto;
+        this.boletos = [boleto];
+        this.totalBoletos = 1;
         this.totalPaginas = 1;
         this.loadingBoletos = false;
-        this.actualizarResumenBoletos(coincideFiltro ? 1 : 0, numero);
+        this.actualizarResumenBoletos(1, numero);
       },
       error: () => {
         this.boletos = [];
@@ -167,6 +193,44 @@ export class VisualizarRifasComponent implements OnInit {
         this.actualizarResumenBoletos(0, numero);
       }
     });
+  }
+
+  private cargarGrupoCompletoPorBoleto(boleto: Boleto, numero: string): void {
+    if (!this.rifaId || !boleto.grupoId) {
+      this.mostrarResultadoBoletoIndividual(boleto, numero);
+      return;
+    }
+
+    const token = this.getToken();
+    if (!token) {
+      this.mostrarResultadoBoletoIndividual(boleto, numero);
+      return;
+    }
+
+    this.grupoService.obtenerGrupo(this.rifaId, boleto.grupoId, token).subscribe({
+      next: (grupo) => {
+        this.grupoBusqueda = grupo;
+        this.boletos = [];
+        this.totalBoletos = grupo.boletos?.length ?? 0;
+        this.totalPaginas = 1;
+        this.loadingBoletos = false;
+        this.actualizarResumenGrupo(grupo, numero);
+      },
+      error: () => {
+        this.mostrarResultadoBoletoIndividual(boleto, numero);
+      }
+    });
+  }
+
+  private mostrarResultadoBoletoIndividual(boleto: Boleto, numero: string): void {
+    const coincideFiltro = this.filtroEstado === 'TODOS' || boleto.estadoVenta === this.filtroEstado;
+    this.boletoBusqueda = coincideFiltro ? boleto : null;
+    this.grupoBusqueda = null;
+    this.boletos = coincideFiltro ? [boleto] : [];
+    this.totalBoletos = coincideFiltro ? 1 : 0;
+    this.totalPaginas = 1;
+    this.loadingBoletos = false;
+    this.actualizarResumenBoletos(coincideFiltro ? 1 : 0, numero);
   }
 
   cargarEstadisticas(): void {
@@ -202,6 +266,8 @@ export class VisualizarRifasComponent implements OnInit {
     this.filtroEstado = 'TODOS';
     this.busquedaNumero = '';
     this.paginaActual = 0;
+    this.grupoBusqueda = null;
+    this.boletoBusqueda = null;
     this.cargarBoletos();
   }
 
@@ -252,6 +318,82 @@ export class VisualizarRifasComponent implements OnInit {
     const inicio = this.paginaActual * this.tamanoPagina + 1;
     const fin = this.paginaActual * this.tamanoPagina + cantidadMostrada;
     this.resumenBoletos = `Mostrando ${inicio}-${fin} de ${this.totalBoletos} boletos`;
+  }
+
+  actualizarResumenGrupo(grupo: GrupoBoleto, numeroBuscado: string): void {
+    const totalBoletosGrupo = grupo.boletos?.length ?? 0;
+    this.resumenBoletos = totalBoletosGrupo > 0
+      ? `Se encontró la agrupación ${grupo.nombre} al buscar ${numeroBuscado}`
+      : `Se encontró la agrupación ${grupo.nombre}`;
+  }
+
+  saldoPendienteGrupo(grupo: GrupoBoleto): number {
+    const valor = Number(grupo.valor || 0);
+    const abonado = Number(grupo.montoAbonado || 0);
+    return Math.max(valor - abonado, 0);
+  }
+
+  obtenerBoletoPrincipalGrupo(grupo: GrupoBoleto): Boleto | null {
+    const boleto = grupo.boletos?.[0] ?? null;
+    return boleto ? this.convertirBoletoGrupoABoleto(boleto, grupo) : null;
+  }
+
+  private convertirBoletoGrupoABoleto(boleto: GrupoBoletoItem, grupo: GrupoBoleto): Boleto {
+    return {
+      id: boleto.id,
+      rifaId: boleto.rifaId,
+      numero: boleto.numero,
+      estadoVenta: boleto.estadoVenta as EstadoVenta,
+      grupoId: boleto.grupoId ?? grupo.id,
+      grupoNombre: grupo.nombre,
+      grupoEstadoVenta: grupo.estadoVenta,
+      grupoVendedorNombre: grupo.vendedorNombre ?? null,
+      grupoMontoAbonado: grupo.montoAbonado ?? 0,
+      grupoSaldoPendiente: this.saldoPendienteGrupo(grupo),
+      vendedorId: boleto.vendedorId ?? grupo.vendedorId ?? null,
+      vendedorNombre: boleto.vendedorNombre ?? grupo.vendedorNombre ?? null,
+      compradorNombre: boleto.compradorNombre ?? grupo.compradorNombre ?? null,
+      compradorTelefono: boleto.compradorTelefono ?? grupo.compradorTelefono ?? null,
+      fechaVenta: boleto.fechaVenta ?? grupo.fechaVenta ?? null,
+      montoAbonado: boleto.montoAbonado ?? grupo.montoAbonado ?? 0,
+      descontarParteVendedor: boleto.descontarParteVendedor ?? false,
+      montoNeto: boleto.montoNeto ?? null
+    };
+  }
+
+  asignarPropietarioGrupo(grupo: GrupoBoleto): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.asignarPropietario(boleto);
+    }
+  }
+
+  cambiarEstadoGrupo(grupo: GrupoBoleto, nuevoEstado: EstadoVenta): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.cambiarEstado(boleto, nuevoEstado);
+    }
+  }
+
+  marcarVendidoGrupo(grupo: GrupoBoleto): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.marcarVendido(boleto);
+    }
+  }
+
+  seguirAbonandoGrupo(grupo: GrupoBoleto): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.seguirAbonando(boleto);
+    }
+  }
+
+  actualizarDescuentoGrupo(grupo: GrupoBoleto, descontarParteVendedor: boolean): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.actualizarDescuentoVendedor(boleto, descontarParteVendedor);
+    }
   }
 
   trackByBoletoId(index: number, boleto: Boleto): number {
@@ -467,8 +609,10 @@ export class VisualizarRifasComponent implements OnInit {
     return Math.max(this.rifa.valorBoleto - abonado, 0);
   }
 
-  obtenerColorPorEstado(estado: EstadoVenta): string {
-    switch (estado) {
+  obtenerColorPorEstado(estado: EstadoVenta | string): string {
+    const estadoNormalizado = estado as EstadoVenta;
+
+    switch (estadoNormalizado) {
       case 'DISPONIBLE':
         return '#27ae60'; // Verde
       case 'AGRUPADA':
@@ -494,6 +638,10 @@ export class VisualizarRifasComponent implements OnInit {
       style: 'currency',
       currency: 'COP'
     }).format(valor);
+  }
+
+  getToken(): string {
+    return localStorage.getItem('token') || '';
   }
 
   getSaldoPendiente(boleto: Boleto): number {
