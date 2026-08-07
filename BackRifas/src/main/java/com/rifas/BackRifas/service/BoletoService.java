@@ -540,10 +540,6 @@ public class BoletoService {
     }
 
     private BigDecimal obtenerMontoNetoRecogido(Boleto boleto) {
-        if (boleto.getMontoNetoRecogido() != null) {
-            return boleto.getMontoNetoRecogido();
-        }
-
         return calcularMontoNetoRecogido(boleto);
     }
 
@@ -599,6 +595,7 @@ public class BoletoService {
         }
 
         GrupoBoleto grupo = grupoBoletoRepository.findById(boletoActualizado.getGrupoId()).orElse(null);
+        BigDecimal montoNetoRecalculado = calcularMontoNetoRecogido(boletoActualizado);
 
         for (Boleto boletoGrupo : boletosGrupo) {
             boletoGrupo.setEstadoVenta(boletoActualizado.getEstadoVenta());
@@ -609,7 +606,7 @@ public class BoletoService {
             boletoGrupo.setFechaVenta(boletoActualizado.getFechaVenta());
             boletoGrupo.setMontoAbonado(boletoActualizado.getMontoAbonado());
             boletoGrupo.setDescontarParteVendedor(boletoActualizado.getDescontarParteVendedor());
-            boletoGrupo.setMontoNetoRecogido(boletoActualizado.getMontoNetoRecogido());
+            boletoGrupo.setMontoNetoRecogido(montoNetoRecalculado);
             boletoGrupo.setGrupoId(boletoActualizado.getGrupoId());
         }
 
