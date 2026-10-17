@@ -13,6 +13,8 @@ public class RifaDTO {
     private Boolean gruposHabilitado;
     private Integer cantidadAgrupacion;
     private BigDecimal valorGrupo;
+    private Integer cifras;
+    private Boolean boletosGenerados;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -20,6 +22,14 @@ public class RifaDTO {
 
     public RifaDTO(Long id, String uniqueId, String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, Long usuarioId, 
                    Boolean gruposHabilitado, Integer cantidadAgrupacion, BigDecimal valorGrupo,
+                   LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(id, uniqueId, nombre, cantidadBoletos, valorBoleto, usuarioId, gruposHabilitado, cantidadAgrupacion, valorGrupo,
+             cantidadBoletos <= 1 ? 1 : String.valueOf(cantidadBoletos - 1).length(), false, createdAt, updatedAt);
+    }
+
+    public RifaDTO(Long id, String uniqueId, String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, Long usuarioId, 
+                   Boolean gruposHabilitado, Integer cantidadAgrupacion, BigDecimal valorGrupo,
+                   Integer cifras, Boolean boletosGenerados,
                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.uniqueId = uniqueId;
@@ -30,6 +40,8 @@ public class RifaDTO {
         this.gruposHabilitado = gruposHabilitado;
         this.cantidadAgrupacion = cantidadAgrupacion;
         this.valorGrupo = valorGrupo;
+        this.cifras = cifras;
+        this.boletosGenerados = boletosGenerados;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -120,5 +132,21 @@ public class RifaDTO {
 
     public void setValorGrupo(BigDecimal valorGrupo) {
         this.valorGrupo = valorGrupo;
+    }
+
+    public Integer getCifras() {
+        return cifras;
+    }
+
+    public void setCifras(Integer cifras) {
+        this.cifras = cifras;
+    }
+
+    public Boolean getBoletosGenerados() {
+        return boletosGenerados;
+    }
+
+    public void setBoletosGenerados(Boolean boletosGenerados) {
+        this.boletosGenerados = boletosGenerados;
     }
 }

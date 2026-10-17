@@ -11,7 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 
 import com.rifas.BackRifas.dto.AsignarPropietarioRequest;
 import com.rifas.BackRifas.dto.BoletoDTO;
@@ -35,18 +39,21 @@ public class BoletoService {
     private final RifaRepository rifaRepository;
     private final VendedorRepository vendedorRepository;
     private final RetiroRepository retiroRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public BoletoService(BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, RifaRepository rifaRepository, VendedorRepository vendedorRepository, RetiroRepository retiroRepository) {
+    public BoletoService(BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, RifaRepository rifaRepository, VendedorRepository vendedorRepository, RetiroRepository retiroRepository, JdbcTemplate jdbcTemplate) {
         this.boletoRepository = boletoRepository;
         this.grupoBoletoRepository = grupoBoletoRepository;
         this.rifaRepository = rifaRepository;
         this.vendedorRepository = vendedorRepository;
         this.retiroRepository = retiroRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
      * Generar todos los boletos de una rifa automáticamente
      */
+    @Transactional
     public void generarBoletos(Long rifaId, Long usuarioId) {
         Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
                 .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
@@ -55,20 +62,42 @@ public class BoletoService {
             throw new RuntimeException("Los boletos ya fueron generados para esta rifa");
         }
 
-        Integer cantidad = rifa.getCantidadBoletos();
-        Integer cifras = obtenerCifras(cantidad);
+        generarBoletosInterno(rifa);
+    }
 
-        // Generar números con formato de cifras
+    /**
+     * Generación por lotes de alto rendimiento usando JdbcTemplate
+     */
+    @Transactional
+    public void generarBoletosInterno(Rifa rifa) {
+        if (rifa == null || rifa.getCantidadBoletos() == null || rifa.getCantidadBoletos() <= 0) {
+            return;
+        }
+
+        Integer cantidad = rifa.getCantidadBoletos();
+        int cifras = rifa.getCifras() != null ? rifa.getCifras() : obtenerCifras(cantidad);
         String formato = "%0" + cifras + "d";
 
+        final int BATCH_SIZE = 2500;
+        String sql = "INSERT INTO boletos (rifa_id, numero, estado_venta, monto_abonado, descontar_parte_vendedor, monto_neto_recogido, created_at, updated_at) " +
+                     "VALUES (?, ?, 'DISPONIBLE', 0, 0, 0, NOW(), NOW())";
+
+        List<Object[]> batch = new ArrayList<>(BATCH_SIZE);
         for (int i = 0; i < cantidad; i++) {
             String numero = String.format(formato, i);
-            Boleto boleto = new Boleto(rifa, numero);
-            boletoRepository.save(boleto);
+            batch.add(new Object[]{ rifa.getId(), numero });
+            if (batch.size() >= BATCH_SIZE) {
+                jdbcTemplate.batchUpdate(sql, batch);
+                batch.clear();
+            }
+        }
+        if (!batch.isEmpty()) {
+            jdbcTemplate.batchUpdate(sql, batch);
+            batch.clear();
         }
     }
 
-    private int obtenerCifras(int cantidadBoletos) {
+    public int obtenerCifras(int cantidadBoletos) {
         if (cantidadBoletos <= 1) {
             return 1;
         }
@@ -457,7 +486,7 @@ public class BoletoService {
                         throw new RuntimeException("Boleto no encontrado");
                     }
 
-                    int cifras = obtenerCifras(rifa.getCantidadBoletos());
+                    int cifras = rifa.getCifras() != null ? rifa.getCifras() : obtenerCifras(rifa.getCantidadBoletos());
                     String numeroNormalizado = String.format("%0" + cifras + "d", Integer.parseInt(numeroBuscado));
 
                     return boletoRepository.findByRifaIdAndNumero(rifa.getId(), numeroNormalizado)

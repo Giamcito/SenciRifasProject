@@ -44,6 +44,9 @@ public class Rifa {
     @Column(nullable = false)
     private BigDecimal valorGrupo = BigDecimal.ZERO;
 
+    @Column(name = "cifras")
+    private Integer cifras;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -57,12 +60,23 @@ public class Rifa {
         this.cantidadBoletos = cantidadBoletos;
         this.valorBoleto = valorBoleto;
         this.usuarioId = usuarioId;
+        this.cifras = calcularCifras(cantidadBoletos);
+    }
+
+    public static int calcularCifras(Integer cantidadBoletos) {
+        if (cantidadBoletos == null || cantidadBoletos <= 1) {
+            return 1;
+        }
+        return String.valueOf(cantidadBoletos - 1).length();
     }
 
     @PrePersist
     protected void onCreate() {
         if (uniqueId == null || uniqueId.isBlank()) {
             uniqueId = generarCodigoPublico();
+        }
+        if (cifras == null || cifras < calcularCifras(cantidadBoletos)) {
+            cifras = calcularCifras(cantidadBoletos);
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
@@ -75,6 +89,9 @@ public class Rifa {
 
     @PreUpdate
     protected void onUpdate() {
+        if (cifras == null || cifras < calcularCifras(cantidadBoletos)) {
+            cifras = calcularCifras(cantidadBoletos);
+        }
         updatedAt = LocalDateTime.now();
     }
 
@@ -165,5 +182,16 @@ public class Rifa {
 
     public void setValorGrupo(BigDecimal valorGrupo) {
         this.valorGrupo = valorGrupo;
+    }
+
+    public Integer getCifras() {
+        if (cifras != null && cifras > 0) {
+            return cifras;
+        }
+        return calcularCifras(cantidadBoletos);
+    }
+
+    public void setCifras(Integer cifras) {
+        this.cifras = cifras;
     }
 }
