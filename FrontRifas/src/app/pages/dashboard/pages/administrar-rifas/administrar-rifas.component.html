@@ -80,14 +80,23 @@
             </td>
 
             <!-- Cantidad de Boletos -->
-            <td *ngIf="editingId !== rifa.id">{{ rifa.cantidadBoletos }}</td>
+            <td *ngIf="editingId !== rifa.id">
+              {{ rifa.cantidadBoletos | number }}
+              <span *ngIf="rifa.boletosGenerados" class="group-badge active" style="font-size: 0.75rem; margin-left: 4px;" title="Boletos generados">Generados</span>
+              <span *ngIf="!rifa.boletosGenerados" class="group-badge" style="font-size: 0.75rem; margin-left: 4px; background: #fff3cd; color: #856404;" title="Boletos pendientes por generar">Pendiente</span>
+            </td>
             <td *ngIf="editingId === rifa.id" class="edit-row">
               <input type="text" [(ngModel)]="editingData.cantidadBoletos" class="form-control-inline" inputmode="numeric" />
             </td>
 
             <!-- Cifras -->
-            <td *ngIf="editingId !== rifa.id" class="cifras">{{ obtenerCantidadCifras(rifa.cantidadBoletos) }}</td>
-            <td *ngIf="editingId === rifa.id" class="cifras">{{ obtenerCantidadCifras(editingData.cantidadBoletos) }}</td>
+            <td *ngIf="editingId !== rifa.id" class="cifras">
+              <strong>{{ obtenerCantidadCifras(rifa.cantidadBoletos, rifa) }} cifras</strong>
+              <small style="display: block; font-size: 0.75rem; color: #666;">({{ obtenerPrimerBoleto(rifa) }} al {{ obtenerUltimoBoleto(rifa) }})</small>
+            </td>
+            <td *ngIf="editingId === rifa.id" class="cifras">
+              <strong>{{ obtenerCantidadCifras(editingData.cantidadBoletos, editingData) }} cifras</strong>
+            </td>
 
             <!-- Valor Boleto -->
             <td *ngIf="editingId !== rifa.id" class="dinero">{{ formatoMoneda(rifa.valorBoleto) }}</td>

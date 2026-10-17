@@ -299,7 +299,12 @@ export class VisualizarRifasComponent implements OnInit {
       return 1;
     }
 
-    return Math.max(String(this.rifa.cantidadBoletos - 1).length, 1);
+    if (this.rifa.cifras && this.rifa.cifras > 0) {
+      return this.rifa.cifras;
+    }
+
+    const n = Number(this.rifa.cantidadBoletos || 0);
+    return Math.max(n <= 1 ? 1 : String(n - 1).length, 1);
   }
 
   actualizarResumenBoletos(cantidadMostrada: number = this.boletos.length, numeroBuscado?: string): void {

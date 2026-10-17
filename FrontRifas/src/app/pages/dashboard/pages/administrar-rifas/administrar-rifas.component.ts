@@ -81,6 +81,10 @@ export class AdministrarRifasComponent implements OnInit {
         this.modalTipo = 'exito';
         this.modalTitulo = 'Boletos generados';
         this.modalMensaje = 'Los boletos se generaron correctamente.';
+        const rifa = this.rifas.find(r => r.id === rifaId);
+        if (rifa) {
+          rifa.boletosGenerados = true;
+        }
       },
       error: (err) => {
         this.modalLoading = false;
@@ -240,11 +244,14 @@ export class AdministrarRifasComponent implements OnInit {
     const cantidadAgrupacion: number | undefined = gruposHabilitado
       ? parseInt(this.editingData.cantidadAgrupacion, 10)
       : undefined;
+    const cantidadBoletos = parseInt(this.editingData.cantidadBoletos, 10);
+    const cifras = this.obtenerCantidadCifras(cantidadBoletos);
 
     this.rifaService.actualizarRifa(this.editingId, {
       nombre: this.editingData.nombre,
-      cantidadBoletos: parseInt(this.editingData.cantidadBoletos, 10),
+      cantidadBoletos: cantidadBoletos,
       valorBoleto: parseFloat(this.editingData.valorBoleto),
+      cifras: cifras,
       gruposHabilitado,
       cantidadAgrupacion
     }).subscribe({
@@ -273,8 +280,26 @@ export class AdministrarRifasComponent implements OnInit {
     return this.selectedRifaId === rifaId;
   }
 
-  obtenerCantidadCifras(cantidad: number): number {
-    return cantidad.toString().length;
+  obtenerCantidadCifras(cantidad: number, rifa?: Rifa): number {
+    if (rifa?.cifras && rifa.cifras > 0) {
+      return rifa.cifras;
+    }
+    const n = Number(cantidad);
+    if (!n || n <= 1) return 1;
+    return (n - 1).toString().length;
+  }
+
+  obtenerPrimerBoleto(rifa: Rifa | null): string {
+    if (!rifa) return '0';
+    const cifras = this.obtenerCantidadCifras(rifa.cantidadBoletos, rifa);
+    return '0'.padStart(cifras, '0');
+  }
+
+  obtenerUltimoBoleto(rifa: Rifa | null): string {
+    if (!rifa) return '0';
+    const cifras = this.obtenerCantidadCifras(rifa.cantidadBoletos, rifa);
+    const n = Number(rifa.cantidadBoletos || 0);
+    return n <= 1 ? '0'.padStart(cifras, '0') : (n - 1).toString().padStart(cifras, '0');
   }
 
   esRifaAgrupada(rifa: Rifa): boolean {
@@ -304,11 +329,17 @@ export class AdministrarRifasComponent implements OnInit {
 
   private obtenerMensajeGeneracion(rifa: Rifa | null): string {
     const nombre = rifa?.nombre ?? 'esta rifa';
+    const cantidad = rifa?.cantidadBoletos ?? 0;
+    const cifras = this.obtenerCantidadCifras(cantidad, rifa ?? undefined);
+    const primer = this.obtenerPrimerBoleto(rifa);
+    const ultimo = this.obtenerUltimoBoleto(rifa);
+    const infoRango = `${cantidad.toLocaleString('es-CO')} boletos de ${cifras} cifras (del ${primer} al ${ultimo})`;
+
     if (rifa?.gruposHabilitado) {
-      return `Vas a generar todos los boletos de ${nombre}. Esta rifa fue creada con agrupaciones: ${this.obtenerDetalleAgrupacion(rifa)}. Luego podrás ir a agruparlas.`;
+      return `Vas a generar todos los boletos de ${nombre}: ${infoRango}. Esta rifa fue configurada con agrupaciones (${this.obtenerDetalleAgrupacion(rifa)}).`;
     }
 
-    return `Vas a generar todos los boletos de ${nombre}. Esta acción puede tardar.`;
+    return `Vas a generar todos los boletos de ${nombre}: ${infoRango}.`;
   }
 
   accionModalPrincipal(): void {
