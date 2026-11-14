@@ -22,19 +22,25 @@ public class RifaService {
     private final BoletoRepository boletoRepository;
     private final GrupoBoletoRepository grupoBoletoRepository;
     private final com.rifas.BackRifas.repository.RetiroRepository retiroRepository;
+    private final BoletoService boletoService;
 
-    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, com.rifas.BackRifas.repository.RetiroRepository retiroRepository) {
+    public RifaService(RifaRepository rifaRepository, BoletoRepository boletoRepository, GrupoBoletoRepository grupoBoletoRepository, com.rifas.BackRifas.repository.RetiroRepository retiroRepository, BoletoService boletoService) {
         this.rifaRepository = rifaRepository;
         this.boletoRepository = boletoRepository;
         this.grupoBoletoRepository = grupoBoletoRepository;
         this.retiroRepository = retiroRepository;
+        this.boletoService = boletoService;
     }
 
     /**
-     * Crear una nueva rifa
+     * Crear una nueva rifa y opcionalmente generar sus boletos automáticamente
      */
+    @Transactional
     public RifaDTO crearRifa(CreateRifaRequest request, Long usuarioId) {
         Rifa rifa = new Rifa(request.getNombre(), request.getCantidadBoletos(), request.getValorBoleto(), usuarioId);
+        if (request.getCifras() != null && request.getCifras() >= Rifa.calcularCifras(request.getCantidadBoletos())) {
+            rifa.setCifras(request.getCifras());
+        }
         rifa.setGruposHabilitado(request.getGruposHabilitado() != null ? request.getGruposHabilitado() : false);
         if (Boolean.TRUE.equals(rifa.getGruposHabilitado())) {
             configurarAgrupacion(rifa, request.getCantidadAgrupacion());
@@ -43,6 +49,12 @@ public class RifaService {
             rifa.setValorGrupo(java.math.BigDecimal.ZERO);
         }
         Rifa rifaGuardada = rifaRepository.save(rifa);
+
+        // Generar boletos automáticamente si está habilitado (por defecto true)
+        if (request.getGenerarBoletos() == null || Boolean.TRUE.equals(request.getGenerarBoletos())) {
+            boletoService.generarBoletosInterno(rifaGuardada);
+        }
+
         return convertirADTO(rifaGuardada);
     }
 
@@ -82,6 +94,9 @@ public class RifaService {
         rifa.setNombre(request.getNombre());
         rifa.setCantidadBoletos(request.getCantidadBoletos());
         rifa.setValorBoleto(request.getValorBoleto());
+        if (request.getCifras() != null && request.getCifras() >= Rifa.calcularCifras(request.getCantidadBoletos())) {
+            rifa.setCifras(request.getCifras());
+        }
         if (request.getGruposHabilitado() != null) {
             rifa.setGruposHabilitado(request.getGruposHabilitado());
         }
@@ -127,8 +142,10 @@ public class RifaService {
      * Convertir entidad Rifa a DTO
      */
     private RifaDTO convertirADTO(Rifa rifa) {
+        boolean boletosGenerados = boletoRepository.countByRifaId(rifa.getId()) > 0;
         return new RifaDTO(rifa.getId(), rifa.getUniqueId(), rifa.getNombre(), rifa.getCantidadBoletos(), rifa.getValorBoleto(), 
                           rifa.getUsuarioId(), rifa.getGruposHabilitado(), rifa.getCantidadAgrupacion(), rifa.getValorGrupo(),
+                          rifa.getCifras(), boletosGenerados,
                           rifa.getCreatedAt(), rifa.getUpdatedAt());
     }
 

@@ -302,15 +302,15 @@ public class GrupoBoletoService {
 
         for (Boleto boleto : boletosDelGrupo) {
             boleto.setGrupoId(null);
-            if (boleto.getEstadoVenta() == EstadoVenta.AGRUPADA) {
-                boleto.setEstadoVenta(EstadoVenta.DISPONIBLE);
-            }
+            boleto.setEstadoVenta(EstadoVenta.DISPONIBLE);
             boleto.setVendedorId(null);
             boleto.setVendedorNombre(null);
             boleto.setCompradorNombre(null);
             boleto.setCompradorTelefono(null);
             boleto.setFechaVenta(null);
             boleto.setMontoAbonado(BigDecimal.ZERO);
+            boleto.setDescontarParteVendedor(false);
+            boleto.setMontoNetoRecogido(BigDecimal.ZERO);
         }
 
         boletoRepository.saveAll(boletosDelGrupo);

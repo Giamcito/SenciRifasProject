@@ -52,13 +52,13 @@
 
         <!-- Cifras (Calculado) -->
         <div class="form-group info-field">
-          <label>Cifras de cada Boleto</label>
-          <div class="info-value" *ngIf="form.get('cantidadBoletos')?.value">
-            {{ form.get('cantidadBoletos')?.value.toString().length }} cifras
-            <span class="example-hint">(Ej: {{ '0'.repeat(form.get('cantidadBoletos')?.value.toString().length - 1) }}0 a {{ '9'.repeat(form.get('cantidadBoletos')?.value.toString().length) }})</span>
+          <label>Cifras de cada Boleto (Calculado)</label>
+          <div class="info-value" *ngIf="form.get('cantidadBoletos')?.value && !form.get('cantidadBoletos')?.errors">
+            <strong>{{ getCifras() }} cifras</strong>
+            <span class="example-hint">(Numeración desde <strong>{{ getPrimerBoleto() }}</strong> hasta <strong>{{ getUltimoBoleto() }}</strong>)</span>
           </div>
-          <div class="info-value" *ngIf="!form.get('cantidadBoletos')?.value">
-            Ingresa cantidad de boletos
+          <div class="info-value" *ngIf="!form.get('cantidadBoletos')?.value || form.get('cantidadBoletos')?.errors">
+            Ingresa la cantidad de boletos para calcular las cifras
           </div>
         </div>
 
@@ -76,6 +76,22 @@
           />
           <small class="error-text" *ngIf="form.get('valorBoleto')?.invalid && form.get('valorBoleto')?.touched">
             {{ getErrorMessage('valorBoleto') }}
+          </small>
+        </div>
+
+        <!-- Generar boletos automáticamente -->
+        <div class="form-group checkbox-group" style="grid-column: 1 / -1;">
+          <label for="generarBoletos">
+            <input
+              type="checkbox"
+              id="generarBoletos"
+              formControlName="generarBoletos"
+              class="checkbox-input"
+            />
+            <span>Generar boletos automáticamente al crear la rifa (Recomendado)</span>
+          </label>
+          <small class="hint-text" *ngIf="form.get('generarBoletos')?.value && form.get('cantidadBoletos')?.value && !form.get('cantidadBoletos')?.errors">
+            Al guardar, se crearán inmediatamente los {{ form.get('cantidadBoletos')?.value | number }} boletos del <strong>{{ getPrimerBoleto() }}</strong> al <strong>{{ getUltimoBoleto() }}</strong>.
           </small>
         </div>
       </fieldset>

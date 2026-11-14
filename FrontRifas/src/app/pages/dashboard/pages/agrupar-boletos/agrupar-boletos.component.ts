@@ -33,6 +33,8 @@ export class AgruparBoletosComponent implements OnInit {
   ultimaPaginaBoletos = false;
   prefillIntentado = false;
   prefillAplicado = false;
+  mostrarModalEliminarGrupo = false;
+  grupoIdPendienteEliminar: number | null = null;
   
   searchTerm: string = '';
   agrupacionForm: FormGroup;
@@ -323,11 +325,24 @@ export class AgruparBoletosComponent implements OnInit {
   }
 
   eliminarGrupo(grupoId: number): void {
-    if (!confirm('¿Estás seguro de que deseas eliminar este grupo?')) {
+    this.grupoIdPendienteEliminar = grupoId;
+    this.mostrarModalEliminarGrupo = true;
+  }
+
+  cerrarModalEliminarGrupo(): void {
+    this.mostrarModalEliminarGrupo = false;
+    this.grupoIdPendienteEliminar = null;
+  }
+
+  confirmarEliminarGrupo(): void {
+    if (this.grupoIdPendienteEliminar == null) {
+      this.cerrarModalEliminarGrupo();
       return;
     }
 
     this.loading = true;
+    const grupoId = this.grupoIdPendienteEliminar;
+    this.cerrarModalEliminarGrupo();
 
     this.grupoService.eliminarGrupo(this.rifaId, grupoId, this.token).subscribe({
       next: () => {
@@ -347,6 +362,12 @@ export class AgruparBoletosComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  onModalBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarModalEliminarGrupo();
+    }
   }
 
   buscarBoletos(): void {

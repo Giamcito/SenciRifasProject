@@ -24,6 +24,7 @@ export class CrearRifasComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       cantidadBoletos: ['', [Validators.required, this.validarNumeroPositivo]],
       valorBoleto: ['', [Validators.required, Validators.min(0.01)]],
+      generarBoletos: [true],
       gruposHabilitado: [false],
       cantidadAgrupacion: [{ value: '', disabled: true }, [Validators.required, this.validarNumeroPositivo]]
     });
@@ -70,6 +71,39 @@ export class CrearRifasComponent implements OnInit {
     return null;
   }
 
+  /**
+   * Calcula la cantidad exacta de cifras necesarias según la cantidad de boletas.
+   * Al numerarse de 0 a (N - 1), el número máximo es (N - 1).
+   * Ejemplos:
+   * 1000 boletas -> de 000 a 999 -> 3 cifras
+   * 10000 boletas -> de 0000 a 9999 -> 4 cifras
+   * 100000 boletas -> de 00000 a 99999 -> 5 cifras
+   * 500 boletas -> de 000 a 499 -> 3 cifras
+   * 50 boletas -> de 00 a 49 -> 2 cifras
+   * 5000 boletas -> de 0000 a 4999 -> 4 cifras
+   */
+  getCifras(): number {
+    const raw = this.form.get('cantidadBoletos')?.value;
+    const cantidad = Number(raw);
+    if (!raw || isNaN(cantidad) || cantidad <= 1) {
+      return 1;
+    }
+    return (cantidad - 1).toString().length;
+  }
+
+  getPrimerBoleto(): string {
+    return '0'.padStart(this.getCifras(), '0');
+  }
+
+  getUltimoBoleto(): string {
+    const raw = this.form.get('cantidadBoletos')?.value;
+    const cantidad = Number(raw);
+    if (!raw || isNaN(cantidad) || cantidad <= 1) {
+      return '0'.padStart(this.getCifras(), '0');
+    }
+    return (cantidad - 1).toString().padStart(this.getCifras(), '0');
+  }
+
   crearRifa(): void {
     if (this.form.invalid) {
       return;
@@ -79,10 +113,16 @@ export class CrearRifasComponent implements OnInit {
     this.error = '';
     this.successMessage = '';
 
+    const cantidad = parseInt(this.form.value.cantidadBoletos, 10);
+    const cifras = this.getCifras();
+    const generarBoletos = this.form.value.generarBoletos !== false;
+
     const rifaData: any = {
       nombre: this.form.value.nombre,
-      cantidadBoletos: parseInt(this.form.value.cantidadBoletos, 10),
+      cantidadBoletos: cantidad,
       valorBoleto: parseFloat(this.form.value.valorBoleto),
+      cifras: cifras,
+      generarBoletos: generarBoletos,
       gruposHabilitado: this.form.value.gruposHabilitado || false,
       cantidadAgrupacion: this.form.value.gruposHabilitado
         ? parseInt(this.form.getRawValue().cantidadAgrupacion, 10)
@@ -92,14 +132,18 @@ export class CrearRifasComponent implements OnInit {
     this.rifaService.crearRifa(rifaData).subscribe({
       next: (response) => {
         this.loading = false;
-        this.successMessage = 'Rifa creada exitosamente';
-        this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '' });
+        const rango = `${this.getPrimerBoleto()} al ${this.getUltimoBoleto()}`;
+        this.successMessage = generarBoletos
+          ? `Rifa "${response.nombre}" creada exitosamente con ${cantidad.toLocaleString('es-CO')} boletos de ${cifras} cifras (${rango}) generados.`
+          : `Rifa "${response.nombre}" creada exitosamente (${cifras} cifras).`;
+
+        this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '', generarBoletos: true });
         this.form.get('cantidadAgrupacion')?.disable({ emitEvent: false });
         
-        // Auto-dismiss mensaje después de 3 segundos
+        // Auto-dismiss mensaje después de 5 segundos
         setTimeout(() => {
           this.successMessage = '';
-        }, 3000);
+        }, 5000);
       },
       error: (err) => {
         this.loading = false;
@@ -109,7 +153,7 @@ export class CrearRifasComponent implements OnInit {
   }
 
   limpiar(): void {
-    this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '' });
+    this.form.reset({ gruposHabilitado: false, cantidadAgrupacion: '', generarBoletos: true });
     this.form.get('cantidadAgrupacion')?.disable({ emitEvent: false });
     this.error = '';
     this.successMessage = '';

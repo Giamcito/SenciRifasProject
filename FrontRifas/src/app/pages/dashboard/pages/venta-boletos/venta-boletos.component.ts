@@ -70,6 +70,11 @@ export class VentaBoletosComponent implements OnInit {
     this.rifaService.obtenerRifa(this.rifaId).subscribe(r => {
       this.rifa = r;
       this.valorBoleto = (r && r.valorBoleto) || 0;
+      if (r && r.cantidadBoletos) {
+        this.cifras = r.cifras || (r.cantidadBoletos <= 1 ? 1 : String(r.cantidadBoletos - 1).length);
+      } else {
+        this.cifras = 0;
+      }
     });
   }
 
@@ -99,7 +104,7 @@ export class VentaBoletosComponent implements OnInit {
     this.notFound = false;
     const sel = this.rifas.find(r => r.id === this.rifaId);
     if (sel && sel.cantidadBoletos) {
-      this.cifras = sel.cantidadBoletos <= 1 ? 1 : String(sel.cantidadBoletos - 1).length;
+      this.cifras = sel.cifras || (sel.cantidadBoletos <= 1 ? 1 : String(sel.cantidadBoletos - 1).length);
     } else {
       this.cifras = 0;
     }

@@ -1,26 +1,6 @@
 .content-section {
-  padding: 2rem 1rem;
+  padding: 0rem 1rem;
   animation: fadeIn 0.3s ease;
-}
-
-.header-volver {
-  margin-bottom: 1.5rem;
-}
-
-.btn-volver {
-  background-color: #95a5a6;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.btn-volver:hover {
-  background-color: #7f8c8d;
-  transform: translateX(-3px);
 }
 
 /* Título y descripción */
@@ -277,6 +257,111 @@
   gap: 1rem;
 }
 
+.grupo-result-card {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 1.2rem;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.grupo-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.grupo-result-kicker {
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.grupo-result-card h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.grupo-result-subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+}
+
+.grupo-result-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.grupo-result-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.grupo-result-stats div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+}
+
+.grupo-result-stats span {
+  display: block;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.grupo-result-stats strong {
+  font-size: 0.98rem;
+  color: #0f172a;
+}
+
+.grupo-result-boletos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.grupo-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+.grupo-checkbox-descuento {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.grupo-boleto-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: #e8f7ee;
+  color: #1e7a43;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
 .boleto-card {
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -307,10 +392,6 @@
   border-color: #f39c12;
   background: #fff9e6;
 }
-.boleto-card.abonado {
-  border-color: #f39c12;
-  background: #fff9e6;
-}
 
 .boleto-card.cancelado {
   border-color: #95a5a6;
@@ -324,9 +405,6 @@
   color: #333;
   margin-bottom: 0.5rem;
   letter-spacing: 2px;
-.progress-fill.cancelado {
-  background-color: #95a5a6;
-}
 }
 
 .boleto-estado {

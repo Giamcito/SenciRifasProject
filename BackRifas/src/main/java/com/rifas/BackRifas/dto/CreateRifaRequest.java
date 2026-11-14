@@ -17,6 +17,8 @@ public class CreateRifaRequest {
 
     private Boolean gruposHabilitado = false;
     private Integer cantidadAgrupacion;
+    private Integer cifras;
+    private Boolean generarBoletos = true;
 
     public CreateRifaRequest() {}
 
@@ -27,6 +29,17 @@ public class CreateRifaRequest {
         this.valorBoleto = valorBoleto;
         this.gruposHabilitado = gruposHabilitado;
         this.cantidadAgrupacion = cantidadAgrupacion;
+    }
+
+    public CreateRifaRequest(String nombre, Integer cantidadBoletos, BigDecimal valorBoleto, 
+                           Boolean gruposHabilitado, Integer cantidadAgrupacion, Integer cifras, Boolean generarBoletos) {
+        this.nombre = nombre;
+        this.cantidadBoletos = cantidadBoletos;
+        this.valorBoleto = valorBoleto;
+        this.gruposHabilitado = gruposHabilitado;
+        this.cantidadAgrupacion = cantidadAgrupacion;
+        this.cifras = cifras;
+        this.generarBoletos = generarBoletos;
     }
 
     public String getNombre() {
@@ -67,5 +80,21 @@ public class CreateRifaRequest {
 
     public void setCantidadAgrupacion(Integer cantidadAgrupacion) {
         this.cantidadAgrupacion = cantidadAgrupacion;
+    }
+
+    public Integer getCifras() {
+        return cifras;
+    }
+
+    public void setCifras(Integer cifras) {
+        this.cifras = cifras;
+    }
+
+    public Boolean getGenerarBoletos() {
+        return generarBoletos;
+    }
+
+    public void setGenerarBoletos(Boolean generarBoletos) {
+        this.generarBoletos = generarBoletos;
     }
 }
