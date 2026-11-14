@@ -4,11 +4,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-crear-vendedor',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './crear-vendedor.component.html',
-  styleUrl: './crear-vendedor.component.css'
+    selector: 'app-crear-vendedor',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './crear-vendedor.component.html',
+    styleUrl: './crear-vendedor.component.css'
 })
 export class CrearVendedorComponent implements OnInit {
   form!: FormGroup;

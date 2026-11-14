@@ -11,11 +11,10 @@ import { RifaService } from '../../../../services/rifa.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-venta-boletos',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './venta-boletos.component.html',
-  styleUrls: ['./venta-boletos.component.css']
+    selector: 'app-venta-boletos',
+    imports: [CommonModule, FormsModule, RouterLink],
+    templateUrl: './venta-boletos.component.html',
+    styleUrls: ['./venta-boletos.component.css']
 })
 export class VentaBoletosComponent implements OnInit {
   rifaId!: number;

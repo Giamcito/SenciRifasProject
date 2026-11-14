@@ -12,11 +12,10 @@ import { SidebarService } from '../../../../services/sidebar.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-visualizar-rifas',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './visualizar-rifas.component.html',
-  styleUrls: ['./visualizar-rifas.component.css']
+    selector: 'app-visualizar-rifas',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './visualizar-rifas.component.html',
+    styleUrls: ['./visualizar-rifas.component.css']
 })
 export class VisualizarRifasComponent implements OnInit {
   rifaKey: string = '';

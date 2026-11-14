@@ -9,11 +9,10 @@ import { RifaService } from '../../../../services/rifa.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-agrupar-boletos',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './agrupar-boletos.component.html',
-  styleUrl: './agrupar-boletos.component.css'
+    selector: 'app-agrupar-boletos',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    templateUrl: './agrupar-boletos.component.html',
+    styleUrl: './agrupar-boletos.component.css'
 })
 export class AgruparBoletosComponent implements OnInit {
   rifasDisponibles: Rifa[] = [];

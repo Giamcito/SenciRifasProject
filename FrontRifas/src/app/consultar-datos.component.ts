@@ -19,11 +19,10 @@ interface ResumenVendedorConsulta {
 }
 
 @Component({
-  selector: 'app-consultar-datos',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
-  styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
+    selector: 'app-consultar-datos',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
+    styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
 })
 export class ConsultarDatosComponent implements OnInit, OnDestroy {
   readonly boletosPorPagina = 100;

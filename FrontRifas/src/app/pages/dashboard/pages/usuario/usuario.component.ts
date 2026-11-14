@@ -5,11 +5,10 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../services/auth.service';
 
 @Component({
-  selector: 'app-usuario',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './usuario.component.html',
-  styleUrl: './usuario.component.css'
+    selector: 'app-usuario',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './usuario.component.html',
+    styleUrl: './usuario.component.css'
 })
 export class UsuarioComponent implements OnInit {
   user: any;
