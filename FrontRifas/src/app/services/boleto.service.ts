@@ -142,6 +142,27 @@ export class BoletoService {
   }
 
   /**
+   * Quitar asignación/propietario de un boleto (lo deja libre para la venta)
+   */
+  quitarPropietario(rifaId: number, boletoId: number): Observable<Boleto> {
+    return this.http.delete<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/propietario`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Vaciar completamente un boleto (vuelve a estar disponible completamente en blanco sin datos)
+   */
+  vaciarBoleto(rifaId: number, boletoId: number): Observable<Boleto> {
+    return this.http.put<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/vaciar`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
    * Obtener datos de un vendedor dentro de una rifa
    */
   obtenerConsultaVendedor(rifaId: number, vendedorId: number, estado?: EstadoVenta | 'TODOS'): Observable<ConsultaVendedor> {

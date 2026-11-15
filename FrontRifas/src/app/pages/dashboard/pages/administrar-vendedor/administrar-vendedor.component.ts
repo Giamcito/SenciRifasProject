@@ -5,11 +5,10 @@ import { SidebarService } from '../../../../services/sidebar.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-administrar-vendedor',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './administrar-vendedor.component.html',
-  styleUrl: './administrar-vendedor.component.css'
+    selector: 'app-administrar-vendedor',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './administrar-vendedor.component.html',
+    styleUrl: './administrar-vendedor.component.css'
 })
 export class AdministrarVendedorComponent implements OnInit {
   vendedores: Vendedor[] = [];

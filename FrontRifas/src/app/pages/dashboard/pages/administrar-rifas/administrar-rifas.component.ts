@@ -8,11 +8,10 @@ import { RifaService } from '../../../../services/rifa.service';
 import { SidebarService } from '../../../../services/sidebar.service';
 
 @Component({
-  selector: 'app-administrar-rifas',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './administrar-rifas.component.html',
-  styleUrl: './administrar-rifas.component.css'
+    selector: 'app-administrar-rifas',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './administrar-rifas.component.html',
+    styleUrl: './administrar-rifas.component.css'
 })
 export class AdministrarRifasComponent implements OnInit {
   rifas: Rifa[] = [];

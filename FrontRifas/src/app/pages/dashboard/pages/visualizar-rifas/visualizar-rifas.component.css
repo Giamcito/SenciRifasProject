@@ -370,6 +370,59 @@
   transition: all 0.3s ease;
   background: white;
   cursor: pointer;
+  position: relative;
+}
+
+.btn-quitar-asignacion {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  z-index: 5;
+}
+
+.btn-quitar-asignacion:hover {
+  background: #dc2626;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.grupo-result-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-quitar-asignacion-grupo {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-quitar-asignacion-grupo:hover {
+  background: #dc2626;
+  color: white;
 }
 
 .boleto-card:hover {
@@ -380,6 +433,11 @@
 .boleto-card.disponible {
   border-color: #27ae60;
   background: #f0f8f5;
+}
+
+.boleto-card.asignado {
+  border-color: #8b5cf6;
+  background: #f3f0ff;
 }
 
 .boleto-card.vendido {
@@ -491,6 +549,125 @@
 
 .btn-cancelar:hover {
   background-color: #7f8c8d;
+}
+
+.btn-comprador {
+  background-color: #0284c7;
+  color: white;
+}
+
+.btn-comprador:hover {
+  background-color: #0369a1;
+}
+
+.btn-vaciar {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-vaciar:hover {
+  background-color: #dc2626;
+}
+
+.modal-confirm-panel {
+  max-width: 480px;
+}
+
+.confirm-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.confirm-header-content h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+.confirm-header-content p {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.confirm-badge {
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.5rem;
+  border-radius: 12px;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+
+.confirm-badge.danger {
+  background: #fee2e2;
+}
+
+.confirm-badge.warning {
+  background: #fef3c7;
+}
+
+.confirm-alert-box {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.confirm-alert-box.danger {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.confirm-alert-box.warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-warning-action {
+  background-color: #d97706;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-warning-action:hover {
+  background-color: #b45309;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
 }
 
 .paginacion {
@@ -639,7 +816,22 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
+}
+
+.modal-actions .btn-secondary {
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #0f172a;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .btn-secondary:hover {
+  background: #e2e8f0;
 }
 
 .btn-secondary,

@@ -93,9 +93,19 @@
               <div>
                 <h3>{{ grupo.nombre }}</h3>
               </div>
-              <span class="grupo-result-badge" [style.backgroundColor]="obtenerColorPorEstado(grupo.estadoVenta)">
-                {{ grupo.estadoVenta }}
-              </span>
+              <div class="grupo-result-header-actions">
+                <button
+                  *ngIf="grupo.vendedorId || grupo.vendedorNombre"
+                  type="button"
+                  class="btn-quitar-asignacion-grupo"
+                  (click)="quitarAsignacionGrupo(grupo, $event)"
+                  title="Quitar asignación (dejar libre para la venta)">
+                  ✕ Quitar asignación
+                </button>
+                <span class="grupo-result-badge" [style.backgroundColor]="obtenerColorPorEstado(grupo.estadoVenta)">
+                  {{ grupo.estadoVenta }}
+                </span>
+              </div>
             </div>
 
             <div class="grupo-result-stats">
@@ -143,6 +153,10 @@
                 🏷️ Propietario
               </button>
 
+              <button class="btn-accion btn-comprador" (click)="editarCompradorGrupo(grupo)" title="Cambiar datos del comprador">
+                👤 Comprador
+              </button>
+
               <button *ngIf="boletoPrincipal.estadoVenta === 'DISPONIBLE' || boletoPrincipal.estadoVenta === 'AGRUPADA'"
                       class="btn-accion btn-vender"
                       (click)="marcarVendidoGrupo(grupo)"
@@ -163,6 +177,13 @@
                       title="Seguir abonando">
                 💳 Seguir abonando
               </button>
+
+              <button *ngIf="boletoPrincipal.estadoVenta === 'VENDIDO' || boletoPrincipal.estadoVenta === 'ABONADO'"
+                      class="btn-accion btn-vaciar"
+                      (click)="vaciarGrupo(grupo)"
+                      title="Vaciar agrupación (dejar disponible completamente en blanco)">
+                🗑️ Vaciar
+              </button>
             </div>
           </div>
         </ng-container>
@@ -175,16 +196,26 @@
           <div class="boletos-grid" *ngIf="boletos.length > 0">
             <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId"
                 class="boleto-card"
-                [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
+                [class.disponible]="estadoVisual(boleto) === 'DISPONIBLE'"
+                [class.asignado]="estadoVisual(boleto) === 'ASIGNADO'"
                 [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
                 [class.abonado]="boleto.estadoVenta === 'ABONADO'"
                 [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
 
+              <button
+                *ngIf="boleto.vendedorId || boleto.vendedorNombre"
+                type="button"
+                class="btn-quitar-asignacion"
+                (click)="quitarAsignacion(boleto, $event)"
+                title="Quitar asignación (dejar libre para la venta)">
+                ✕
+              </button>
+
               <div class="boleto-numero">{{ boleto.numero }}</div>
 
               <div class="boleto-estado">
-                <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(boleto.estadoVenta)">
-                  {{ boleto.estadoVenta }}
+                <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(estadoVisual(boleto))">
+                  {{ estadoVisual(boleto) }}
                 </span>
               </div>
 
@@ -219,6 +250,10 @@
                   🏷️ Propietario
                 </button>
 
+                <button class="btn-accion btn-comprador" (click)="editarComprador(boleto)" title="Cambiar datos del comprador">
+                  👤 Comprador
+                </button>
+
                 <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'"
                         class="btn-accion btn-vender"
                         (click)="marcarVendido(boleto)"
@@ -238,6 +273,13 @@
                         (click)="seguirAbonando(boleto)"
                         title="Seguir abonando">
                   💳 Seguir abonando
+                </button>
+
+                <button *ngIf="boleto.estadoVenta === 'VENDIDO' || boleto.estadoVenta === 'ABONADO'"
+                        class="btn-accion btn-vaciar"
+                        (click)="vaciarBoleto(boleto)"
+                        title="Vaciar boleta (dejar disponible completamente en blanco)">
+                  🗑️ Vaciar
                 </button>
               </div>
             </div>
@@ -263,7 +305,7 @@
     <div class="modal-header">
       <div>
         <h3>
-          {{ modalModo === 'VENDER' ? 'Vender boleto' : (modalModo === 'ABONAR' ? 'Abonar boleto' : 'Asignar propietario') }}
+          {{ modalModo === 'VENDER' ? 'Vender boleto' : (modalModo === 'ABONAR' ? 'Abonar boleto' : (modalModo === 'COMPRADOR' ? 'Editar datos del comprador' : 'Asignar propietario')) }}
         </h3>
         <p>Boleto {{ boletoModal?.numero }}</p>
       </div>
@@ -275,11 +317,13 @@
     </div>
 
     <div class="modal-body">
-      <label for="modalVendedor">Vendedor:</label>
-      <select id="modalVendedor" [(ngModel)]="modalVendedorId">
-        <option [ngValue]="undefined">-- Seleccionar --</option>
-        <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
-      </select>
+      <ng-container *ngIf="modalModo !== 'COMPRADOR'">
+        <label for="modalVendedor">Vendedor:</label>
+        <select id="modalVendedor" [(ngModel)]="modalVendedorId">
+          <option [ngValue]="undefined">-- Seleccionar --</option>
+          <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
+        </select>
+      </ng-container>
 
       <ng-container *ngIf="modalModo !== 'PROPIETARIO'">
         <label for="modalCompradorNombre">Nombre del comprador:</label>
@@ -300,5 +344,47 @@
     <div class="modal-actions">
       <button type="button" class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
       <button type="button" class="btn-primary" (click)="confirmarModal()">Confirmar</button>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para Quitar Asignación y Vaciar -->
+  <div class="modal-backdrop" *ngIf="showConfirmModal" (click)="cerrarModalConfirmacion()"></div>
+
+  <div class="modal-panel modal-confirm-panel" *ngIf="showConfirmModal">
+    <div class="modal-header">
+      <div class="confirm-header-content">
+        <span class="confirm-badge" [class.danger]="confirmModalTipo === 'VACIAR'" [class.warning]="confirmModalTipo === 'QUITAR_ASIGNACION'">
+          {{ confirmModalTipo === 'VACIAR' ? '🗑️' : '⚠️' }}
+        </span>
+        <div>
+          <h3>{{ confirmModalTitulo }}</h3>
+          <p>{{ confirmModalMensaje }}</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close" (click)="cerrarModalConfirmacion()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="confirmModalSubmensaje">
+      <div class="confirm-alert-box" [class.danger]="confirmModalTipo === 'VACIAR'" [class.warning]="confirmModalTipo === 'QUITAR_ASIGNACION'">
+        {{ confirmModalSubmensaje }}
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="cerrarModalConfirmacion()">Cancelar</button>
+      <button
+        *ngIf="confirmModalTipo === 'VACIAR'"
+        type="button"
+        class="btn-danger"
+        (click)="ejecutarConfirmacion()">
+        Sí, vaciar
+      </button>
+      <button
+        *ngIf="confirmModalTipo === 'QUITAR_ASIGNACION'"
+        type="button"
+        class="btn-warning-action"
+        (click)="ejecutarConfirmacion()">
+        Sí, quitar asignación
+      </button>
     </div>
   </div>

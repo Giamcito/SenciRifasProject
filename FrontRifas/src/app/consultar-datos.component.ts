@@ -16,17 +16,35 @@ interface ResumenVendedorConsulta {
   dineroRecogido: number;
   dineroRetirado: number;
   dineroAbonos: number;
+  totalBoletas: number;
+  totalVendidas: number;
+  totalAbonadas: number;
+}
+
+export interface GrupoConsulta {
+  id: number;
+  nombre: string;
+  estadoVenta: EstadoVenta;
+  vendedorId?: number | null;
+  vendedorNombre?: string | null;
+  compradorNombre?: string | null;
+  compradorTelefono?: string | null;
+  montoAbonado: number;
+  saldoPendiente: number;
+  fechaVenta?: string | null;
+  boletos: Boleto[];
+  numeros: string[];
 }
 
 @Component({
   selector: 'app-consultar-datos',
-  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
   styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
 })
 export class ConsultarDatosComponent implements OnInit, OnDestroy {
-  readonly boletosPorPagina = 100;
+  readonly boletosPorPagina = 20;
+  readonly gruposPorPagina = 10;
   rifaId: number | null = null;
   rifa: Rifa | null = null;
   rifas: Rifa[] = [];
@@ -36,12 +54,16 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
   selectedEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero = '';
   paginaBoletos = 0;
+  paginaGrupos = 0;
   consulta: ConsultaVendedor | null = null;
   resumenVendedores: ResumenVendedorConsulta[] = [];
   resumenGeneral = {
     dineroRecogido: 0,
     dineroRecogidoVendedores: 0,
-    dineroAbonos: 0
+    dineroAbonos: 0,
+    totalBoletasAsignadas: 0,
+    totalBoletasAbonadas: 0,
+    totalBoletasVendidas: 0
   };
   loading = false;
   loadingRifas = false;
@@ -54,7 +76,12 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     }
   };
 
-  readonly estadoOpciones: Array<EstadoVenta | 'TODOS'> = ['TODOS', 'DISPONIBLE', 'ABONADO', 'VENDIDO', 'RESERVADO', 'CANCELADO'];
+  readonly estadoOpciones: Array<{ valor: EstadoVenta | 'TODOS'; label: string }> = [
+    { valor: 'TODOS', label: 'TODOS' },
+    { valor: 'ASIGNADO', label: 'ASIGNADOS' },
+    { valor: 'ABONADO', label: 'ABONADO' },
+    { valor: 'VENDIDO', label: 'VENDIDO' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -62,7 +89,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     private rifaService: RifaService,
     private vendedorService: VendedorService,
     private boletoService: BoletoService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     window.addEventListener('focus', this.refreshOnFocus);
@@ -206,8 +233,13 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     this.loadingConsulta = true;
     this.error = '';
     this.paginaBoletos = 0;
+    this.paginaGrupos = 0;
 
-    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, this.selectedEstado).subscribe({
+    const estadoParam = (this.selectedEstado as string) === 'ASIGNADO' || (this.selectedEstado as string) === 'Asignados'
+      ? 'DISPONIBLE'
+      : this.selectedEstado;
+
+    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, estadoParam).subscribe({
       next: (consulta) => {
         this.consulta = {
           ...consulta,
@@ -226,7 +258,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
   cargarResumenVendedores(): void {
     if (!this.rifaId || this.vendedores.length === 0) {
       this.resumenVendedores = [];
-      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
       return;
     }
 
@@ -234,7 +266,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
 
     if (vendedoresConId.length === 0) {
       this.resumenVendedores = [];
-      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
       return;
     }
 
@@ -256,12 +288,15 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
             }
 
             return {
-                  vendedorId: vendedor.id,
-                  vendedorNombre: vendedor.nombre,
+              vendedorId: vendedor.id,
+              vendedorNombre: vendedor.nombre,
               dineroRecogido: Number(consulta.dineroRecogido || 0),
               dineroRetirado: this.calcularDineroRetirado(consulta),
-                  dineroAbonos: this.calcularDineroAbonos(consulta)
-                } as ResumenVendedorConsulta;
+              dineroAbonos: this.calcularDineroAbonos(consulta),
+              totalBoletas: Number(consulta.totalBoletas || 0),
+              totalVendidas: Number(consulta.totalVendidas || 0),
+              totalAbonadas: Number(consulta.totalAbonadas || 0)
+            } as ResumenVendedorConsulta;
           })
           .filter((resumen): resumen is ResumenVendedorConsulta => resumen !== null);
 
@@ -271,7 +306,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.resumenVendedores = [];
-        this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+        this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
         this.loadingResumenVendedores = false;
       }
     });
@@ -354,6 +389,18 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       dineroAbonos: vendedoresSeleccionados.reduce((total, vendedor) => {
         const resumen = resumenesPorVendedor.get(vendedor.id as number);
         return total + Number(resumen?.dineroAbonos || 0);
+      }, 0),
+      totalBoletasAsignadas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalBoletas || 0);
+      }, 0),
+      totalBoletasAbonadas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalAbonadas || 0);
+      }, 0),
+      totalBoletasVendidas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalVendidas || 0);
       }, 0)
     };
   }
@@ -362,15 +409,146 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     this.recalcularResumenGeneral();
   }
 
-  obtenerBoletosFiltrados(): Boleto[] {
+  obtenerGrupos(): GrupoConsulta[] {
     const boletos = this.consulta?.boletos ?? [];
+    const gruposMap = new Map<number, GrupoConsulta>();
+
+    for (const boleto of boletos) {
+      if (!boleto.grupoId) {
+        continue;
+      }
+
+      if (!gruposMap.has(boleto.grupoId)) {
+        const estadoVentaGrupo = ((boleto as any).grupoEstadoVenta || boleto.estadoVenta) as EstadoVenta;
+        gruposMap.set(boleto.grupoId, {
+          id: boleto.grupoId,
+          nombre: boleto.grupoNombre ? boleto.grupoNombre : `Agrupación #${boleto.grupoId}`,
+          estadoVenta: estadoVentaGrupo,
+          vendedorId: boleto.vendedorId,
+          vendedorNombre: boleto.grupoVendedorNombre || boleto.vendedorNombre,
+          compradorNombre: boleto.compradorNombre,
+          compradorTelefono: boleto.compradorTelefono,
+          montoAbonado: Number((boleto as any).grupoMontoAbonado ?? boleto.montoAbonado ?? 0),
+          saldoPendiente: Number(boleto.grupoSaldoPendiente ?? 0),
+          fechaVenta: boleto.fechaVenta,
+          boletos: [],
+          numeros: []
+        });
+      }
+
+      const grupo = gruposMap.get(boleto.grupoId)!;
+      grupo.boletos.push(boleto);
+      grupo.numeros.push(boleto.numero);
+
+      if (!grupo.compradorNombre && boleto.compradorNombre) {
+        grupo.compradorNombre = boleto.compradorNombre;
+      }
+      if (!grupo.compradorTelefono && boleto.compradorTelefono) {
+        grupo.compradorTelefono = boleto.compradorTelefono;
+      }
+      if (!grupo.fechaVenta && boleto.fechaVenta) {
+        grupo.fechaVenta = boleto.fechaVenta;
+      }
+    }
+
+    const resultado = Array.from(gruposMap.values());
+    resultado.forEach((g) => {
+      g.numeros.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    });
+    return resultado;
+  }
+
+  tieneGrupos(): boolean {
+    return (this.consulta?.boletos || []).some((b) => !!b.grupoId);
+  }
+
+  estadoVisualGrupo(grupo: GrupoConsulta): EstadoVenta {
+    const estado = grupo.estadoVenta;
+    if ((estado === 'DISPONIBLE' || (estado as any) === 'AGRUPADA') && (grupo.vendedorId || grupo.vendedorNombre)) {
+      return 'ASIGNADO';
+    }
+    if ((estado as any) === 'AGRUPADA') {
+      return 'ASIGNADO';
+    }
+    return estado;
+  }
+
+  obtenerGruposFiltrados(): GrupoConsulta[] {
+    const grupos = this.obtenerGrupos();
+    const busqueda = this.busquedaNumero.trim().toLowerCase();
+
+    if (!busqueda) {
+      return grupos;
+    }
+
+    return grupos.filter((grupo) =>
+      grupo.nombre.toLowerCase().includes(busqueda) ||
+      grupo.numeros.some((num) => num.toLowerCase().includes(busqueda)) ||
+      (grupo.compradorNombre && grupo.compradorNombre.toLowerCase().includes(busqueda)) ||
+      (grupo.compradorTelefono && grupo.compradorTelefono.toLowerCase().includes(busqueda))
+    );
+  }
+
+  obtenerGruposVisibles(): GrupoConsulta[] {
+    const filtrados = this.obtenerGruposFiltrados();
+    const inicio = this.paginaGrupos * this.gruposPorPagina;
+    const fin = inicio + this.gruposPorPagina;
+    return filtrados.slice(inicio, fin);
+  }
+
+  obtenerTotalPaginasGrupos(): number {
+    const totalFiltrados = this.obtenerGruposFiltrados().length;
+    return Math.max(Math.ceil(totalFiltrados / this.gruposPorPagina), 1);
+  }
+
+  irAPaginaGrupos(pagina: number): void {
+    const totalPaginas = this.obtenerTotalPaginasGrupos();
+    if (pagina < 0 || pagina >= totalPaginas) {
+      return;
+    }
+    this.paginaGrupos = pagina;
+  }
+
+  paginaAnteriorGrupos(): void {
+    this.irAPaginaGrupos(this.paginaGrupos - 1);
+  }
+
+  paginaSiguienteGrupos(): void {
+    this.irAPaginaGrupos(this.paginaGrupos + 1);
+  }
+
+  rangoVisibleGrupos(): string {
+    const totalFiltrados = this.obtenerGruposFiltrados().length;
+    if (totalFiltrados === 0) {
+      return '0 de 0';
+    }
+    const inicio = this.paginaGrupos * this.gruposPorPagina + 1;
+    const fin = Math.min(inicio + this.gruposPorPagina - 1, totalFiltrados);
+    return `${inicio}-${fin} de ${totalFiltrados}`;
+  }
+
+  trackByGrupoId(index: number, grupo: GrupoConsulta): number {
+    return grupo.id;
+  }
+
+  obtenerBoletosIndividuales(): Boleto[] {
+    const boletos = this.consulta?.boletos ?? [];
+    return boletos.filter((b) => !b.grupoId);
+  }
+
+  obtenerBoletosFiltrados(): Boleto[] {
+    const boletos = this.obtenerBoletosIndividuales();
     const busqueda = this.busquedaNumero.trim().toLowerCase();
 
     if (!busqueda) {
       return boletos;
     }
 
-    return boletos.filter((boleto) => boleto.numero.toLowerCase().includes(busqueda));
+    return boletos.filter((boleto) =>
+      boleto.numero.toLowerCase().includes(busqueda) ||
+      (boleto.compradorNombre && boleto.compradorNombre.toLowerCase().includes(busqueda)) ||
+      (boleto.compradorTelefono && boleto.compradorTelefono.toLowerCase().includes(busqueda))
+    );
   }
 
   obtenerBoletosVisibles(): Boleto[] {
@@ -405,6 +583,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
 
   reiniciarPaginacionBoletos(): void {
     this.paginaBoletos = 0;
+    this.paginaGrupos = 0;
   }
 
   rangoVisibleBoletos(): string {
@@ -465,6 +644,8 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       case 'ABONADO':
       case 'RESERVADO':
         return '#f39c12';
+      case 'ASIGNADO':
+        return '#8b5cf6';
       case 'DISPONIBLE':
         return '#27ae60';
       case 'CANCELADO':
@@ -474,11 +655,94 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     }
   }
 
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
+  }
+
   volverAdministracion(): void {
     this.router.navigate(['/dashboard/administrar-rifas']);
   }
 
   tieneRifaSeleccionada(): boolean {
     return !!this.rifaId && !!this.rifa;
+  }
+
+  showConfirmModal = false;
+  confirmModalTitulo = '';
+  confirmModalMensaje = '';
+  confirmModalSubmensaje = '';
+  confirmBoletoParaVaciar?: Boleto;
+  confirmGrupoParaVaciar?: GrupoConsulta;
+
+  cerrarModalConfirmacion(): void {
+    this.showConfirmModal = false;
+    this.confirmBoletoParaVaciar = undefined;
+    this.confirmGrupoParaVaciar = undefined;
+  }
+
+  vaciarBoleto(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmBoletoParaVaciar = boleto;
+    this.confirmGrupoParaVaciar = undefined;
+    this.confirmModalTitulo = `¿Vaciar boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El boleto pasará a estar DISPONIBLE completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  vaciarGrupo(grupo: GrupoConsulta, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmBoletoParaVaciar = undefined;
+    this.confirmGrupoParaVaciar = grupo;
+    this.confirmModalTitulo = `¿Vaciar agrupación "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'Todos los boletos de esta agrupación pasarán a estar DISPONIBLES completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  ejecutarConfirmacionVaciar(): void {
+    const rifaId = this.rifaId || this.selectedRifaId;
+    if (!rifaId) {
+      this.cerrarModalConfirmacion();
+      return;
+    }
+
+    if (this.confirmBoletoParaVaciar) {
+      const boletoId = this.confirmBoletoParaVaciar.id;
+      this.cerrarModalConfirmacion();
+      this.boletoService.vaciarBoleto(rifaId, boletoId).subscribe({
+        next: () => {
+          this.cargarConsulta();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo vaciar el boleto.';
+        }
+      });
+      return;
+    }
+
+    if (this.confirmGrupoParaVaciar) {
+      const boleto = this.confirmGrupoParaVaciar.boletos?.[0];
+      this.cerrarModalConfirmacion();
+      if (!boleto) return;
+      this.boletoService.vaciarBoleto(rifaId, boleto.id).subscribe({
+        next: () => {
+          this.cargarConsulta();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo vaciar la agrupación.';
+        }
+      });
+      return;
+    }
+
+    this.cerrarModalConfirmacion();
   }
 }

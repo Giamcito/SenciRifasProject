@@ -4,11 +4,10 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { RifaService } from '../../../../services/rifa.service';
 
 @Component({
-  selector: 'app-crear-rifas',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './crear-rifas.component.html',
-  styleUrl: './crear-rifas.component.css'
+    selector: 'app-crear-rifas',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './crear-rifas.component.html',
+    styleUrl: './crear-rifas.component.css'
 })
 export class CrearRifasComponent implements OnInit {
   form: FormGroup;

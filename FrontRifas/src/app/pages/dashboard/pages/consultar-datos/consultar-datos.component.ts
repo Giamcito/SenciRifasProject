@@ -8,6 +8,21 @@ import { BoletoService, ConsultaVendedor } from '../../../../services/boleto.ser
 import { RifaService } from '../../../../services/rifa.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
+export interface GrupoConsulta {
+  id: number;
+  nombre: string;
+  estadoVenta: EstadoVenta;
+  vendedorId?: number | null;
+  vendedorNombre?: string | null;
+  compradorNombre?: string | null;
+  compradorTelefono?: string | null;
+  montoAbonado: number;
+  saldoPendiente: number;
+  fechaVenta?: string | null;
+  boletos: Boleto[];
+  numeros: string[];
+}
+
 @Component({
   selector: 'app-consultar-datos',
   standalone: true,
@@ -16,18 +31,27 @@ import { Vendedor, VendedorService } from '../../../../services/vendedor.service
   styleUrl: './consultar-datos.component.css'
 })
 export class ConsultarDatosComponent implements OnInit {
+  readonly boletosPorPagina = 20;
+  readonly gruposPorPagina = 10;
   rifaId: number | null = null;
   rifa: Rifa | null = null;
   vendedores: Vendedor[] = [];
   selectedVendedorId: number | null = null;
   selectedEstado: EstadoVenta | 'TODOS' = 'TODOS';
   busquedaNumero = '';
+  paginaBoletos = 0;
+  paginaGrupos = 0;
   consulta: ConsultaVendedor | null = null;
   loading = false;
   loadingConsulta = false;
   error = '';
 
-  readonly estadoOpciones: Array<EstadoVenta | 'TODOS'> = ['TODOS', 'DISPONIBLE', 'ABONADO', 'VENDIDO', 'RESERVADO', 'CANCELADO'];
+  readonly estadoOpciones: Array<{ valor: EstadoVenta | 'TODOS'; label: string }> = [
+    { valor: 'TODOS', label: 'TODOS' },
+    { valor: 'ASIGNADO', label: 'Asignados' },
+    { valor: 'ABONADO', label: 'ABONADO' },
+    { valor: 'VENDIDO', label: 'VENDIDO' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -106,8 +130,14 @@ export class ConsultarDatosComponent implements OnInit {
 
     this.loadingConsulta = true;
     this.error = '';
+    this.paginaBoletos = 0;
+    this.paginaGrupos = 0;
 
-    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, this.selectedEstado).subscribe({
+    const estadoParam = (this.selectedEstado as string) === 'ASIGNADO' || (this.selectedEstado as string) === 'Asignados'
+      ? 'DISPONIBLE'
+      : this.selectedEstado;
+
+    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, estadoParam).subscribe({
       next: (consulta) => {
         this.consulta = consulta;
         this.loadingConsulta = false;
@@ -120,15 +150,192 @@ export class ConsultarDatosComponent implements OnInit {
     });
   }
 
-  obtenerBoletosFiltrados(): Boleto[] {
+  obtenerGrupos(): GrupoConsulta[] {
     const boletos = this.consulta?.boletos ?? [];
+    const gruposMap = new Map<number, GrupoConsulta>();
+
+    for (const boleto of boletos) {
+      if (!boleto.grupoId) {
+        continue;
+      }
+
+      if (!gruposMap.has(boleto.grupoId)) {
+        const estadoVentaGrupo = ((boleto as any).grupoEstadoVenta || boleto.estadoVenta) as EstadoVenta;
+        gruposMap.set(boleto.grupoId, {
+          id: boleto.grupoId,
+          nombre: boleto.grupoNombre ? boleto.grupoNombre : `Agrupación #${boleto.grupoId}`,
+          estadoVenta: estadoVentaGrupo,
+          vendedorId: boleto.vendedorId,
+          vendedorNombre: boleto.grupoVendedorNombre || boleto.vendedorNombre,
+          compradorNombre: boleto.compradorNombre,
+          compradorTelefono: boleto.compradorTelefono,
+          montoAbonado: Number((boleto as any).grupoMontoAbonado ?? boleto.montoAbonado ?? 0),
+          saldoPendiente: Number(boleto.grupoSaldoPendiente ?? 0),
+          fechaVenta: boleto.fechaVenta,
+          boletos: [],
+          numeros: []
+        });
+      }
+
+      const grupo = gruposMap.get(boleto.grupoId)!;
+      grupo.boletos.push(boleto);
+      grupo.numeros.push(boleto.numero);
+
+      if (!grupo.compradorNombre && boleto.compradorNombre) {
+        grupo.compradorNombre = boleto.compradorNombre;
+      }
+      if (!grupo.compradorTelefono && boleto.compradorTelefono) {
+        grupo.compradorTelefono = boleto.compradorTelefono;
+      }
+      if (!grupo.fechaVenta && boleto.fechaVenta) {
+        grupo.fechaVenta = boleto.fechaVenta;
+      }
+    }
+
+    const resultado = Array.from(gruposMap.values());
+    resultado.forEach((g) => {
+      g.numeros.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    });
+    return resultado;
+  }
+
+  tieneGrupos(): boolean {
+    return (this.consulta?.boletos || []).some((b) => !!b.grupoId);
+  }
+
+  estadoVisualGrupo(grupo: GrupoConsulta): EstadoVenta {
+    const estado = grupo.estadoVenta;
+    if ((estado === 'DISPONIBLE' || (estado as any) === 'AGRUPADA') && (grupo.vendedorId || grupo.vendedorNombre)) {
+      return 'ASIGNADO';
+    }
+    if ((estado as any) === 'AGRUPADA') {
+      return 'ASIGNADO';
+    }
+    return estado;
+  }
+
+  obtenerGruposFiltrados(): GrupoConsulta[] {
+    const grupos = this.obtenerGrupos();
+    const busqueda = this.busquedaNumero.trim().toLowerCase();
+
+    if (!busqueda) {
+      return grupos;
+    }
+
+    return grupos.filter((grupo) =>
+      grupo.nombre.toLowerCase().includes(busqueda) ||
+      grupo.numeros.some((num) => num.toLowerCase().includes(busqueda)) ||
+      (grupo.compradorNombre && grupo.compradorNombre.toLowerCase().includes(busqueda)) ||
+      (grupo.compradorTelefono && grupo.compradorTelefono.toLowerCase().includes(busqueda))
+    );
+  }
+
+  obtenerGruposVisibles(): GrupoConsulta[] {
+    const filtrados = this.obtenerGruposFiltrados();
+    const inicio = this.paginaGrupos * this.gruposPorPagina;
+    const fin = inicio + this.gruposPorPagina;
+    return filtrados.slice(inicio, fin);
+  }
+
+  obtenerTotalPaginasGrupos(): number {
+    const totalFiltrados = this.obtenerGruposFiltrados().length;
+    return Math.max(Math.ceil(totalFiltrados / this.gruposPorPagina), 1);
+  }
+
+  irAPaginaGrupos(pagina: number): void {
+    const totalPaginas = this.obtenerTotalPaginasGrupos();
+    if (pagina < 0 || pagina >= totalPaginas) {
+      return;
+    }
+    this.paginaGrupos = pagina;
+  }
+
+  paginaAnteriorGrupos(): void {
+    this.irAPaginaGrupos(this.paginaGrupos - 1);
+  }
+
+  paginaSiguienteGrupos(): void {
+    this.irAPaginaGrupos(this.paginaGrupos + 1);
+  }
+
+  rangoVisibleGrupos(): string {
+    const totalFiltrados = this.obtenerGruposFiltrados().length;
+    if (totalFiltrados === 0) {
+      return '0 de 0';
+    }
+    const inicio = this.paginaGrupos * this.gruposPorPagina + 1;
+    const fin = Math.min(inicio + this.gruposPorPagina - 1, totalFiltrados);
+    return `${inicio}-${fin} de ${totalFiltrados}`;
+  }
+
+  trackByGrupoId(index: number, grupo: GrupoConsulta): number {
+    return grupo.id;
+  }
+
+  obtenerBoletosIndividuales(): Boleto[] {
+    const boletos = this.consulta?.boletos ?? [];
+    return boletos.filter((b) => !b.grupoId);
+  }
+
+  obtenerBoletosFiltrados(): Boleto[] {
+    const boletos = this.obtenerBoletosIndividuales();
     const busqueda = this.busquedaNumero.trim().toLowerCase();
 
     if (!busqueda) {
       return boletos;
     }
 
-    return boletos.filter((boleto) => boleto.numero.toLowerCase().includes(busqueda));
+    return boletos.filter((boleto) =>
+      boleto.numero.toLowerCase().includes(busqueda) ||
+      (boleto.compradorNombre && boleto.compradorNombre.toLowerCase().includes(busqueda)) ||
+      (boleto.compradorTelefono && boleto.compradorTelefono.toLowerCase().includes(busqueda))
+    );
+  }
+
+  obtenerBoletosVisibles(): Boleto[] {
+    const boletosFiltrados = this.obtenerBoletosFiltrados();
+    const inicio = this.paginaBoletos * this.boletosPorPagina;
+    const fin = inicio + this.boletosPorPagina;
+
+    return boletosFiltrados.slice(inicio, fin);
+  }
+
+  obtenerTotalPaginasBoletos(): number {
+    const totalFiltrados = this.obtenerBoletosFiltrados().length;
+    return Math.max(Math.ceil(totalFiltrados / this.boletosPorPagina), 1);
+  }
+
+  irAPaginaBoletos(pagina: number): void {
+    const totalPaginas = this.obtenerTotalPaginasBoletos();
+    if (pagina < 0 || pagina >= totalPaginas) {
+      return;
+    }
+
+    this.paginaBoletos = pagina;
+  }
+
+  paginaAnteriorBoletos(): void {
+    this.irAPaginaBoletos(this.paginaBoletos - 1);
+  }
+
+  paginaSiguienteBoletos(): void {
+    this.irAPaginaBoletos(this.paginaBoletos + 1);
+  }
+
+  reiniciarPaginacionBoletos(): void {
+    this.paginaBoletos = 0;
+    this.paginaGrupos = 0;
+  }
+
+  rangoVisibleBoletos(): string {
+    const totalFiltrados = this.obtenerBoletosFiltrados().length;
+    if (totalFiltrados === 0) {
+      return '0 de 0';
+    }
+
+    const inicio = this.paginaBoletos * this.boletosPorPagina + 1;
+    const fin = Math.min(inicio + this.boletosPorPagina - 1, totalFiltrados);
+    return `${inicio}-${fin} de ${totalFiltrados}`;
   }
 
   esBoletoAgrupado(boleto: Boleto): boolean {
@@ -170,6 +377,8 @@ export class ConsultarDatosComponent implements OnInit {
       case 'ABONADO':
       case 'RESERVADO':
         return '#f39c12';
+      case 'ASIGNADO':
+        return '#8b5cf6';
       case 'DISPONIBLE':
         return '#27ae60';
       case 'CANCELADO':
@@ -177,6 +386,13 @@ export class ConsultarDatosComponent implements OnInit {
       default:
         return '#94a3b8';
     }
+  }
+
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
   }
 
   volverAdministracion(): void {

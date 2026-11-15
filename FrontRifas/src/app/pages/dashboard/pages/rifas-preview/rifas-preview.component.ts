@@ -6,11 +6,10 @@ import { AuthService } from '../../../../services/auth.service';
 import { RifaService } from '../../../../services/rifa.service';
 
 @Component({
-  selector: 'app-rifas-preview',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './rifas-preview.component.html',
-  styleUrl: './rifas-preview.component.css'
+    selector: 'app-rifas-preview',
+    imports: [CommonModule],
+    templateUrl: './rifas-preview.component.html',
+    styleUrl: './rifas-preview.component.css'
 })
 export class RifasPreviewComponent implements OnInit {
   user: any;

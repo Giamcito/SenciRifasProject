@@ -210,13 +210,21 @@ public class BoletoService {
         boleto.setCompradorTelefono(request.getCompradorTelefono());
         if (request.getDescontarParteVendedor() != null) {
             boleto.setDescontarParteVendedor(request.getDescontarParteVendedor());
+            if (!request.getDescontarParteVendedor()) {
+                if (boleto.getGrupoId() != null) {
+                    retiroRepository.deleteByGrupoId(boleto.getGrupoId());
+                }
+                retiroRepository.deleteByBoletoId(boleto.getId());
+            }
         }
 
         if (request.getEstadoVenta() == EstadoVenta.VENDIDO) {
             if (boleto.getMontoAbonado() == null || boleto.getMontoAbonado().compareTo(BigDecimal.ZERO) <= 0) {
                 boleto.setMontoAbonado(rifa.getValorBoleto());
             }
-            boleto.setFechaVenta(LocalDateTime.now());
+            if (boleto.getFechaVenta() == null) {
+                boleto.setFechaVenta(LocalDateTime.now());
+            }
         }
 
         boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
@@ -333,7 +341,15 @@ public class BoletoService {
             throw new RuntimeException("Boleto no pertenece a la rifa indicada");
         }
 
-        asignarVendedor(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
+        if (request == null || (request.getVendedorId() == null && (request.getVendedorNombre() == null || request.getVendedorNombre().isBlank()))) {
+            boleto.setVendedorId(null);
+            boleto.setVendedorNombre(null);
+            if (boleto.getEstadoVenta() != EstadoVenta.VENDIDO && boleto.getEstadoVenta() != EstadoVenta.ABONADO) {
+                boleto.setEstadoVenta(boleto.getGrupoId() != null ? EstadoVenta.AGRUPADA : EstadoVenta.DISPONIBLE);
+            }
+        } else {
+            asignarVendedor(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
+        }
 
         boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
 
@@ -341,6 +357,43 @@ public class BoletoService {
         sincronizarGrupoSiCorresponde(actualizado);
         actualizado = boletoRepository.findById(actualizado.getId())
             .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+        return convertirADTO(actualizado);
+    }
+
+    /**
+     * Vaciar completamente un boleto (vuelve a estar DISPONIBLE sin comprador, sin vendedor, sin abonos)
+     */
+    public BoletoDTO vaciarBoleto(Long rifaId, Long boletoId, Long usuarioId) {
+        Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+                .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+        Boleto boleto = boletoRepository.findById(boletoId)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+
+        if (!boleto.getRifa().getId().equals(rifa.getId())) {
+            throw new RuntimeException("Boleto no pertenece a la rifa indicada");
+        }
+
+        if (boleto.getGrupoId() != null) {
+            retiroRepository.deleteByGrupoId(boleto.getGrupoId());
+        }
+        retiroRepository.deleteByBoletoId(boleto.getId());
+
+        boleto.setEstadoVenta(EstadoVenta.DISPONIBLE);
+        boleto.setCompradorNombre(null);
+        boleto.setCompradorTelefono(null);
+        boleto.setCompradorEmail(null);
+        boleto.setVendedorId(null);
+        boleto.setVendedorNombre(null);
+        boleto.setFechaVenta(null);
+        boleto.setMontoAbonado(BigDecimal.ZERO);
+        boleto.setDescontarParteVendedor(false);
+        boleto.setMontoNetoRecogido(BigDecimal.ZERO);
+
+        Boleto actualizado = boletoRepository.save(boleto);
+        sincronizarGrupoSiCorresponde(actualizado);
+        actualizado = boletoRepository.findById(actualizado.getId())
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
         return convertirADTO(actualizado);
     }
 

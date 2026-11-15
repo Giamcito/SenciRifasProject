@@ -12,11 +12,10 @@ import { SidebarService } from '../../../../services/sidebar.service';
 import { Vendedor, VendedorService } from '../../../../services/vendedor.service';
 
 @Component({
-  selector: 'app-visualizar-rifas',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './visualizar-rifas.component.html',
-  styleUrls: ['./visualizar-rifas.component.css']
+    selector: 'app-visualizar-rifas',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './visualizar-rifas.component.html',
+    styleUrls: ['./visualizar-rifas.component.css']
 })
 export class VisualizarRifasComponent implements OnInit {
   rifaKey: string = '';
@@ -40,13 +39,20 @@ export class VisualizarRifasComponent implements OnInit {
   resumenBoletos: string = '';
   vendedores: Vendedor[] = [];
   showBoletoModal: boolean = false;
-  modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' = 'VENDER';
+  modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' | 'COMPRADOR' = 'VENDER';
   boletoModal?: Boleto;
   modalVendedorId?: number;
   modalCompradorNombre: string = '';
   modalCompradorTelefono: string = '';
   modalMonto: number | undefined;
   modalError: string = '';
+  showConfirmModal: boolean = false;
+  confirmModalTipo: 'QUITAR_ASIGNACION' | 'VACIAR' = 'QUITAR_ASIGNACION';
+  confirmModalTitulo: string = '';
+  confirmModalMensaje: string = '';
+  confirmModalSubmensaje: string = '';
+  confirmModalBoleto?: Boleto;
+  confirmModalGrupo?: GrupoBoleto;
 
   constructor(
     private route: ActivatedRoute,
@@ -415,6 +421,178 @@ export class VisualizarRifasComponent implements OnInit {
     this.abrirModal(boleto, 'PROPIETARIO');
   }
 
+  editarComprador(boleto: Boleto): void {
+    this.abrirModal(boleto, 'COMPRADOR');
+  }
+
+  editarCompradorGrupo(grupo: GrupoBoleto): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.editarComprador(boleto);
+    }
+  }
+
+  quitarAsignacion(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'QUITAR_ASIGNACION';
+    this.confirmModalBoleto = boleto;
+    this.confirmModalGrupo = undefined;
+    this.confirmModalTitulo = `¿Quitar asignación del boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El vendedor asignado será retirado y la boleta quedará libre para la venta.';
+    this.confirmModalSubmensaje = '';
+    this.showConfirmModal = true;
+  }
+
+  quitarAsignacionGrupo(grupo: GrupoBoleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'QUITAR_ASIGNACION';
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = grupo;
+    this.confirmModalTitulo = `¿Quitar asignación de "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'El vendedor asignado será retirado y la agrupación quedará libre para la venta.';
+    this.confirmModalSubmensaje = '';
+    this.showConfirmModal = true;
+  }
+
+  vaciarBoleto(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'VACIAR';
+    this.confirmModalBoleto = boleto;
+    this.confirmModalGrupo = undefined;
+    this.confirmModalTitulo = `¿Vaciar boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El boleto pasará a estar DISPONIBLE completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán todos los datos del comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  vaciarGrupo(grupo: GrupoBoleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'VACIAR';
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = grupo;
+    this.confirmModalTitulo = `¿Vaciar agrupación "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'Todos los boletos de esta agrupación pasarán a estar DISPONIBLES completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán todos los datos del comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  cerrarModalConfirmacion(): void {
+    this.showConfirmModal = false;
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = undefined;
+  }
+
+  ejecutarConfirmacion(): void {
+    if (!this.rifaId) {
+      this.cerrarModalConfirmacion();
+      return;
+    }
+
+    if (this.confirmModalTipo === 'QUITAR_ASIGNACION') {
+      if (this.confirmModalBoleto) {
+        const boleto = this.confirmModalBoleto;
+        this.cerrarModalConfirmacion();
+        this.loading = true;
+        this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+          next: (actualizado) => {
+            this.success = `Se quitó la asignación del boleto #${actualizado.numero}. Ha quedado libre para la venta.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+          },
+          error: () => {
+            this.error = 'No se pudo quitar la asignación del boleto.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+
+      if (this.confirmModalGrupo) {
+        const grupo = this.confirmModalGrupo;
+        const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+        this.cerrarModalConfirmacion();
+        if (!boleto) return;
+        this.loading = true;
+        this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+          next: () => {
+            this.success = `Se quitó la asignación de la agrupación "${grupo.nombre}". Ha quedado libre para la venta.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+            this.aplicarFiltros();
+          },
+          error: () => {
+            this.error = 'No se pudo quitar la asignación de la agrupación.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+    }
+
+    if (this.confirmModalTipo === 'VACIAR') {
+      if (this.confirmModalBoleto) {
+        const boleto = this.confirmModalBoleto;
+        this.cerrarModalConfirmacion();
+        this.loading = true;
+        this.boletoService.vaciarBoleto(this.rifaId, boleto.id).subscribe({
+          next: (actualizado) => {
+            this.success = `El boleto #${actualizado.numero} fue vaciado con éxito y ahora está disponible completamente en blanco.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+          },
+          error: (err) => {
+            this.error = err?.error || 'No se pudo vaciar el boleto.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+
+      if (this.confirmModalGrupo) {
+        const grupo = this.confirmModalGrupo;
+        const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+        this.cerrarModalConfirmacion();
+        if (!boleto) return;
+        this.loading = true;
+        this.boletoService.vaciarBoleto(this.rifaId, boleto.id).subscribe({
+          next: () => {
+            this.success = `La agrupación "${grupo.nombre}" fue vaciada con éxito y ahora está disponible completamente en blanco.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+            this.aplicarFiltros();
+          },
+          error: (err) => {
+            this.error = err?.error || 'No se pudo vaciar la agrupación.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+    }
+
+    this.cerrarModalConfirmacion();
+  }
+
   marcarVendido(boleto: Boleto): void {
     this.abrirModal(boleto, 'VENDER');
   }
@@ -495,7 +673,7 @@ export class VisualizarRifasComponent implements OnInit {
     return Math.max(montoAbonado - this.obtenerParteDelVendedor(boleto), 0);
   }
 
-  abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO'): void {
+  abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' | 'COMPRADOR'): void {
     this.boletoModal = boleto;
     this.modalModo = modo;
     this.modalVendedorId = boleto.vendedorId ?? undefined;
@@ -523,13 +701,37 @@ export class VisualizarRifasComponent implements OnInit {
       return;
     }
 
-    if (!this.modalVendedorId) {
+    if (this.modalModo !== 'PROPIETARIO' && this.modalModo !== 'COMPRADOR' && !this.modalVendedorId) {
       this.modalError = 'Selecciona un vendedor.';
       return;
     }
 
     if (this.modalModo !== 'PROPIETARIO' && (!this.modalCompradorNombre.trim() || !this.modalCompradorTelefono.trim())) {
       this.modalError = 'Ingresa el nombre y teléfono del comprador.';
+      return;
+    }
+
+    if (this.modalModo === 'COMPRADOR') {
+      this.boletoService.actualizarBoleto(rifaId, this.boletoModal.id, {
+        estadoVenta: this.boletoModal.estadoVenta,
+        vendedorId: this.modalVendedorId ?? this.boletoModal.vendedorId ?? undefined,
+        compradorNombre: this.modalCompradorNombre.trim(),
+        compradorTelefono: this.modalCompradorTelefono.trim(),
+        descontarParteVendedor: this.boletoModal.descontarParteVendedor
+      }).subscribe({
+        next: (boletoActualizado) => {
+          this.success = `Datos del comprador actualizados para el boleto ${boletoActualizado.numero}`;
+          setTimeout(() => (this.success = ''), 3000);
+          this.cerrarModal();
+          this.cargarBoletos();
+          this.cargarEstadisticas();
+          this.aplicarFiltros();
+        },
+        error: () => {
+          this.modalError = 'Error al actualizar datos del comprador';
+        }
+      });
+
       return;
     }
 
@@ -620,6 +822,8 @@ export class VisualizarRifasComponent implements OnInit {
     switch (estadoNormalizado) {
       case 'DISPONIBLE':
         return '#27ae60'; // Verde
+      case 'ASIGNADO':
+        return '#8b5cf6'; // Violeta
       case 'AGRUPADA':
         return '#3b82f6'; // Azul
       case 'VENDIDO':
@@ -632,6 +836,13 @@ export class VisualizarRifasComponent implements OnInit {
       default:
         return '#95a5a6'; // Gris
     }
+  }
+
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
   }
 
   volver(): void {
