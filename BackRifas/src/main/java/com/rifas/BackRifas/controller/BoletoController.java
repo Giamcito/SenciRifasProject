@@ -247,6 +247,21 @@ public class BoletoController {
     }
 
     /**
+     * Vaciar completamente un boleto (vuelve a estar disponible sin datos)
+     */
+    @PutMapping("/{rifaId}/boletos/{boletoId}/vaciar")
+    public ResponseEntity<?> vaciarBoleto(@PathVariable Long rifaId, @PathVariable Long boletoId,
+                                          HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO updated = boletoService.vaciarBoleto(rifaId, boletoId, usuarioId);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
      * Obtener consulta de un vendedor dentro de una rifa
      */
     @GetMapping("/{rifaId}/consultas/vendedores/{vendedorId}")

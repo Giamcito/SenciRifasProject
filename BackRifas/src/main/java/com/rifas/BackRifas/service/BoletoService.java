@@ -360,6 +360,43 @@ public class BoletoService {
         return convertirADTO(actualizado);
     }
 
+    /**
+     * Vaciar completamente un boleto (vuelve a estar DISPONIBLE sin comprador, sin vendedor, sin abonos)
+     */
+    public BoletoDTO vaciarBoleto(Long rifaId, Long boletoId, Long usuarioId) {
+        Rifa rifa = rifaRepository.findByIdAndUsuarioId(rifaId, usuarioId)
+                .orElseThrow(() -> new RuntimeException("Rifa no encontrada"));
+
+        Boleto boleto = boletoRepository.findById(boletoId)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+
+        if (!boleto.getRifa().getId().equals(rifa.getId())) {
+            throw new RuntimeException("Boleto no pertenece a la rifa indicada");
+        }
+
+        if (boleto.getGrupoId() != null) {
+            retiroRepository.deleteByGrupoId(boleto.getGrupoId());
+        }
+        retiroRepository.deleteByBoletoId(boleto.getId());
+
+        boleto.setEstadoVenta(EstadoVenta.DISPONIBLE);
+        boleto.setCompradorNombre(null);
+        boleto.setCompradorTelefono(null);
+        boleto.setCompradorEmail(null);
+        boleto.setVendedorId(null);
+        boleto.setVendedorNombre(null);
+        boleto.setFechaVenta(null);
+        boleto.setMontoAbonado(BigDecimal.ZERO);
+        boleto.setDescontarParteVendedor(false);
+        boleto.setMontoNetoRecogido(BigDecimal.ZERO);
+
+        Boleto actualizado = boletoRepository.save(boleto);
+        sincronizarGrupoSiCorresponde(actualizado);
+        actualizado = boletoRepository.findById(actualizado.getId())
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+        return convertirADTO(actualizado);
+    }
+
         /**
          * Obtener un resumen de ventas de un vendedor en una rifa, incluyendo sus boletos
          */
