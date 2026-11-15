@@ -210,13 +210,21 @@ public class BoletoService {
         boleto.setCompradorTelefono(request.getCompradorTelefono());
         if (request.getDescontarParteVendedor() != null) {
             boleto.setDescontarParteVendedor(request.getDescontarParteVendedor());
+            if (!request.getDescontarParteVendedor()) {
+                if (boleto.getGrupoId() != null) {
+                    retiroRepository.deleteByGrupoId(boleto.getGrupoId());
+                }
+                retiroRepository.deleteByBoletoId(boleto.getId());
+            }
         }
 
         if (request.getEstadoVenta() == EstadoVenta.VENDIDO) {
             if (boleto.getMontoAbonado() == null || boleto.getMontoAbonado().compareTo(BigDecimal.ZERO) <= 0) {
                 boleto.setMontoAbonado(rifa.getValorBoleto());
             }
-            boleto.setFechaVenta(LocalDateTime.now());
+            if (boleto.getFechaVenta() == null) {
+                boleto.setFechaVenta(LocalDateTime.now());
+            }
         }
 
         boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));

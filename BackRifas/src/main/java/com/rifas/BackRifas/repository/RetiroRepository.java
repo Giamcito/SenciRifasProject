@@ -23,4 +23,13 @@ public interface RetiroRepository extends JpaRepository<Retiro, Long> {
     @Query("delete from Retiro r where r.boleto.rifa.id = :rifaId")
     void deleteByBoletoRifaId(@Param("rifaId") Long rifaId);
 
+    @Modifying
+    @Transactional
+    @Query("delete from Retiro r where r.boleto.id = :boletoId")
+    void deleteByBoletoId(@Param("boletoId") Long boletoId);
+
+    @Modifying
+    @Transactional
+    @Query("delete from Retiro r where r.grupoId = :grupoId")
+    void deleteByGrupoId(@Param("grupoId") Long grupoId);
 }
