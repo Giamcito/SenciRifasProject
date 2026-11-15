@@ -333,7 +333,15 @@ public class BoletoService {
             throw new RuntimeException("Boleto no pertenece a la rifa indicada");
         }
 
-        asignarVendedor(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
+        if (request == null || (request.getVendedorId() == null && (request.getVendedorNombre() == null || request.getVendedorNombre().isBlank()))) {
+            boleto.setVendedorId(null);
+            boleto.setVendedorNombre(null);
+            if (boleto.getEstadoVenta() != EstadoVenta.VENDIDO && boleto.getEstadoVenta() != EstadoVenta.ABONADO) {
+                boleto.setEstadoVenta(boleto.getGrupoId() != null ? EstadoVenta.AGRUPADA : EstadoVenta.DISPONIBLE);
+            }
+        } else {
+            asignarVendedor(boleto, request.getVendedorId(), request.getVendedorNombre(), usuarioId);
+        }
 
         boleto.setMontoNetoRecogido(calcularMontoNetoRecogido(boleto));
 

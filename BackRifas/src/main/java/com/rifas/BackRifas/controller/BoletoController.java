@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -224,6 +225,21 @@ public class BoletoController {
         try {
             Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
             BoletoDTO updated = boletoService.asignarPropietario(rifaId, boletoId, request, usuarioId);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return manejarError(e);
+        }
+    }
+
+    /**
+     * Quitar propietario/asignación a un boleto
+     */
+    @DeleteMapping("/{rifaId}/boletos/{boletoId}/propietario")
+    public ResponseEntity<?> quitarPropietario(@PathVariable Long rifaId, @PathVariable Long boletoId,
+                                               HttpServletRequest httpRequest) {
+        try {
+            Long usuarioId = obtenerUsuarioIdDelToken(httpRequest);
+            BoletoDTO updated = boletoService.asignarPropietario(rifaId, boletoId, new AsignarPropietarioRequest(null, null), usuarioId);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return manejarError(e);
