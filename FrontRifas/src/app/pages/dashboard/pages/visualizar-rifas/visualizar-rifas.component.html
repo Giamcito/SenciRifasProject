@@ -153,6 +153,10 @@
                 🏷️ Propietario
               </button>
 
+              <button class="btn-accion btn-comprador" (click)="editarCompradorGrupo(grupo)" title="Cambiar datos del comprador">
+                👤 Comprador
+              </button>
+
               <button *ngIf="boletoPrincipal.estadoVenta === 'DISPONIBLE' || boletoPrincipal.estadoVenta === 'AGRUPADA'"
                       class="btn-accion btn-vender"
                       (click)="marcarVendidoGrupo(grupo)"
@@ -239,6 +243,10 @@
                   🏷️ Propietario
                 </button>
 
+                <button class="btn-accion btn-comprador" (click)="editarComprador(boleto)" title="Cambiar datos del comprador">
+                  👤 Comprador
+                </button>
+
                 <button *ngIf="boleto.estadoVenta === 'DISPONIBLE' || boleto.estadoVenta === 'AGRUPADA'"
                         class="btn-accion btn-vender"
                         (click)="marcarVendido(boleto)"
@@ -283,7 +291,7 @@
     <div class="modal-header">
       <div>
         <h3>
-          {{ modalModo === 'VENDER' ? 'Vender boleto' : (modalModo === 'ABONAR' ? 'Abonar boleto' : 'Asignar propietario') }}
+          {{ modalModo === 'VENDER' ? 'Vender boleto' : (modalModo === 'ABONAR' ? 'Abonar boleto' : (modalModo === 'COMPRADOR' ? 'Editar datos del comprador' : 'Asignar propietario')) }}
         </h3>
         <p>Boleto {{ boletoModal?.numero }}</p>
       </div>
@@ -295,11 +303,13 @@
     </div>
 
     <div class="modal-body">
-      <label for="modalVendedor">Vendedor:</label>
-      <select id="modalVendedor" [(ngModel)]="modalVendedorId">
-        <option [ngValue]="undefined">-- Seleccionar --</option>
-        <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
-      </select>
+      <ng-container *ngIf="modalModo !== 'COMPRADOR'">
+        <label for="modalVendedor">Vendedor:</label>
+        <select id="modalVendedor" [(ngModel)]="modalVendedorId">
+          <option [ngValue]="undefined">-- Seleccionar --</option>
+          <option *ngFor="let v of vendedores" [ngValue]="v.id">{{ v.nombre }}</option>
+        </select>
+      </ng-container>
 
       <ng-container *ngIf="modalModo !== 'PROPIETARIO'">
         <label for="modalCompradorNombre">Nombre del comprador:</label>

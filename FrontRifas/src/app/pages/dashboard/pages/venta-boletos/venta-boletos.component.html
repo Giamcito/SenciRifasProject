@@ -37,7 +37,7 @@
       <div class="search-row">
         <div class="field-group grow">
           <label for="numeroInput">Número</label>
-          <input id="numeroInput" name="numero" autocomplete="off" [(ngModel)]="numeroBuscar" placeholder="Ingrese número" />
+          <input id="numeroInput" name="numero" autocomplete="off" [(ngModel)]="numeroBuscar" (keydown.enter)="$event.preventDefault(); buscar()" placeholder="Ingrese número" />
         </div>
         <button type="button" class="btn-search" (click)="buscar()">Buscar</button>
       </div>
@@ -126,6 +126,22 @@
       <div class="venta-forms">
         <div class="section-label">Datos de venta</div>
 
+        <div class="field-group checkbox-group" *ngIf="selectedBoleto">
+          <label class="checkbox-descuento">
+            <input
+              type="checkbox"
+              [checked]="selectedBoleto.descontarParteVendedor ?? false"
+              [disabled]="selectedBoleto.estadoVenta !== 'VENDIDO' || !tieneVendedorAsignado()"
+              (change)="actualizarDescuentoVendedor(descuentoVendedorInput.checked)"
+              #descuentoVendedorInput
+            />
+            <span>Descontar parte del vendedor</span>
+          </label>
+          <small *ngIf="selectedBoleto.estadoVenta !== 'VENDIDO'" class="help-text">
+            (Se activa únicamente cuando la boleta ya está vendida)
+          </small>
+        </div>
+
         <div class="field-group">
           <label for="vendedorSelect">Vendedor</label>
           <select id="vendedorSelect" name="vendedor" [(ngModel)]="vendedorSeleccionadoId">
@@ -153,6 +169,16 @@
         <div class="field-group">
           <label for="compradorTelefono">Teléfono del comprador</label>
           <input id="compradorTelefono" name="compradorTelefono" autocomplete="tel" [(ngModel)]="compradorTelefono" placeholder="3001234567" />
+        </div>
+
+        <div class="buyer-actions" *ngIf="selectedBoleto">
+          <button
+            type="button"
+            class="btn-comprador action-btn full-width"
+            (click)="actualizarComprador()"
+            [disabled]="groupingRequired">
+            💾 Guardar datos del comprador
+          </button>
         </div>
 
         <div class="limit-note" *ngIf="cargandoGrupo">

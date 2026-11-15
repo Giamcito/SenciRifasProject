@@ -551,6 +551,15 @@
   background-color: #7f8c8d;
 }
 
+.btn-comprador {
+  background-color: #0284c7;
+  color: white;
+}
+
+.btn-comprador:hover {
+  background-color: #0369a1;
+}
+
 .paginacion {
   display: flex;
   align-items: center;

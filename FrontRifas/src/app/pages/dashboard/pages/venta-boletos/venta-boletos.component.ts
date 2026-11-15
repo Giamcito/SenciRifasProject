@@ -172,7 +172,9 @@ export class VentaBoletosComponent implements OnInit {
               fechaVenta: this.selectedBoleto.fechaVenta,
               createdAt: this.selectedBoleto.createdAt,
               updatedAt: this.selectedBoleto.updatedAt,
-              montoAbonado: this.selectedBoleto.montoAbonado
+              montoAbonado: this.selectedBoleto.montoAbonado,
+              descontarParteVendedor: this.selectedBoleto.descontarParteVendedor,
+              montoNeto: this.selectedBoleto.montoNeto
             };
           }
           this.cargandoGrupo = false;
@@ -332,6 +334,71 @@ export class VentaBoletosComponent implements OnInit {
       case 'CANCELADO': return '#64748b';
       default: return '#94a3b8';
     }
+  }
+
+  actualizarComprador() {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación.';
+      return;
+    }
+    if (!this.selectedBoleto) {
+      this.error = 'Selecciona un boleto.';
+      return;
+    }
+    this.error = '';
+    this.boletoService.actualizarBoleto(this.rifaId, this.selectedBoleto.id, {
+      estadoVenta: this.selectedBoleto.estadoVenta,
+      vendedorId: this.vendedorSeleccionadoId ?? this.selectedBoleto.vendedorId ?? undefined,
+      compradorNombre: (this.compradorNombre || '').trim(),
+      compradorTelefono: (this.compradorTelefono || '').trim(),
+      descontarParteVendedor: this.selectedBoleto.descontarParteVendedor
+    }).subscribe({
+      next: (b) => {
+        this.cargarBoletoSeleccionado(b);
+        this.success = `Datos del comprador del boleto ${b.numero} actualizados correctamente.`;
+        this.loadBoletos();
+      },
+      error: (err) => {
+        this.error = err?.error || 'No se pudieron actualizar los datos del comprador.';
+      }
+    });
+  }
+
+  actualizarDescuentoVendedor(descontarParteVendedor: boolean): void {
+    if (!this.rifaId || !this.selectedBoleto || this.selectedBoleto.estadoVenta !== 'VENDIDO') {
+      return;
+    }
+
+    if (descontarParteVendedor) {
+      this.boletoService.registrarRetiro(this.rifaId, this.selectedBoleto.id).subscribe({
+        next: (boletoActualizado) => {
+          this.cargarBoletoSeleccionado(boletoActualizado);
+          this.success = `Retiro registrado para el boleto ${boletoActualizado.numero}`;
+          this.loadBoletos();
+        },
+        error: () => {
+          this.error = 'Error al registrar el retiro';
+        }
+      });
+      return;
+    }
+
+    this.boletoService.actualizarBoleto(this.rifaId, this.selectedBoleto.id, {
+      estadoVenta: this.selectedBoleto.estadoVenta,
+      vendedorId: this.vendedorSeleccionadoId ?? this.selectedBoleto.vendedorId ?? undefined,
+      compradorNombre: this.selectedBoleto.compradorNombre || '',
+      compradorTelefono: this.selectedBoleto.compradorTelefono || '',
+      descontarParteVendedor: false
+    }).subscribe({
+      next: (boletoActualizado) => {
+        this.cargarBoletoSeleccionado(boletoActualizado);
+        this.success = `Se canceló el descuento para el boleto ${boletoActualizado.numero}`;
+        this.loadBoletos();
+      },
+      error: () => {
+        this.error = 'Error al actualizar el estado de descuento del vendedor';
+      }
+    });
   }
 
   pagar() {

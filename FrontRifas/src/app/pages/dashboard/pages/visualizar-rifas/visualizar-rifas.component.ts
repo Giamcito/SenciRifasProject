@@ -39,7 +39,7 @@ export class VisualizarRifasComponent implements OnInit {
   resumenBoletos: string = '';
   vendedores: Vendedor[] = [];
   showBoletoModal: boolean = false;
-  modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' = 'VENDER';
+  modalModo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' | 'COMPRADOR' = 'VENDER';
   boletoModal?: Boleto;
   modalVendedorId?: number;
   modalCompradorNombre: string = '';
@@ -414,6 +414,17 @@ export class VisualizarRifasComponent implements OnInit {
     this.abrirModal(boleto, 'PROPIETARIO');
   }
 
+  editarComprador(boleto: Boleto): void {
+    this.abrirModal(boleto, 'COMPRADOR');
+  }
+
+  editarCompradorGrupo(grupo: GrupoBoleto): void {
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (boleto) {
+      this.editarComprador(boleto);
+    }
+  }
+
   quitarAsignacion(boleto: Boleto, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -554,7 +565,7 @@ export class VisualizarRifasComponent implements OnInit {
     return Math.max(montoAbonado - this.obtenerParteDelVendedor(boleto), 0);
   }
 
-  abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO'): void {
+  abrirModal(boleto: Boleto, modo: 'VENDER' | 'ABONAR' | 'PROPIETARIO' | 'COMPRADOR'): void {
     this.boletoModal = boleto;
     this.modalModo = modo;
     this.modalVendedorId = boleto.vendedorId ?? undefined;
@@ -582,13 +593,37 @@ export class VisualizarRifasComponent implements OnInit {
       return;
     }
 
-    if (!this.modalVendedorId) {
+    if (this.modalModo !== 'PROPIETARIO' && this.modalModo !== 'COMPRADOR' && !this.modalVendedorId) {
       this.modalError = 'Selecciona un vendedor.';
       return;
     }
 
     if (this.modalModo !== 'PROPIETARIO' && (!this.modalCompradorNombre.trim() || !this.modalCompradorTelefono.trim())) {
       this.modalError = 'Ingresa el nombre y teléfono del comprador.';
+      return;
+    }
+
+    if (this.modalModo === 'COMPRADOR') {
+      this.boletoService.actualizarBoleto(rifaId, this.boletoModal.id, {
+        estadoVenta: this.boletoModal.estadoVenta,
+        vendedorId: this.modalVendedorId ?? this.boletoModal.vendedorId ?? undefined,
+        compradorNombre: this.modalCompradorNombre.trim(),
+        compradorTelefono: this.modalCompradorTelefono.trim(),
+        descontarParteVendedor: this.boletoModal.descontarParteVendedor
+      }).subscribe({
+        next: (boletoActualizado) => {
+          this.success = `Datos del comprador actualizados para el boleto ${boletoActualizado.numero}`;
+          setTimeout(() => (this.success = ''), 3000);
+          this.cerrarModal();
+          this.cargarBoletos();
+          this.cargarEstadisticas();
+          this.aplicarFiltros();
+        },
+        error: () => {
+          this.modalError = 'Error al actualizar datos del comprador';
+        }
+      });
+
       return;
     }
 
