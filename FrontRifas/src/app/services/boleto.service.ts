@@ -152,6 +152,17 @@ export class BoletoService {
   }
 
   /**
+   * Vaciar completamente un boleto (vuelve a estar disponible completamente en blanco sin datos)
+   */
+  vaciarBoleto(rifaId: number, boletoId: number): Observable<Boleto> {
+    return this.http.put<Boleto>(
+      `${this.apiUrl}/${rifaId}/boletos/${boletoId}/vaciar`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
    * Obtener datos de un vendedor dentro de una rifa
    */
   obtenerConsultaVendedor(rifaId: number, vendedorId: number, estado?: EstadoVenta | 'TODOS'): Observable<ConsultaVendedor> {

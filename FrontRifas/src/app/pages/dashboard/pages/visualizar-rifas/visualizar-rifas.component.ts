@@ -46,6 +46,13 @@ export class VisualizarRifasComponent implements OnInit {
   modalCompradorTelefono: string = '';
   modalMonto: number | undefined;
   modalError: string = '';
+  showConfirmModal: boolean = false;
+  confirmModalTipo: 'QUITAR_ASIGNACION' | 'VACIAR' = 'QUITAR_ASIGNACION';
+  confirmModalTitulo: string = '';
+  confirmModalMensaje: string = '';
+  confirmModalSubmensaje: string = '';
+  confirmModalBoleto?: Boleto;
+  confirmModalGrupo?: GrupoBoleto;
 
   constructor(
     private route: ActivatedRoute,
@@ -429,60 +436,161 @@ export class VisualizarRifasComponent implements OnInit {
     if (event) {
       event.stopPropagation();
     }
-    if (!this.rifaId) {
-      return;
-    }
-
-    if (!confirm(`¿Deseas quitar la asignación del boleto #${boleto.numero} para dejarlo libre para la venta?`)) {
-      return;
-    }
-
-    this.loading = true;
-    this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
-      next: (actualizado) => {
-        this.success = `Se quitó la asignación del boleto #${actualizado.numero}. Ha quedado libre para la venta.`;
-        setTimeout(() => (this.success = ''), 3500);
-        this.loading = false;
-        this.cargarBoletos();
-        this.cargarEstadisticas();
-      },
-      error: () => {
-        this.error = 'No se pudo quitar la asignación del boleto.';
-        setTimeout(() => (this.error = ''), 3500);
-        this.loading = false;
-      }
-    });
+    this.confirmModalTipo = 'QUITAR_ASIGNACION';
+    this.confirmModalBoleto = boleto;
+    this.confirmModalGrupo = undefined;
+    this.confirmModalTitulo = `¿Quitar asignación del boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El vendedor asignado será retirado y la boleta quedará libre para la venta.';
+    this.confirmModalSubmensaje = '';
+    this.showConfirmModal = true;
   }
 
   quitarAsignacionGrupo(grupo: GrupoBoleto, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
     }
-    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
-    if (!boleto || !this.rifaId) {
+    this.confirmModalTipo = 'QUITAR_ASIGNACION';
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = grupo;
+    this.confirmModalTitulo = `¿Quitar asignación de "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'El vendedor asignado será retirado y la agrupación quedará libre para la venta.';
+    this.confirmModalSubmensaje = '';
+    this.showConfirmModal = true;
+  }
+
+  vaciarBoleto(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'VACIAR';
+    this.confirmModalBoleto = boleto;
+    this.confirmModalGrupo = undefined;
+    this.confirmModalTitulo = `¿Vaciar boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El boleto pasará a estar DISPONIBLE completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán todos los datos del comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  vaciarGrupo(grupo: GrupoBoleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmModalTipo = 'VACIAR';
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = grupo;
+    this.confirmModalTitulo = `¿Vaciar agrupación "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'Todos los boletos de esta agrupación pasarán a estar DISPONIBLES completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán todos los datos del comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  cerrarModalConfirmacion(): void {
+    this.showConfirmModal = false;
+    this.confirmModalBoleto = undefined;
+    this.confirmModalGrupo = undefined;
+  }
+
+  ejecutarConfirmacion(): void {
+    if (!this.rifaId) {
+      this.cerrarModalConfirmacion();
       return;
     }
 
-    if (!confirm(`¿Deseas quitar la asignación de la agrupación "${grupo.nombre}" para dejarla libre para la venta?`)) {
-      return;
-    }
-
-    this.loading = true;
-    this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
-      next: () => {
-        this.success = `Se quitó la asignación de la agrupación "${grupo.nombre}". Ha quedado libre para la venta.`;
-        setTimeout(() => (this.success = ''), 3500);
-        this.loading = false;
-        this.cargarBoletos();
-        this.cargarEstadisticas();
-        this.aplicarFiltros();
-      },
-      error: () => {
-        this.error = 'No se pudo quitar la asignación de la agrupación.';
-        setTimeout(() => (this.error = ''), 3500);
-        this.loading = false;
+    if (this.confirmModalTipo === 'QUITAR_ASIGNACION') {
+      if (this.confirmModalBoleto) {
+        const boleto = this.confirmModalBoleto;
+        this.cerrarModalConfirmacion();
+        this.loading = true;
+        this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+          next: (actualizado) => {
+            this.success = `Se quitó la asignación del boleto #${actualizado.numero}. Ha quedado libre para la venta.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+          },
+          error: () => {
+            this.error = 'No se pudo quitar la asignación del boleto.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
       }
-    });
+
+      if (this.confirmModalGrupo) {
+        const grupo = this.confirmModalGrupo;
+        const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+        this.cerrarModalConfirmacion();
+        if (!boleto) return;
+        this.loading = true;
+        this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+          next: () => {
+            this.success = `Se quitó la asignación de la agrupación "${grupo.nombre}". Ha quedado libre para la venta.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+            this.aplicarFiltros();
+          },
+          error: () => {
+            this.error = 'No se pudo quitar la asignación de la agrupación.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+    }
+
+    if (this.confirmModalTipo === 'VACIAR') {
+      if (this.confirmModalBoleto) {
+        const boleto = this.confirmModalBoleto;
+        this.cerrarModalConfirmacion();
+        this.loading = true;
+        this.boletoService.vaciarBoleto(this.rifaId, boleto.id).subscribe({
+          next: (actualizado) => {
+            this.success = `El boleto #${actualizado.numero} fue vaciado con éxito y ahora está disponible completamente en blanco.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+          },
+          error: (err) => {
+            this.error = err?.error || 'No se pudo vaciar el boleto.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+
+      if (this.confirmModalGrupo) {
+        const grupo = this.confirmModalGrupo;
+        const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+        this.cerrarModalConfirmacion();
+        if (!boleto) return;
+        this.loading = true;
+        this.boletoService.vaciarBoleto(this.rifaId, boleto.id).subscribe({
+          next: () => {
+            this.success = `La agrupación "${grupo.nombre}" fue vaciada con éxito y ahora está disponible completamente en blanco.`;
+            setTimeout(() => (this.success = ''), 3500);
+            this.loading = false;
+            this.cargarBoletos();
+            this.cargarEstadisticas();
+            this.aplicarFiltros();
+          },
+          error: (err) => {
+            this.error = err?.error || 'No se pudo vaciar la agrupación.';
+            setTimeout(() => (this.error = ''), 3500);
+            this.loading = false;
+          }
+        });
+        return;
+      }
+    }
+
+    this.cerrarModalConfirmacion();
   }
 
   marcarVendido(boleto: Boleto): void {

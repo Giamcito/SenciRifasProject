@@ -669,4 +669,80 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
   tieneRifaSeleccionada(): boolean {
     return !!this.rifaId && !!this.rifa;
   }
+
+  showConfirmModal = false;
+  confirmModalTitulo = '';
+  confirmModalMensaje = '';
+  confirmModalSubmensaje = '';
+  confirmBoletoParaVaciar?: Boleto;
+  confirmGrupoParaVaciar?: GrupoConsulta;
+
+  cerrarModalConfirmacion(): void {
+    this.showConfirmModal = false;
+    this.confirmBoletoParaVaciar = undefined;
+    this.confirmGrupoParaVaciar = undefined;
+  }
+
+  vaciarBoleto(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmBoletoParaVaciar = boleto;
+    this.confirmGrupoParaVaciar = undefined;
+    this.confirmModalTitulo = `¿Vaciar boleto #${boleto.numero}?`;
+    this.confirmModalMensaje = 'El boleto pasará a estar DISPONIBLE completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  vaciarGrupo(grupo: GrupoConsulta, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.confirmBoletoParaVaciar = undefined;
+    this.confirmGrupoParaVaciar = grupo;
+    this.confirmModalTitulo = `¿Vaciar agrupación "${grupo.nombre}"?`;
+    this.confirmModalMensaje = 'Todos los boletos de esta agrupación pasarán a estar DISPONIBLES completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  ejecutarConfirmacionVaciar(): void {
+    const rifaId = this.rifaId || this.selectedRifaId;
+    if (!rifaId) {
+      this.cerrarModalConfirmacion();
+      return;
+    }
+
+    if (this.confirmBoletoParaVaciar) {
+      const boletoId = this.confirmBoletoParaVaciar.id;
+      this.cerrarModalConfirmacion();
+      this.boletoService.vaciarBoleto(rifaId, boletoId).subscribe({
+        next: () => {
+          this.cargarConsulta();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo vaciar el boleto.';
+        }
+      });
+      return;
+    }
+
+    if (this.confirmGrupoParaVaciar) {
+      const boleto = this.confirmGrupoParaVaciar.boletos?.[0];
+      this.cerrarModalConfirmacion();
+      if (!boleto) return;
+      this.boletoService.vaciarBoleto(rifaId, boleto.id).subscribe({
+        next: () => {
+          this.cargarConsulta();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo vaciar la agrupación.';
+        }
+      });
+      return;
+    }
+
+    this.cerrarModalConfirmacion();
+  }
 }

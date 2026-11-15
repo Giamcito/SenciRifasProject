@@ -36,6 +36,11 @@ export class VentaBoletosComponent implements OnInit {
   saldoPendienteGrupo: number = 0;
   cargandoGrupo: boolean = false;
   groupingRequired: boolean = false;
+  showConfirmModal: boolean = false;
+  confirmModalTipo: 'QUITAR_ASIGNACION' | 'VACIAR' = 'QUITAR_ASIGNACION';
+  confirmModalTitulo: string = '';
+  confirmModalMensaje: string = '';
+  confirmModalSubmensaje: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -282,7 +287,7 @@ export class VentaBoletosComponent implements OnInit {
     });
   }
 
-  quitarAsignacion() {
+  solicitarQuitarAsignacion(): void {
     if (this.groupingRequired) {
       this.error = 'Acción no permitida: esta rifa vende boletos en agrupación. Desagrupa la boleta primero.';
       return;
@@ -291,23 +296,87 @@ export class VentaBoletosComponent implements OnInit {
       this.error = 'Selecciona un boleto.';
       return;
     }
+    this.confirmModalTipo = 'QUITAR_ASIGNACION';
+    this.confirmModalTitulo = `¿Quitar asignación del boleto #${this.selectedBoleto.numero}?`;
+    this.confirmModalMensaje = 'El vendedor asignado será retirado y la boleta quedará libre para la venta.';
+    this.confirmModalSubmensaje = '';
+    this.showConfirmModal = true;
+  }
 
-    if (!confirm(`¿Deseas quitar la asignación del boleto #${this.selectedBoleto.numero} para dejarlo libre para la venta?`)) {
+  solicitarVaciarBoleto(): void {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación.';
+      return;
+    }
+    if (!this.selectedBoleto) {
+      this.error = 'Selecciona un boleto.';
+      return;
+    }
+    this.confirmModalTipo = 'VACIAR';
+    this.confirmModalTitulo = `¿Vaciar boleta #${this.selectedBoleto.numero}?`;
+    this.confirmModalMensaje = 'La boleta pasará a estar DISPONIBLE completamente en blanco.';
+    this.confirmModalSubmensaje = 'Se borrarán comprador, vendedor, fecha de venta, abonos y retiros asociados.';
+    this.showConfirmModal = true;
+  }
+
+  quitarAsignacion(): void {
+    this.solicitarQuitarAsignacion();
+  }
+
+  vaciarBoleto(): void {
+    this.solicitarVaciarBoleto();
+  }
+
+  cerrarModalConfirmacion(): void {
+    this.showConfirmModal = false;
+  }
+
+  ejecutarConfirmacion(): void {
+    if (!this.rifaId || !this.selectedBoleto) {
+      this.cerrarModalConfirmacion();
       return;
     }
 
-    this.error = '';
-    this.boletoService.quitarPropietario(this.rifaId, this.selectedBoleto.id).subscribe({
-      next: (b) => {
-        this.vendedorSeleccionadoId = undefined;
-        this.cargarBoletoSeleccionado(b);
-        this.success = `Se quitó la asignación del boleto ${b.numero}. Ha quedado libre para la venta.`;
-        this.loadBoletos();
-      },
-      error: (err) => {
-        this.error = err?.error || 'No se pudo quitar la asignación.';
-      }
-    });
+    if (this.confirmModalTipo === 'QUITAR_ASIGNACION') {
+      const boletoId = this.selectedBoleto.id;
+      this.cerrarModalConfirmacion();
+      this.error = '';
+      this.boletoService.quitarPropietario(this.rifaId, boletoId).subscribe({
+        next: (b) => {
+          this.vendedorSeleccionadoId = undefined;
+          this.cargarBoletoSeleccionado(b);
+          this.success = `Se quitó la asignación del boleto ${b.numero}. Ha quedado libre para la venta.`;
+          this.loadBoletos();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo quitar la asignación.';
+        }
+      });
+      return;
+    }
+
+    if (this.confirmModalTipo === 'VACIAR') {
+      const boletoId = this.selectedBoleto.id;
+      this.cerrarModalConfirmacion();
+      this.error = '';
+      this.boletoService.vaciarBoleto(this.rifaId, boletoId).subscribe({
+        next: (b) => {
+          this.vendedorSeleccionadoId = undefined;
+          this.compradorNombre = '';
+          this.compradorTelefono = '';
+          this.montoAbono = undefined;
+          this.cargarBoletoSeleccionado(b);
+          this.success = `La boleta #${b.numero} ha sido vaciada con éxito. Ahora está disponible completamente en blanco.`;
+          this.loadBoletos();
+        },
+        error: (err) => {
+          this.error = err?.error || 'No se pudo vaciar la boleta.';
+        }
+      });
+      return;
+    }
+
+    this.cerrarModalConfirmacion();
   }
 
   tieneVendedorAsignado(): boolean {

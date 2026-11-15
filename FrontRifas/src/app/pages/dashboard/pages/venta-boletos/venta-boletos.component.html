@@ -159,6 +159,15 @@
             [disabled]="groupingRequired || !tieneVendedorAsignado()">
             Quitar asignación
           </button>
+          <button
+            *ngIf="selectedBoleto.estadoVenta === 'VENDIDO' || selectedBoleto.estadoVenta === 'ABONADO'"
+            type="button"
+            class="btn-vaciar action-btn"
+            (click)="vaciarBoleto()"
+            [disabled]="groupingRequired"
+            title="Vaciar boleta y dejar disponible completamente en blanco">
+            🗑️ Vaciar boleta
+          </button>
         </div>
 
         <div class="field-group">
@@ -220,5 +229,47 @@
         <p>Ingresa el número y presiona Buscar para cargar el boleto y continuar con la venta o el abono.</p>
       </section>
     </ng-template>
+  </div>
+
+  <!-- Modal de confirmación para Quitar Asignación y Vaciar -->
+  <div class="modal-backdrop" *ngIf="showConfirmModal" (click)="cerrarModalConfirmacion()"></div>
+
+  <div class="modal-panel modal-confirm-panel" *ngIf="showConfirmModal">
+    <div class="modal-header">
+      <div class="confirm-header-content">
+        <span class="confirm-badge" [class.danger]="confirmModalTipo === 'VACIAR'" [class.warning]="confirmModalTipo === 'QUITAR_ASIGNACION'">
+          {{ confirmModalTipo === 'VACIAR' ? '🗑️' : '⚠️' }}
+        </span>
+        <div>
+          <h3>{{ confirmModalTitulo }}</h3>
+          <p>{{ confirmModalMensaje }}</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close" (click)="cerrarModalConfirmacion()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="confirmModalSubmensaje">
+      <div class="confirm-alert-box" [class.danger]="confirmModalTipo === 'VACIAR'" [class.warning]="confirmModalTipo === 'QUITAR_ASIGNACION'">
+        {{ confirmModalSubmensaje }}
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="cerrarModalConfirmacion()">Cancelar</button>
+      <button
+        *ngIf="confirmModalTipo === 'VACIAR'"
+        type="button"
+        class="btn-danger"
+        (click)="ejecutarConfirmacion()">
+        Sí, vaciar
+      </button>
+      <button
+        *ngIf="confirmModalTipo === 'QUITAR_ASIGNACION'"
+        type="button"
+        class="btn-warning-action"
+        (click)="ejecutarConfirmacion()">
+        Sí, quitar asignación
+      </button>
+    </div>
   </div>
 </div>

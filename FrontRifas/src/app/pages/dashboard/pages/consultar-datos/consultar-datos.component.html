@@ -168,6 +168,11 @@
             <div><span>Abonado</span><strong>{{ formatoMoneda(grupo.montoAbonado) }}</strong></div>
             <div><span>Saldo pendiente</span><strong>{{ formatoMoneda(grupo.saldoPendiente) }}</strong></div>
             <div><span>Fecha</span><strong>{{ grupo.fechaVenta ? (grupo.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
+            <div *ngIf="grupo.estadoVenta === 'VENDIDO' || grupo.estadoVenta === 'ABONADO'" class="card-acciones-consultar">
+              <button type="button" class="btn-vaciar-mini" (click)="vaciarGrupo(grupo, $event)" title="Vaciar agrupación (dejar disponible en blanco)">
+                🗑️ Vaciar
+              </button>
+            </div>
           </div>
         </article>
       </div>
@@ -210,6 +215,11 @@
             <div><span>Teléfono</span><strong>{{ boleto.compradorTelefono || 'Sin dato' }}</strong></div>
             <div><span>Abonado</span><strong>{{ formatoMoneda(boleto.montoAbonado || 0) }}</strong></div>
             <div><span>Fecha</span><strong>{{ boleto.fechaVenta ? (boleto.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
+            <div *ngIf="boleto.estadoVenta === 'VENDIDO' || boleto.estadoVenta === 'ABONADO'" class="card-acciones-consultar">
+              <button type="button" class="btn-vaciar-mini" (click)="vaciarBoleto(boleto, $event)" title="Vaciar boleta (dejar disponible en blanco)">
+                🗑️ Vaciar
+              </button>
+            </div>
           </div>
         </article>
       </div>
@@ -240,4 +250,36 @@
     {{ error }}
   </div>
   <button class="btn btn-primary" type="button" (click)="volverAdministracion()">Ir a administrar rifas</button>
+</div>
+
+<!-- Modal de confirmación para Vaciar -->
+<div class="modal-backdrop" *ngIf="showConfirmModal" (click)="cerrarModalConfirmacion()"></div>
+
+<div class="modal-panel modal-confirm-panel" *ngIf="showConfirmModal">
+  <div class="modal-header">
+    <div class="confirm-header-content">
+      <span class="confirm-badge danger">🗑️</span>
+      <div>
+        <h3>{{ confirmModalTitulo }}</h3>
+        <p>{{ confirmModalMensaje }}</p>
+      </div>
+    </div>
+    <button type="button" class="modal-close" (click)="cerrarModalConfirmacion()">×</button>
+  </div>
+
+  <div class="modal-body" *ngIf="confirmModalSubmensaje">
+    <div class="confirm-alert-box danger">
+      {{ confirmModalSubmensaje }}
+    </div>
+  </div>
+
+  <div class="modal-actions">
+    <button type="button" class="btn btn-secondary" (click)="cerrarModalConfirmacion()">Cancelar</button>
+    <button
+      type="button"
+      class="btn btn-danger"
+      (click)="ejecutarConfirmacionVaciar()">
+      Sí, vaciar
+    </button>
+  </div>
 </div>
