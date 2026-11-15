@@ -129,8 +129,9 @@
   <div class="tickets-panel" *ngIf="tieneRifaSeleccionada() && !loadingConsulta && consulta">
     <div class="tickets-panel-header">
       <div>
-        <h4>Boletas del vendedor</h4>
-        <p>Mostrando {{ rangoVisibleBoletos() }}</p>
+        <h4>Asignaciones del vendedor</h4>
+        <p *ngIf="tieneGrupos()">Grupos: {{ rangoVisibleGrupos() }} | Boletas individuales: {{ rangoVisibleBoletos() }}</p>
+        <p *ngIf="!tieneGrupos()">Mostrando {{ rangoVisibleBoletos() }}</p>
       </div>
       <div class="ticket-legend">
         <span class="legend-item"><i class="dot vendido"></i> Vendido</span>
@@ -140,41 +141,96 @@
       </div>
     </div>
 
-    <div class="boletos-grid" *ngIf="obtenerBoletosVisibles().length > 0">
-      <article class="boleto-card" *ngFor="let boleto of obtenerBoletosVisibles(); trackBy: trackByBoletoId">
-        <div class="boleto-top">
-          <strong>#{{ boleto.numero }}</strong>
-          <span class="estado-badge" [style.backgroundColor]="colorEstado(estadoVisual(boleto))">{{ estadoVisual(boleto) }}</span>
-        </div>
-
-        <div class="boleto-body">
-          <div *ngIf="boleto.grupoId"><span>Agrupación</span><strong>{{ tipoAgrupacion(boleto) }}</strong></div>
-          <div *ngIf="boleto.grupoVendedorNombre"><span>Vendedor grupo</span><strong>{{ boleto.grupoVendedorNombre }}</strong></div>
-          <div *ngIf="boleto.grupoId"><span>Saldo grupo</span><strong>{{ saldoAgrupacion(boleto) }}</strong></div>
-          <div><span>Comprador</span><strong>{{ boleto.compradorNombre || 'Sin dato' }}</strong></div>
-          <div><span>Teléfono</span><strong>{{ boleto.compradorTelefono || 'Sin dato' }}</strong></div>
-          <div><span>Abonado</span><strong>{{ formatoMoneda(boleto.montoAbonado || 0) }}</strong></div>
-          <div><span>Fecha</span><strong>{{ boleto.fechaVenta ? (boleto.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
-        </div>
-      </article>
-    </div>
-
-    <div class="empty-state" *ngIf="obtenerBoletosFiltrados().length === 0">
-      <p>No hay boletas que coincidan con el filtro actual.</p>
-    </div>
-
-    <div class="pagination-bar" *ngIf="obtenerBoletosFiltrados().length > 0">
-      <button class="btn btn-secondary" type="button" (click)="paginaAnteriorBoletos()" [disabled]="paginaBoletos === 0">
-        Anterior
-      </button>
-
-      <div class="pagination-info">
-        Página {{ paginaBoletos + 1 }} de {{ obtenerTotalPaginasBoletos() }}
+    <!-- SECCIÓN DE AGRUPACIONES (en caso de que hayan grupos) -->
+    <div class="subseccion-panel" *ngIf="tieneGrupos()">
+      <div class="subseccion-header">
+        <h5>📁 Agrupaciones ({{ obtenerGruposFiltrados().length }})</h5>
+        <span class="subseccion-rango">Página {{ paginaGrupos + 1 }} de {{ obtenerTotalPaginasGrupos() }} (máx. 10 por página)</span>
       </div>
 
-      <button class="btn btn-secondary" type="button" (click)="paginaSiguienteBoletos()" [disabled]="paginaBoletos + 1 >= obtenerTotalPaginasBoletos()">
-        Siguiente
-      </button>
+      <div class="grupos-grid" *ngIf="obtenerGruposVisibles().length > 0">
+        <article class="grupo-card" *ngFor="let grupo of obtenerGruposVisibles(); trackBy: trackByGrupoId">
+          <div class="grupo-top">
+            <strong>📁 {{ grupo.nombre }}</strong>
+            <span class="estado-badge" [style.backgroundColor]="colorEstado(estadoVisualGrupo(grupo))">{{ estadoVisualGrupo(grupo) }}</span>
+          </div>
+
+          <div class="grupo-body">
+            <div>
+              <span>Boletas agrupadas ({{ grupo.boletos.length }})</span>
+              <div class="grupo-boletos-chips">
+                <span class="grupo-chip" *ngFor="let num of grupo.numeros">#{{ num }}</span>
+              </div>
+            </div>
+            <div><span>Vendedor</span><strong>{{ grupo.vendedorNombre || consulta.vendedorNombre }}</strong></div>
+            <div><span>Comprador</span><strong>{{ grupo.compradorNombre || 'Sin dato' }}</strong></div>
+            <div><span>Teléfono</span><strong>{{ grupo.compradorTelefono || 'Sin dato' }}</strong></div>
+            <div><span>Abonado</span><strong>{{ formatoMoneda(grupo.montoAbonado) }}</strong></div>
+            <div><span>Saldo pendiente</span><strong>{{ formatoMoneda(grupo.saldoPendiente) }}</strong></div>
+            <div><span>Fecha</span><strong>{{ grupo.fechaVenta ? (grupo.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-state" *ngIf="obtenerGruposFiltrados().length === 0">
+        <p>No hay agrupaciones que coincidan con el filtro actual.</p>
+      </div>
+
+      <div class="pagination-bar" *ngIf="obtenerGruposFiltrados().length > 0">
+        <button class="btn btn-secondary" type="button" (click)="paginaAnteriorGrupos()" [disabled]="paginaGrupos === 0">
+          Anterior
+        </button>
+
+        <div class="pagination-info">
+          Página {{ paginaGrupos + 1 }} de {{ obtenerTotalPaginasGrupos() }}
+        </div>
+
+        <button class="btn btn-secondary" type="button" (click)="paginaSiguienteGrupos()" [disabled]="paginaGrupos + 1 >= obtenerTotalPaginasGrupos()">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE BOLETAS INDIVIDUALES -->
+    <div class="subseccion-panel">
+      <div class="subseccion-header">
+        <h5>🎟️ Boletas individuales ({{ obtenerBoletosFiltrados().length }})</h5>
+        <span class="subseccion-rango">Página {{ paginaBoletos + 1 }} de {{ obtenerTotalPaginasBoletos() }} (máx. 20 por página)</span>
+      </div>
+
+      <div class="boletos-grid" *ngIf="obtenerBoletosVisibles().length > 0">
+        <article class="boleto-card" *ngFor="let boleto of obtenerBoletosVisibles(); trackBy: trackByBoletoId">
+          <div class="boleto-top">
+            <strong>#{{ boleto.numero }}</strong>
+            <span class="estado-badge" [style.backgroundColor]="colorEstado(estadoVisual(boleto))">{{ estadoVisual(boleto) }}</span>
+          </div>
+
+          <div class="boleto-body">
+            <div><span>Comprador</span><strong>{{ boleto.compradorNombre || 'Sin dato' }}</strong></div>
+            <div><span>Teléfono</span><strong>{{ boleto.compradorTelefono || 'Sin dato' }}</strong></div>
+            <div><span>Abonado</span><strong>{{ formatoMoneda(boleto.montoAbonado || 0) }}</strong></div>
+            <div><span>Fecha</span><strong>{{ boleto.fechaVenta ? (boleto.fechaVenta | date:'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</strong></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-state" *ngIf="obtenerBoletosFiltrados().length === 0">
+        <p>No hay boletas individuales que coincidan con el filtro actual.</p>
+      </div>
+
+      <div class="pagination-bar" *ngIf="obtenerBoletosFiltrados().length > 0">
+        <button class="btn btn-secondary" type="button" (click)="paginaAnteriorBoletos()" [disabled]="paginaBoletos === 0">
+          Anterior
+        </button>
+
+        <div class="pagination-info">
+          Página {{ paginaBoletos + 1 }} de {{ obtenerTotalPaginasBoletos() }}
+        </div>
+
+        <button class="btn btn-secondary" type="button" (click)="paginaSiguienteBoletos()" [disabled]="paginaBoletos + 1 >= obtenerTotalPaginasBoletos()">
+          Siguiente
+        </button>
+      </div>
     </div>
   </div>
 </div>
