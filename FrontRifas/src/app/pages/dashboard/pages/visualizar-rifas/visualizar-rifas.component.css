@@ -370,6 +370,59 @@
   transition: all 0.3s ease;
   background: white;
   cursor: pointer;
+  position: relative;
+}
+
+.btn-quitar-asignacion {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  z-index: 5;
+}
+
+.btn-quitar-asignacion:hover {
+  background: #dc2626;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.grupo-result-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-quitar-asignacion-grupo {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-quitar-asignacion-grupo:hover {
+  background: #dc2626;
+  color: white;
 }
 
 .boleto-card:hover {

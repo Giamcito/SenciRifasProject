@@ -93,9 +93,19 @@
               <div>
                 <h3>{{ grupo.nombre }}</h3>
               </div>
-              <span class="grupo-result-badge" [style.backgroundColor]="obtenerColorPorEstado(grupo.estadoVenta)">
-                {{ grupo.estadoVenta }}
-              </span>
+              <div class="grupo-result-header-actions">
+                <button
+                  *ngIf="grupo.vendedorId || grupo.vendedorNombre"
+                  type="button"
+                  class="btn-quitar-asignacion-grupo"
+                  (click)="quitarAsignacionGrupo(grupo, $event)"
+                  title="Quitar asignación (dejar libre para la venta)">
+                  ✕ Quitar asignación
+                </button>
+                <span class="grupo-result-badge" [style.backgroundColor]="obtenerColorPorEstado(grupo.estadoVenta)">
+                  {{ grupo.estadoVenta }}
+                </span>
+              </div>
             </div>
 
             <div class="grupo-result-stats">
@@ -180,6 +190,15 @@
                 [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
                 [class.abonado]="boleto.estadoVenta === 'ABONADO'"
                 [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
+
+              <button
+                *ngIf="boleto.vendedorId || boleto.vendedorNombre"
+                type="button"
+                class="btn-quitar-asignacion"
+                (click)="quitarAsignacion(boleto, $event)"
+                title="Quitar asignación (dejar libre para la venta)">
+                ✕
+              </button>
 
               <div class="boleto-numero">{{ boleto.numero }}</div>
 

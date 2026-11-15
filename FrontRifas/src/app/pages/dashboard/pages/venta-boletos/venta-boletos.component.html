@@ -72,15 +72,15 @@
           <p class="panel-kicker">2. Registro</p>
           <h3>Boleto {{ selectedBoleto.numero }}</h3>
         </div>
-        <span class="status-pill" [style.backgroundColor]="selectedBoleto.estadoVenta === 'VENDIDO' ? '#e74c3c' : (selectedBoleto.estadoVenta === 'ABONADO' ? '#f39c12' : '#27ae60')">
-          {{ selectedBoleto.estadoVenta }}
+        <span class="status-pill" [style.backgroundColor]="colorEstado(estadoVisual(selectedBoleto))">
+          {{ estadoVisual(selectedBoleto) }}
         </span>
       </div>
 
       <div class="detail-summary">
         <div class="summary-item">
           <span>Estado</span>
-          <strong>{{ selectedBoleto.estadoVenta }}</strong>
+          <strong>{{ estadoVisual(selectedBoleto) }}</strong>
         </div>
         <div class="summary-item">
           <span>Monto abonado</span>
@@ -136,6 +136,13 @@
 
         <div class="owner-actions">
           <button type="button" class="btn-secondary action-btn" (click)="asignarPropietario()" [disabled]="groupingRequired">Asignar propietario</button>
+          <button
+            type="button"
+            class="btn-danger action-btn"
+            (click)="quitarAsignacion()"
+            [disabled]="groupingRequired || !tieneVendedorAsignado()">
+            Quitar asignación
+          </button>
         </div>
 
         <div class="field-group">

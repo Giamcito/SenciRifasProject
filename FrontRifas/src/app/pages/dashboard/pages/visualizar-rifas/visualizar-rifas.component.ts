@@ -414,6 +414,66 @@ export class VisualizarRifasComponent implements OnInit {
     this.abrirModal(boleto, 'PROPIETARIO');
   }
 
+  quitarAsignacion(boleto: Boleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.rifaId) {
+      return;
+    }
+
+    if (!confirm(`¿Deseas quitar la asignación del boleto #${boleto.numero} para dejarlo libre para la venta?`)) {
+      return;
+    }
+
+    this.loading = true;
+    this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+      next: (actualizado) => {
+        this.success = `Se quitó la asignación del boleto #${actualizado.numero}. Ha quedado libre para la venta.`;
+        setTimeout(() => (this.success = ''), 3500);
+        this.loading = false;
+        this.cargarBoletos();
+        this.cargarEstadisticas();
+      },
+      error: () => {
+        this.error = 'No se pudo quitar la asignación del boleto.';
+        setTimeout(() => (this.error = ''), 3500);
+        this.loading = false;
+      }
+    });
+  }
+
+  quitarAsignacionGrupo(grupo: GrupoBoleto, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const boleto = this.obtenerBoletoPrincipalGrupo(grupo);
+    if (!boleto || !this.rifaId) {
+      return;
+    }
+
+    if (!confirm(`¿Deseas quitar la asignación de la agrupación "${grupo.nombre}" para dejarla libre para la venta?`)) {
+      return;
+    }
+
+    this.loading = true;
+    this.boletoService.quitarPropietario(this.rifaId, boleto.id).subscribe({
+      next: () => {
+        this.success = `Se quitó la asignación de la agrupación "${grupo.nombre}". Ha quedado libre para la venta.`;
+        setTimeout(() => (this.success = ''), 3500);
+        this.loading = false;
+        this.cargarBoletos();
+        this.cargarEstadisticas();
+        this.aplicarFiltros();
+      },
+      error: () => {
+        this.error = 'No se pudo quitar la asignación de la agrupación.';
+        setTimeout(() => (this.error = ''), 3500);
+        this.loading = false;
+      }
+    });
+  }
+
   marcarVendido(boleto: Boleto): void {
     this.abrirModal(boleto, 'VENDER');
   }

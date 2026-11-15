@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Boleto } from '../../../../models/boleto';
+import { Boleto, EstadoVenta } from '../../../../models/boleto';
 import { GrupoBoleto } from '../../../../models/grupo';
 import { Rifa } from '../../../../models/rifa';
 import { BoletoService } from '../../../../services/boleto.service';
@@ -278,6 +278,60 @@ export class VentaBoletosComponent implements OnInit {
         this.error = err?.error || 'No se pudo asignar el propietario.';
       }
     });
+  }
+
+  quitarAsignacion() {
+    if (this.groupingRequired) {
+      this.error = 'Acción no permitida: esta rifa vende boletos en agrupación. Desagrupa la boleta primero.';
+      return;
+    }
+    if (!this.selectedBoleto) {
+      this.error = 'Selecciona un boleto.';
+      return;
+    }
+
+    if (!confirm(`¿Deseas quitar la asignación del boleto #${this.selectedBoleto.numero} para dejarlo libre para la venta?`)) {
+      return;
+    }
+
+    this.error = '';
+    this.boletoService.quitarPropietario(this.rifaId, this.selectedBoleto.id).subscribe({
+      next: (b) => {
+        this.vendedorSeleccionadoId = undefined;
+        this.cargarBoletoSeleccionado(b);
+        this.success = `Se quitó la asignación del boleto ${b.numero}. Ha quedado libre para la venta.`;
+        this.loadBoletos();
+      },
+      error: (err) => {
+        this.error = err?.error || 'No se pudo quitar la asignación.';
+      }
+    });
+  }
+
+  tieneVendedorAsignado(): boolean {
+    return Boolean(this.selectedBoleto && (this.selectedBoleto.vendedorId || this.selectedBoleto.vendedorNombre));
+  }
+
+  estadoVisual(boleto?: Boleto): EstadoVenta {
+    if (!boleto) {
+      return 'DISPONIBLE';
+    }
+    if (boleto.estadoVenta === 'DISPONIBLE' && (boleto.vendedorId || boleto.vendedorNombre)) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
+  }
+
+  colorEstado(estado: EstadoVenta | string): string {
+    switch (estado) {
+      case 'VENDIDO': return '#e74c3c';
+      case 'ABONADO':
+      case 'RESERVADO': return '#f39c12';
+      case 'ASIGNADO': return '#8b5cf6';
+      case 'DISPONIBLE': return '#27ae60';
+      case 'CANCELADO': return '#64748b';
+      default: return '#94a3b8';
+    }
   }
 
   pagar() {
