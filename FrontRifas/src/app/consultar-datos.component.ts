@@ -16,13 +16,16 @@ interface ResumenVendedorConsulta {
   dineroRecogido: number;
   dineroRetirado: number;
   dineroAbonos: number;
+  totalBoletas: number;
+  totalVendidas: number;
+  totalAbonadas: number;
 }
 
 @Component({
-    selector: 'app-consultar-datos',
-    imports: [CommonModule, FormsModule],
-    templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
-    styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
+  selector: 'app-consultar-datos',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.html',
+  styleUrl: './pages/dashboard/pages/consultar-datos/consultar-datos.component.css'
 })
 export class ConsultarDatosComponent implements OnInit, OnDestroy {
   readonly boletosPorPagina = 100;
@@ -40,7 +43,10 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
   resumenGeneral = {
     dineroRecogido: 0,
     dineroRecogidoVendedores: 0,
-    dineroAbonos: 0
+    dineroAbonos: 0,
+    totalBoletasAsignadas: 0,
+    totalBoletasAbonadas: 0,
+    totalBoletasVendidas: 0
   };
   loading = false;
   loadingRifas = false;
@@ -53,7 +59,12 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     }
   };
 
-  readonly estadoOpciones: Array<EstadoVenta | 'TODOS'> = ['TODOS', 'DISPONIBLE', 'ABONADO', 'VENDIDO', 'RESERVADO', 'CANCELADO'];
+  readonly estadoOpciones: Array<{ valor: EstadoVenta | 'TODOS'; label: string }> = [
+    { valor: 'TODOS', label: 'TODOS' },
+    { valor: 'ASIGNADO', label: 'ASIGNADOS' },
+    { valor: 'ABONADO', label: 'ABONADO' },
+    { valor: 'VENDIDO', label: 'VENDIDO' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -61,7 +72,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     private rifaService: RifaService,
     private vendedorService: VendedorService,
     private boletoService: BoletoService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     window.addEventListener('focus', this.refreshOnFocus);
@@ -206,7 +217,11 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
     this.error = '';
     this.paginaBoletos = 0;
 
-    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, this.selectedEstado).subscribe({
+    const estadoParam = (this.selectedEstado as string) === 'ASIGNADO' || (this.selectedEstado as string) === 'Asignados'
+      ? 'DISPONIBLE'
+      : this.selectedEstado;
+
+    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, estadoParam).subscribe({
       next: (consulta) => {
         this.consulta = {
           ...consulta,
@@ -225,7 +240,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
   cargarResumenVendedores(): void {
     if (!this.rifaId || this.vendedores.length === 0) {
       this.resumenVendedores = [];
-      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
       return;
     }
 
@@ -233,7 +248,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
 
     if (vendedoresConId.length === 0) {
       this.resumenVendedores = [];
-      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+      this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
       return;
     }
 
@@ -255,12 +270,15 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
             }
 
             return {
-                  vendedorId: vendedor.id,
-                  vendedorNombre: vendedor.nombre,
+              vendedorId: vendedor.id,
+              vendedorNombre: vendedor.nombre,
               dineroRecogido: Number(consulta.dineroRecogido || 0),
               dineroRetirado: this.calcularDineroRetirado(consulta),
-                  dineroAbonos: this.calcularDineroAbonos(consulta)
-                } as ResumenVendedorConsulta;
+              dineroAbonos: this.calcularDineroAbonos(consulta),
+              totalBoletas: Number(consulta.totalBoletas || 0),
+              totalVendidas: Number(consulta.totalVendidas || 0),
+              totalAbonadas: Number(consulta.totalAbonadas || 0)
+            } as ResumenVendedorConsulta;
           })
           .filter((resumen): resumen is ResumenVendedorConsulta => resumen !== null);
 
@@ -270,7 +288,7 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.resumenVendedores = [];
-        this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0 };
+        this.resumenGeneral = { dineroRecogido: 0, dineroRecogidoVendedores: 0, dineroAbonos: 0, totalBoletasAsignadas: 0, totalBoletasAbonadas: 0, totalBoletasVendidas: 0 };
         this.loadingResumenVendedores = false;
       }
     });
@@ -353,6 +371,18 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       dineroAbonos: vendedoresSeleccionados.reduce((total, vendedor) => {
         const resumen = resumenesPorVendedor.get(vendedor.id as number);
         return total + Number(resumen?.dineroAbonos || 0);
+      }, 0),
+      totalBoletasAsignadas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalBoletas || 0);
+      }, 0),
+      totalBoletasAbonadas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalAbonadas || 0);
+      }, 0),
+      totalBoletasVendidas: vendedoresSeleccionados.reduce((total, vendedor) => {
+        const resumen = resumenesPorVendedor.get(vendedor.id as number);
+        return total + Number(resumen?.totalVendidas || 0);
       }, 0)
     };
   }
@@ -464,6 +494,8 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       case 'ABONADO':
       case 'RESERVADO':
         return '#f39c12';
+      case 'ASIGNADO':
+        return '#8b5cf6';
       case 'DISPONIBLE':
         return '#27ae60';
       case 'CANCELADO':
@@ -471,6 +503,13 @@ export class ConsultarDatosComponent implements OnInit, OnDestroy {
       default:
         return '#94a3b8';
     }
+  }
+
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
   }
 
   volverAdministracion(): void {

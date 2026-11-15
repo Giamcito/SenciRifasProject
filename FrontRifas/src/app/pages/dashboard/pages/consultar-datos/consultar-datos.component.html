@@ -54,7 +54,7 @@
     <div class="control-card">
       <label for="estado">Filtrar por estado</label>
       <select id="estado" [(ngModel)]="selectedEstado" (ngModelChange)="cargarConsulta()">
-        <option *ngFor="let estado of estadoOpciones" [ngValue]="estado">{{ estado }}</option>
+        <option *ngFor="let opcion of estadoOpciones" [ngValue]="opcion.valor">{{ opcion.label }}</option>
       </select>
     </div>
 
@@ -84,6 +84,18 @@
         <article class="stat-card gray">
       <span>Total de abonos general</span>
       <strong>{{ formatoMoneda(resumenGeneral.dineroAbonos) }}</strong>
+    </article>
+    <article class="stat-card slate">
+      <span>Boletas asignadas (General)</span>
+      <strong>{{ resumenGeneral.totalBoletasAsignadas }}</strong>
+    </article>
+    <article class="stat-card red">
+      <span>Boletas vendidas (General)</span>
+      <strong>{{ resumenGeneral.totalBoletasVendidas }}</strong>
+    </article>
+    <article class="stat-card amber">
+      <span>Boletas abonadas (General)</span>
+      <strong>{{ resumenGeneral.totalBoletasAbonadas }}</strong>
     </article>
 
     <article class="stat-card blue">
@@ -123,6 +135,7 @@
       <div class="ticket-legend">
         <span class="legend-item"><i class="dot vendido"></i> Vendido</span>
         <span class="legend-item"><i class="dot abonado"></i> Abonado</span>
+        <span class="legend-item"><i class="dot asignado"></i> Asignado</span>
         <span class="legend-item"><i class="dot disponible"></i> Disponible</span>
       </div>
     </div>
@@ -131,7 +144,7 @@
       <article class="boleto-card" *ngFor="let boleto of obtenerBoletosVisibles(); trackBy: trackByBoletoId">
         <div class="boleto-top">
           <strong>#{{ boleto.numero }}</strong>
-          <span class="estado-badge" [style.backgroundColor]="colorEstado(boleto.estadoVenta)">{{ boleto.estadoVenta }}</span>
+          <span class="estado-badge" [style.backgroundColor]="colorEstado(estadoVisual(boleto))">{{ estadoVisual(boleto) }}</span>
         </div>
 
         <div class="boleto-body">

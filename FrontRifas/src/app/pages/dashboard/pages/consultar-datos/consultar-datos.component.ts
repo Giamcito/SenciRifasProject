@@ -27,7 +27,12 @@ export class ConsultarDatosComponent implements OnInit {
   loadingConsulta = false;
   error = '';
 
-  readonly estadoOpciones: Array<EstadoVenta | 'TODOS'> = ['TODOS', 'DISPONIBLE', 'ABONADO', 'VENDIDO', 'RESERVADO', 'CANCELADO'];
+  readonly estadoOpciones: Array<{ valor: EstadoVenta | 'TODOS'; label: string }> = [
+    { valor: 'TODOS', label: 'TODOS' },
+    { valor: 'ASIGNADO', label: 'Asignados' },
+    { valor: 'ABONADO', label: 'ABONADO' },
+    { valor: 'VENDIDO', label: 'VENDIDO' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -107,7 +112,11 @@ export class ConsultarDatosComponent implements OnInit {
     this.loadingConsulta = true;
     this.error = '';
 
-    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, this.selectedEstado).subscribe({
+    const estadoParam = (this.selectedEstado as string) === 'ASIGNADO' || (this.selectedEstado as string) === 'Asignados'
+      ? 'DISPONIBLE'
+      : this.selectedEstado;
+
+    this.boletoService.obtenerConsultaVendedor(this.rifaId, this.selectedVendedorId, estadoParam).subscribe({
       next: (consulta) => {
         this.consulta = consulta;
         this.loadingConsulta = false;
@@ -170,6 +179,8 @@ export class ConsultarDatosComponent implements OnInit {
       case 'ABONADO':
       case 'RESERVADO':
         return '#f39c12';
+      case 'ASIGNADO':
+        return '#8b5cf6';
       case 'DISPONIBLE':
         return '#27ae60';
       case 'CANCELADO':
@@ -177,6 +188,13 @@ export class ConsultarDatosComponent implements OnInit {
       default:
         return '#94a3b8';
     }
+  }
+
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
   }
 
   volverAdministracion(): void {

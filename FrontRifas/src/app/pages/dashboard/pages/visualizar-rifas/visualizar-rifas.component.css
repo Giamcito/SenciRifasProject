@@ -382,6 +382,11 @@
   background: #f0f8f5;
 }
 
+.boleto-card.asignado {
+  border-color: #8b5cf6;
+  background: #f3f0ff;
+}
+
 .boleto-card.vendido {
   border-color: #e74c3c;
   background: #ffe6e6;

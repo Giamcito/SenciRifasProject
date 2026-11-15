@@ -619,6 +619,8 @@ export class VisualizarRifasComponent implements OnInit {
     switch (estadoNormalizado) {
       case 'DISPONIBLE':
         return '#27ae60'; // Verde
+      case 'ASIGNADO':
+        return '#8b5cf6'; // Violeta
       case 'AGRUPADA':
         return '#3b82f6'; // Azul
       case 'VENDIDO':
@@ -631,6 +633,13 @@ export class VisualizarRifasComponent implements OnInit {
       default:
         return '#95a5a6'; // Gris
     }
+  }
+
+  estadoVisual(boleto: Boleto): EstadoVenta {
+    if (boleto.estadoVenta === 'DISPONIBLE' && boleto.vendedorId) {
+      return 'ASIGNADO';
+    }
+    return boleto.estadoVenta;
   }
 
   volver(): void {

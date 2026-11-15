@@ -175,7 +175,8 @@
           <div class="boletos-grid" *ngIf="boletos.length > 0">
             <div *ngFor="let boleto of boletos; trackBy: trackByBoletoId"
                 class="boleto-card"
-                [class.disponible]="boleto.estadoVenta === 'DISPONIBLE'"
+                [class.disponible]="estadoVisual(boleto) === 'DISPONIBLE'"
+                [class.asignado]="estadoVisual(boleto) === 'ASIGNADO'"
                 [class.vendido]="boleto.estadoVenta === 'VENDIDO'"
                 [class.abonado]="boleto.estadoVenta === 'ABONADO'"
                 [class.cancelado]="boleto.estadoVenta === 'CANCELADO'">
@@ -183,8 +184,8 @@
               <div class="boleto-numero">{{ boleto.numero }}</div>
 
               <div class="boleto-estado">
-                <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(boleto.estadoVenta)">
-                  {{ boleto.estadoVenta }}
+                <span class="badge" [style.backgroundColor]="obtenerColorPorEstado(estadoVisual(boleto))">
+                  {{ estadoVisual(boleto) }}
                 </span>
               </div>
 

@@ -1,4 +1,4 @@
-export type EstadoVenta = 'DISPONIBLE' | 'AGRUPADA' | 'VENDIDO' | 'ABONADO' | 'RESERVADO' | 'CANCELADO';
+export type EstadoVenta = 'DISPONIBLE' | 'ASIGNADO' | 'AGRUPADA' | 'VENDIDO' | 'ABONADO' | 'RESERVADO' | 'CANCELADO';
 
 export interface Boleto {
   id: number;
@@ -41,4 +41,4 @@ export interface BoletoPage {
   last: boolean;
 }
 
-export const EstadoVentaValues: EstadoVenta[] = ['DISPONIBLE', 'AGRUPADA', 'VENDIDO', 'ABONADO', 'RESERVADO', 'CANCELADO'];
+export const EstadoVentaValues: EstadoVenta[] = ['DISPONIBLE', 'ASIGNADO', 'AGRUPADA', 'VENDIDO', 'ABONADO', 'RESERVADO', 'CANCELADO'];
