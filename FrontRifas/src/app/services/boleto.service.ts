@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Boleto, BoletoPage, Estadisticas, EstadoVenta } from '../models/boleto';
 import { AuthService } from './auth.service';
 
@@ -21,7 +22,7 @@ export interface ConsultaVendedor {
   providedIn: 'root'
 })
 export class BoletoService {
-  private apiUrl = 'http://localhost:8080/api/rifas';
+  private apiUrl = `${environment.apiUrl}/rifas`;
 
   constructor(
     private http: HttpClient,

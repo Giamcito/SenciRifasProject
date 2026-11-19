@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
 export interface Vendedor {
@@ -16,7 +17,7 @@ export interface Vendedor {
   providedIn: 'root'
 })
 export class VendedorService {
-  private apiUrl = 'http://localhost:8080/api/vendedores';
+  private apiUrl = `${environment.apiUrl}/vendedores`;
 
   constructor(
     private http: HttpClient,
