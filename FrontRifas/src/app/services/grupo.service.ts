@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Boleto, GrupoBoleto } from '../models/grupo';
 
 export interface BoletoPageResponse {
@@ -17,7 +18,7 @@ export interface BoletoPageResponse {
   providedIn: 'root'
 })
 export class GrupoService {
-  private apiUrl = 'http://localhost:8080/api/rifas';
+  private apiUrl = `${environment.apiUrl}/rifas`;
 
   constructor(private http: HttpClient) { }
 

@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Rifa } from '../models/rifa';
 import { AuthService } from './auth.service';
 
@@ -8,7 +9,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class RifaService {
-  private apiUrl = 'http://localhost:8080/api/rifas';
+  private apiUrl = `${environment.apiUrl}/rifas`;
 
   constructor(
     private http: HttpClient,
